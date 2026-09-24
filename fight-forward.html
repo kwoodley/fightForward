@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fight Forward · Scenarios</title>
+  <meta name="description" content="Real-life scenarios. Make the call, see where it leads.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <style>
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 var(--gutter); }
+
+    .back {
+      display: flex; width: fit-content; margin-bottom: 10px; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 14px; text-decoration: none;
+    }
+    .back:hover { color: var(--text); }
+
+    /* ---------- Header ---------- */
+    .page-head {
+      padding: clamp(24px, 4vw, 44px) 0 clamp(20px, 3vw, 32px);
+      display: flex; gap: clamp(16px, 3vw, 28px); align-items: center;
+    }
+    .page-badge {
+      flex: none;
+      width: clamp(84px, 14vw, 120px); aspect-ratio: 1;
+      border-radius: var(--radius);
+      background: #e4e4e6; /* matches the badge JPG's own background so its edges disappear */
+      display: grid; place-items: center;
+      border-bottom: 3px solid var(--red);
+      overflow: hidden;
+    }
+    .page-badge img { width: 80%; height: 80%; object-fit: contain; }
+    .page-head .eyebrow { display: block; margin-bottom: 6px; }
+    .page-head h1 {
+      font-family: "Anton", Impact, sans-serif; font-weight: 400;
+      font-size: clamp(32px, 6vw, 60px); line-height: 1.02;
+      text-transform: uppercase; margin: 0;
+    }
+    .page-head h1 span { color: var(--red); }
+    .page-head p { margin: 8px 0 0; color: var(--silver); max-width: 34em; }
+
+    .section-title {
+      font-family: "Anton", Impact, sans-serif; font-weight: 400;
+      font-size: clamp(22px, 3vw, 30px); text-transform: uppercase; letter-spacing: 0.03em;
+      margin: 0 0 4px;
+    }
+    .section-sub { color: var(--muted); margin: 0 0 18px; font-size: 15px; }
+
+    /* ---------- Tags ---------- */
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+      padding: 3px 9px; border-radius: 999px;
+      border: 1px solid var(--ink-3); color: var(--silver); background: var(--ink);
+    }
+    .chip b { color: var(--muted); font-weight: 600; }
+
+    /* ---------- Round list ---------- */
+    .rounds { padding-bottom: clamp(32px, 5vw, 48px); }
+    .round-grid {
+      list-style: none; margin: 0; padding: 0;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    }
+    .round {
+      width: 100%; height: 100%; text-align: left;
+      display: flex; flex-direction: column; gap: 8px;
+      font: inherit; color: inherit; cursor: pointer;
+      background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: var(--radius);
+      padding: 16px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .round:hover { transform: translateY(-3px); border-color: var(--red); }
+    .round:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+    .round-num {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red);
+    }
+    .done { color: var(--silver); letter-spacing: 0.08em; }
+    .round-title {
+      font-family: "Anton", Impact, sans-serif; font-weight: 400;
+      font-size: 22px; line-height: 1.1; text-transform: uppercase; margin: 0;
+    }
+    .round-teaser { color: var(--muted); font-size: 14px; margin: 0 0 4px; }
+    .round .tags { margin-top: auto; }
+
+    /* ---------- The ring (scenario player) ---------- */
+    .ring {
+      background:
+        radial-gradient(ellipse 90% 70% at 50% 0%, rgba(217, 43, 47, 0.18), transparent 70%),
+        var(--ink-2);
+      border: 1px solid var(--ink-3); border-top: 3px solid var(--red);
+      border-radius: var(--radius);
+      padding: clamp(20px, 4vw, 36px);
+      margin-bottom: clamp(32px, 5vw, 48px);
+    }
+    .ring[hidden] { display: none; }
+    .ring-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .ring h2 {
+      font-family: "Anton", Impact, sans-serif; font-weight: 400;
+      font-size: clamp(28px, 4.5vw, 44px); line-height: 1.05; text-transform: uppercase;
+      margin: 0 0 12px;
+    }
+    .ring h2:focus { outline: none; }
+    .setup { font-size: clamp(16px, 2vw, 19px); color: var(--text); max-width: 40em; margin: 0 0 22px; }
+    .prompt { font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--red); margin: 0 0 10px; }
+
+    .choices { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .choice {
+      width: 100%; text-align: left; font: inherit; font-size: 16px; color: var(--text); cursor: pointer;
+      display: flex; gap: 14px; align-items: center;
+      background: var(--ink); border: 1px solid var(--ink-3); border-radius: 12px;
+      padding: 14px 16px;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .choice:hover { border-color: var(--red); background: #150f11; }
+    .choice:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .choice-key {
+      flex: none; width: 30px; height: 30px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--ink-3); font-weight: 700; font-size: 13px;
+    }
+    .choice[aria-pressed="true"] { border-color: var(--red); background: #1c1113; }
+    .choice[aria-pressed="true"] .choice-key { background: var(--red); }
+    .choice:disabled { cursor: default; }
+    .choice:disabled:not([aria-pressed="true"]) { opacity: 0.4; }
+
+    .step { margin-top: 22px; }
+    .step[hidden] { display: none; }
+
+    .scale { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .scale button {
+      font: inherit; font-weight: 700; color: var(--text); cursor: pointer;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--ink); border: 1px solid var(--ink-3);
+    }
+    .scale button:hover { border-color: var(--red); }
+    .scale button:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .scale-ends { display: flex; justify-content: space-between; max-width: 272px; color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .skip-link {
+      font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer;
+      text-decoration: underline; margin-left: 8px;
+    }
+
+    .outcome {
+      border-left: 4px solid var(--red);
+      background: var(--ink);
+      border-radius: 0 12px 12px 0;
+      padding: 16px 18px;
+    }
+    .move {
+      display: inline-block;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #fff; background: var(--red); border-radius: 999px; padding: 3px 10px;
+      margin-bottom: 8px;
+    }
+    .outcome p { margin: 0; font-size: 16px; }
+    .outcome-note { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+    /* ---------- Record ---------- */
+    .record { padding-bottom: clamp(36px, 6vw, 56px); }
+    .record-card {
+      background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: var(--radius);
+      padding: clamp(18px, 3vw, 26px);
+    }
+    .record-empty { color: var(--muted); margin: 0; }
+    .record-lead { margin: 0 0 14px; font-size: 16px; }
+    .record-lead strong { color: var(--red); }
+    .record-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .record-list li {
+      display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline;
+      padding: 10px 0; border-top: 1px solid var(--ink-3);
+    }
+    .record-list .label { font-weight: 600; min-width: 11em; }
+    .record-list .detail { color: var(--silver); font-size: 14px; }
+    .record-foot {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
+      margin-top: 16px; color: var(--muted); font-size: 13px;
+    }
+    .record-foot button {
+      font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .round-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .round-grid { grid-template-columns: 1fr; }
+      .page-head { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#rounds">Skip to the rounds</a>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="Fight Forward Academy home">
+      <span class="brand-mark" aria-hidden="true">FF</span>
+      Fight Forward
+    </a>
+    <div class="user">
+      <span class="user-name">Welcome back, Lamont</span>
+      <span class="avatar" aria-hidden="true">L</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head">
+      <div class="page-badge"><img src="assets/badges/fight-forward.jpg" alt="" width="201" height="240"></div>
+      <div>
+        <a class="back" href="index.html">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 7H3M7 3L3 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back to the lobby
+        </a>
+        <p class="eyebrow">Path 01</p>
+        <h1>Make the <span>call</span></h1>
+        <p>Real situations, real pressure. Pick what you’d actually do and see where it leads. No grades here, just your calls.</p>
+      </div>
+    </div>
+
+    <section class="ring" id="ring" hidden aria-live="polite"></section>
+
+    <section class="rounds" id="rounds" aria-labelledby="rounds-title">
+      <h2 class="section-title" id="rounds-title">Pick a round</h2>
+      <p class="section-sub">Each round comes with a different kind of pressure and a different level of backup.</p>
+      <ul class="round-grid" id="round-grid"></ul>
+    </section>
+
+    <section class="record" aria-labelledby="record-title">
+      <h2 class="section-title" id="record-title">Your fight record</h2>
+      <p class="section-sub">How you’ve been making your calls so far.</p>
+      <div class="record-card" id="record"></div>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.
+  </footer>
+
+  <script>
+    // ---------- Vocabulary ----------
+    // Every choice is one of four moves. These are what the record tracks over time.
+    const MOVES = {
+      react:  { label: "React",            note: "Going with the first impulse, or going along with it." },
+      step:   { label: "Step back",        note: "Removing yourself from the situation." },
+      speak:  { label: "Speak up",         note: "Saying what you think, directly and calmly." },
+      corner: { label: "Call your corner", note: "Bringing in someone you trust." }
+    };
+    const PRESSURE = {
+      peer:      "Peer pressure",
+      heat:      "Heat of the moment",
+      clock:     "Clock is ticking",
+      authority: "Adult in charge",
+      online:    "Online"
+    };
+    const SUPPORT = {
+      alone:  "On your own",
+      crowd:  "People watching",
+      peers:  "Friends nearby",
+      adult:  "Adult a call away"
+    };
+
+    // ---------- Rounds ----------
+    const ROUNDS = [
+      {
+        id: "group-chat", title: "The Group Chat", pressure: "peer", support: "alone",
+        teaser: "The chat is roasting somebody, and now they’re waiting on you.",
+        setup: "It’s 11pm. Your group chat is clowning a kid from your class: screenshots of old posts, jokes about his clothes. Somebody tags you: “you quiet tonight 👀”. Everybody’s waiting.",
+        choices: [
+          { text: "Drop a joke so they get off your back.", move: "react",
+            outcome: "The chat laughs for a minute. Tomorrow a screenshot with your name on it is going around school, and the kid saw it. Something in writing is hard to take back." },
+          { text: "Say nothing and mute the chat.", move: "step",
+            outcome: "You stay out of it. The roast keeps going without you. You didn’t add to it, but nobody pushed back either." },
+          { text: "“Nah, this is corny. Leave him alone.”", move: "speak",
+            outcome: "A couple people say “relax.” Then a friend DMs you: “fr, it was getting weird.” The chat moves on faster than you expected." },
+          { text: "Screenshot it and show a trusted adult tomorrow.", move: "corner",
+            outcome: "The adult thanks you and handles it without saying who told. The kid gets support, and the chat gets a reminder about where the line is." }
+        ]
+      },
+      {
+        id: "hallway", title: "Bumped in the Hallway", pressure: "heat", support: "crowd",
+        teaser: "Someone shoulders you hard. A crowd turns to see what you’ll do.",
+        setup: "Between classes someone shoulders you hard and keeps walking. Your books hit the floor. A crowd turns around. Somebody says, “You gonna let him do you like that?”",
+        choices: [
+          { text: "Catch up to him and shove him back.", move: "react",
+            outcome: "It turns into a fight in seconds. You both get suspended, and the video is online by lunch. The crowd forgets about it by Friday. You don’t." },
+          { text: "Pick up your books and keep moving.", move: "step",
+            outcome: "People talk for a minute. By next period it’s old news. Your heart is still racing, and that’s okay. You kept control." },
+          { text: "“Yo, watch where you’re going.” Firm, without stepping to him.", move: "speak",
+            outcome: "He turns, sizes it up, and mutters “my bad.” You stood your ground without throwing a punch." },
+          { text: "Let it go for now and tell a teacher, since it’s happened before.", move: "corner",
+            outcome: "Turns out he’s been doing this to other people too. The teacher already had his name. You weren’t the only one who noticed." }
+        ]
+      },
+      {
+        id: "ride-home", title: "The Ride Home", pressure: "clock", support: "adult",
+        teaser: "You’re late, and the only ride has been drinking.",
+        setup: "The party’s ending. It’s 12:40 and curfew was 12:30. Your older cousin offers you a ride, but he’s been drinking and his eyes are red. “Come on, I’m good, let’s go.” Your mom’s number is in your phone.",
+        choices: [
+          { text: "Get in. You’re already late.", move: "react",
+            outcome: "Nothing happens tonight, but your stomach is in knots the whole ride. Getting home fine doesn’t mean it was safe. It means you got lucky." },
+          { text: "Say you’ll find another way and wait inside.", move: "step",
+            outcome: "You don’t have a plan yet, but you’re safe. A friend’s parent notices you waiting and offers you a ride." },
+          { text: "Tell him he shouldn’t drive either, and ask for his keys.", move: "speak",
+            outcome: "He’s annoyed, but a friend backs you up and he crashes on the couch. You might have kept more than one person safe tonight." },
+          { text: "Call your mom, even though you’re late.", move: "corner",
+            outcome: "She’s upset about curfew for about five minutes. Then she says, “Thank you for calling me.” That’s exactly the call she wants you to make." }
+        ]
+      },
+      {
+        id: "answers", title: "Send the Answers", pressure: "peer", support: "peers",
+        teaser: "Your best friend didn’t study and wants your help during the test.",
+        setup: "Your best friend texts at 7am: “I didn’t study at all. Send me a pic of your answers during the test. You got me, right?”",
+        choices: [
+          { text: "Send them. He’s your boy.", move: "react",
+            outcome: "Two tests match word for word. The teacher notices. Now you’re both in trouble, and you’re the one who studied." },
+          { text: "Leave him on read.", move: "step",
+            outcome: "You stay out of trouble, but he’s salty at lunch. He doesn’t really know why you went quiet." },
+          { text: "“Can’t do that, but I’ll quiz you on the bus.”", move: "speak",
+            outcome: "He’s frustrated, but he takes you up on it. He passes, barely. He owes you one, and he knows it." },
+          { text: "Tell him to ask the teacher for more time.", move: "corner",
+            outcome: "He’s nervous, but he asks. The teacher gives him a retake plan. Adults say yes more often than you’d think." }
+        ]
+      },
+      {
+        id: "practice", title: "Called Out at Practice", pressure: "authority", support: "peers",
+        teaser: "Coach blames you in front of everyone for something that wasn’t your fault.",
+        setup: "Coach blames you in front of the whole team for a play that wasn’t your fault. “That’s on you. Take a lap.” Your teammates go quiet. Your face is burning.",
+        choices: [
+          { text: "Argue back right there.", move: "react",
+            outcome: "It gets louder. Coach benches you for the next game. You were right, but nobody heard it." },
+          { text: "Take the lap and let it go.", move: "step",
+            outcome: "You cool off while you run. It still doesn’t sit right, and that feeling is worth paying attention to." },
+          { text: "Take the lap, then ask Coach for a minute after practice.", move: "speak",
+            outcome: "One-on-one, Coach listens. “I might’ve been quick on that.” Picking the right moment got you heard." },
+          { text: "Tell a parent or another staff member how it felt.", move: "corner",
+            outcome: "They help you figure out what to say, or go talk to Coach with you. You don’t have to handle every adult by yourself." }
+        ]
+      },
+      {
+        id: "the-dm", title: "The DM", pressure: "online", support: "adult",
+        teaser: "Someone online wants your friend to meet up, and keep it a secret.",
+        setup: "Your friend shows you DMs from someone who says they’re 17 and a music producer. They want your friend to meet up Saturday, alone, and “not tell anybody yet.”",
+        choices: [
+          { text: "“That’s a big opportunity. You should go.”", move: "react",
+            outcome: "Your friend goes. The person isn’t who they said they were. Your friend gets out of there, shaken. It could have gone a lot worse." },
+          { text: "Say “that’s kinda weird” and change the subject.", move: "step",
+            outcome: "Your friend stops bringing it up but keeps messaging them. You’re left wondering what happens Saturday." },
+          { text: "“Anybody who says don’t tell anyone is a red flag.”", move: "speak",
+            outcome: "Your friend gets defensive, then thinks about it and stops replying. Sometimes a friend saying it out loud is enough." },
+          { text: "Go with your friend to a safety adult.", move: "corner",
+            outcome: "The adult helps you both report and block the account, which turns out to be fake. You may have protected your friend from something serious." }
+        ]
+      }
+    ];
+
+    // ---------- Storage ----------
+    // For now decisions are saved on this device only. Each entry is the raw data point
+    // for "how decision-making changes over time, under pressure, with support".
+    const KEY = "ff.decisions.v1";
+    function loadDecisions() {
+      try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+    }
+    function saveDecision(entry) {
+      const all = loadDecisions();
+      all.push(entry);
+      try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* storage unavailable */ }
+      memory.push(entry);
+    }
+    // Fallback so the record still works for this visit if storage is blocked.
+    const memory = loadDecisions();
+
+    // ---------- Helpers ----------
+    const $ = (sel, root = document) => root.querySelector(sel);
+    function el(tag, attrs = {}, ...kids) {
+      const node = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (k === "class") node.className = v;
+        else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+        else node.setAttribute(k, v);
+      }
+      for (const kid of kids) node.append(kid);
+      return node;
+    }
+    function chips(round) {
+      return el("div", { class: "tags" },
+        el("span", { class: "chip" }, el("b", {}, "Pressure: "), PRESSURE[round.pressure]),
+        el("span", { class: "chip" }, el("b", {}, "Corner: "), SUPPORT[round.support])
+      );
+    }
+
+    // ---------- Round list ----------
+    function renderRounds() {
+      const played = new Set(memory.map(d => d.roundId));
+      const grid = $("#round-grid");
+      grid.replaceChildren(...ROUNDS.map((r, i) => el("li", {},
+        el("button", { class: "round", type: "button", onclick: () => openRound(r) },
+          el("span", { class: "round-num" },
+            `Round ${String(i + 1).padStart(2, "0")}`,
+            played.has(r.id) ? el("span", { class: "done" }, "✓ Played") : ""
+          ),
+          el("h3", { class: "round-title" }, r.title),
+          el("p", { class: "round-teaser" }, r.teaser),
+          chips(r)
+        )
+      )));
+    }
+
+    // ---------- The ring ----------
+    function openRound(round) {
+      const ring = $("#ring");
+      const startedAt = performance.now();
+      let picked = null;
+      let msToDecide = 0;
+
+      const heading = el("h2", { tabindex: "-1" }, round.title);
+      const choiceButtons = round.choices.map((c, i) =>
+        el("button", { class: "choice", type: "button", "aria-pressed": "false", onclick: () => pick(i) },
+          el("span", { class: "choice-key", "aria-hidden": "true" }, "ABCD"[i]),
+          el("span", {}, c.text)
+        )
+      );
+
+      // Step 2: how sure were you? Asked before the outcome so the answer isn't colored by it.
+      const sureStep = el("div", { class: "step", hidden: "" },
+        el("p", { class: "prompt", id: "sure-label" }, "How sure are you about that call?"),
+        el("div", { class: "scale", role: "group", "aria-labelledby": "sure-label" },
+          ...[1, 2, 3, 4, 5].map(n => el("button", { type: "button", onclick: () => finish(n) }, String(n))),
+          el("button", { class: "skip-link", type: "button", onclick: () => finish(null) }, "Skip")
+        ),
+        el("div", { class: "scale-ends", "aria-hidden": "true" }, el("span", {}, "Not sure"), el("span", {}, "Totally sure"))
+      );
+
+      // Step 3: where it leads.
+      const outcomeStep = el("div", { class: "step", hidden: "" });
+
+      ring.replaceChildren(
+        el("div", { class: "ring-top" },
+          chips(round),
+          el("button", { class: "btn btn-ghost", type: "button", onclick: closeRing }, "Leave the ring")
+        ),
+        heading,
+        el("p", { class: "setup" }, round.setup),
+        el("p", { class: "prompt" }, "What do you do?"),
+        el("ul", { class: "choices" }, ...choiceButtons.map(b => el("li", {}, b))),
+        sureStep,
+        outcomeStep
+      );
+      ring.hidden = false;
+      ring.scrollIntoView({ behavior: "smooth", block: "start" });
+      heading.focus({ preventScroll: true });
+
+      function pick(i) {
+        if (picked !== null) return;
+        picked = i;
+        msToDecide = Math.round(performance.now() - startedAt);
+        choiceButtons.forEach((b, j) => {
+          b.disabled = true;
+          b.setAttribute("aria-pressed", String(i === j));
+        });
+        sureStep.hidden = false;
+        sureStep.querySelector("button").focus();
+      }
+
+      function finish(confidence) {
+        const choice = round.choices[picked];
+        saveDecision({
+          roundId: round.id,
+          pressure: round.pressure,
+          support: round.support,
+          choice: picked,
+          move: choice.move,
+          confidence,
+          msToDecide,
+          at: new Date().toISOString()
+        });
+        sureStep.hidden = true;
+
+        const next = ROUNDS[(ROUNDS.indexOf(round) + 1) % ROUNDS.length];
+        outcomeStep.replaceChildren(
+          el("p", { class: "prompt" }, "Where it leads"),
+          el("div", { class: "outcome" },
+            el("span", { class: "move" }, MOVES[choice.move].label),
+            el("p", {}, choice.outcome),
+            el("p", { class: "outcome-note" }, "Every call has a cost and a payoff. Want to see how a different call would play out? Run it back.")
+          ),
+          el("div", { class: "actions" },
+            el("button", { class: "btn", type: "button", onclick: () => openRound(next) }, `Next round: ${next.title}`),
+            el("button", { class: "btn btn-ghost", type: "button", onclick: () => openRound(round) }, "Run it back"),
+            el("button", { class: "btn btn-ghost", type: "button", onclick: closeRing }, "Back to rounds")
+          )
+        );
+        outcomeStep.hidden = false;
+        outcomeStep.querySelector(".outcome").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        outcomeStep.querySelector(".btn").focus({ preventScroll: true });
+
+        renderRounds();
+        renderRecord();
+      }
+    }
+
+    function closeRing() {
+      $("#ring").hidden = true;
+      $("#rounds").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("#rounds-title").setAttribute("tabindex", "-1");
+      $("#rounds-title").focus({ preventScroll: true });
+    }
+
+    // ---------- Fight record ----------
+    function tally(list) {
+      const counts = {};
+      for (const d of list) counts[d.move] = (counts[d.move] || 0) + 1;
+      return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    }
+    function describe(list) {
+      return tally(list).map(([m, n]) => `${MOVES[m].label} ×${n}`).join(" · ");
+    }
+
+    function renderRecord() {
+      const card = $("#record");
+      if (!memory.length) {
+        card.replaceChildren(el("p", { class: "record-empty" }, "No rounds yet. Pick one above and your record starts here."));
+        return;
+      }
+      const [topMove] = tally(memory)[0];
+      const rows = [];
+      for (const [key, label] of Object.entries(PRESSURE)) {
+        const list = memory.filter(d => d.pressure === key);
+        if (list.length) rows.push(["Pressure: " + label, list]);
+      }
+      for (const [key, label] of Object.entries(SUPPORT)) {
+        const list = memory.filter(d => d.support === key);
+        if (list.length) rows.push(["Corner: " + label, list]);
+      }
+
+      card.replaceChildren(
+        el("p", { class: "record-lead" },
+          `${memory.length} call${memory.length === 1 ? "" : "s"} made. Your go-to move so far: `,
+          el("strong", {}, MOVES[topMove].label), "."
+        ),
+        el("ul", { class: "record-list" }, ...rows.map(([label, list]) =>
+          el("li", {},
+            el("span", { class: "label" }, label),
+            el("span", { class: "detail" }, describe(list))
+          )
+        )),
+        el("div", { class: "record-foot" },
+          el("span", {}, "Saved on this device for now."),
+          el("button", { type: "button", onclick: clearRecord }, "Clear my record")
+        )
+      );
+    }
+
+    function clearRecord() {
+      if (!confirm("Clear every call you’ve made on this device?")) return;
+      try { localStorage.removeItem(KEY); } catch (e) { /* storage unavailable */ }
+      memory.length = 0;
+      renderRounds();
+      renderRecord();
+    }
+
+    renderRounds();
+    renderRecord();
+  </script>
+</body>
+</html>

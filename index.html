@@ -8,69 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
   <style>
-    :root {
-      --ink: #0d0d0f;
-      --ink-2: #16161a;
-      --ink-3: #222228;
-      --red: #d92b2f;
-      --red-deep: #9e1419;
-      --silver: #c9cbd1;
-      --text: #f4f4f5;
-      --muted: #a4a6ad;
-      --plate: #ececec;
-      --radius: 14px;
-      --gutter: clamp(16px, 4vw, 40px);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body { margin: 0; }
-
-    body {
-      background: var(--ink);
-      color: var(--text);
-      font-family: "Inter", system-ui, -apple-system, sans-serif;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-
-    a { color: inherit; }
-
-    .skip {
-      position: absolute; left: -9999px; top: 8px;
-      background: var(--red); color: #fff; padding: 8px 14px; border-radius: 8px; z-index: 10;
-    }
-    .skip:focus { left: 8px; }
-
-    /* ---------- Top bar ---------- */
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px var(--gutter);
-      border-bottom: 1px solid var(--ink-3);
-      background: var(--ink);
-    }
-    .brand {
-      display: flex; align-items: center; gap: 10px;
-      font-family: "Anton", Impact, sans-serif;
-      font-size: 20px; letter-spacing: 0.06em; text-transform: uppercase;
-      text-decoration: none;
-    }
-    .brand-mark {
-      width: 30px; height: 30px; border-radius: 6px;
-      background: var(--red); display: grid; place-items: center;
-      font-size: 14px; letter-spacing: 0;
-    }
-    .user {
-      display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted);
-    }
-    .avatar {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: var(--ink-3); border: 2px solid var(--red);
-      display: grid; place-items: center; color: var(--text); font-weight: 600; font-size: 13px;
-    }
-
     /* ---------- Hero ---------- */
     .hero {
       position: relative;
@@ -79,12 +18,6 @@
       background:
         radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.28), transparent 70%),
         linear-gradient(180deg, #0a0b12 0%, #141523 55%, #1d1216 100%);
-    }
-    .eyebrow {
-      display: inline-block;
-      font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--red);
-      margin: 0 0 10px;
     }
     .hero h1 {
       font-family: "Anton", Impact, sans-serif;
@@ -116,7 +49,7 @@
     /* ---------- Paths ---------- */
     .paths {
       padding: clamp(36px, 6vw, 64px) var(--gutter) clamp(48px, 7vw, 80px);
-      max-width: 1240px;
+      max-width: 1100px;
       margin: 0 auto;
     }
     .paths-head { text-align: center; margin-bottom: clamp(24px, 4vw, 36px); }
@@ -133,7 +66,7 @@
     .path-grid {
       list-style: none; margin: 0; padding: 0;
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 18px;
     }
 
@@ -163,13 +96,13 @@
       background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--plate) 70%);
       display: grid; place-items: center;
       padding: 18px 12px 14px;
-      aspect-ratio: 1 / 0.95;
+      
       border-bottom: 3px solid var(--red);
     }
+    /* Every badge renders in the same square frame, whatever the source image's size */
     .badge-plate img {
-      width: auto;
-      height: 100%;
-      max-height: 170px;
+      width: 150px;
+      height: 150px;
       max-width: 100%;
       object-fit: contain;
       mix-blend-mode: multiply;
@@ -199,61 +132,17 @@
     .path-go svg { transition: transform 0.2s ease; }
     .path:hover .path-go svg { transform: translateX(3px); }
 
-    .tag {
-      position: absolute; top: 10px; right: 10px;
-      font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-      padding: 4px 8px; border-radius: 999px;
-      background: var(--ink); color: #fff;
-    }
-
-    /* ---------- Safety strip ---------- */
-    .safety {
-      max-width: 1240px;
-      margin: 0 auto clamp(40px, 6vw, 64px);
-      padding: 0 var(--gutter);
-    }
-    .safety-inner {
-      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
-      background: var(--ink-2);
-      border: 1px solid var(--ink-3);
-      border-left: 4px solid var(--red);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-    }
-    .safety-inner p { margin: 0; flex: 1 1 280px; color: var(--silver); font-size: 15px; }
-    .safety-inner strong { color: var(--text); }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--red); color: #fff; text-decoration: none;
-      font-weight: 600; font-size: 14px;
-      padding: 10px 16px; border-radius: 999px;
-      transition: background 0.2s ease;
-    }
-    .btn:hover { background: var(--red-deep); }
-    .btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-
-    footer {
-      border-top: 1px solid var(--ink-3);
-      padding: 20px var(--gutter);
-      text-align: center; color: var(--muted); font-size: 13px;
-    }
-
     /* ---------- Responsive ---------- */
     @media (max-width: 1080px) {
-      .path-grid { grid-template-columns: repeat(3, 1fr); }
+      .path-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 720px) {
       .path-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .path-title { font-size: 19px; }
       .path-desc { font-size: 13px; }
-      .user-name { display: none; }
     }
     @media (max-width: 400px) {
       .path-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; animation: none !important; }
     }
 
     /* Window glow flicker, subtle */
@@ -267,7 +156,7 @@
   <a class="skip" href="#paths">Skip to your paths</a>
 
   <header class="topbar">
-    <a class="brand" href="#" aria-label="Fight Forward Academy home">
+    <a class="brand" href="index.html" aria-label="Fight Forward Academy home">
       <span class="brand-mark" aria-hidden="true">FF</span>
       Fight Forward
     </a>
@@ -281,173 +170,210 @@
     <section class="hero" aria-labelledby="welcome">
       <p class="eyebrow">Train the mind · Move the body · Build the future</p>
       <h1 id="welcome">Welcome to <span>Fight Forward</span> Academy</h1>
-      <p class="tagline">Every day is a new round. <strong>Pick where you want to go.</strong></p>
+      <p class="tagline">Every day is a new round. <strong>Choose your path wisely.</strong></p>
 
-      <!-- Front view of the academy building -->
-      <svg class="building" viewBox="0 0 1200 520" role="img" aria-label="Front view of the Fight Forward Academy building, with a red banner across the front reading Fight Forward Academy">
+      <!-- Front view of the academy: glass-and-steel building at night -->
+      <svg class="building" viewBox="0 0 1200 520" role="img" aria-label="Night view of the Fight Forward Academy, a modern glass building with a glowing red ring above the roof and a lit sign reading Fight Forward Academy">
         <defs>
-          <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#3a2c2e"/>
-            <stop offset="1" stop-color="#241b1d"/>
+          <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1b2a44"/>
+            <stop offset="0.6" stop-color="#121c30"/>
+            <stop offset="1" stop-color="#0c1220"/>
           </linearGradient>
-          <linearGradient id="wing" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#2f2426"/>
-            <stop offset="1" stop-color="#1c1517"/>
+          <linearGradient id="glassWing" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#172336"/>
+            <stop offset="1" stop-color="#0b111d"/>
           </linearGradient>
-          <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#d9d9dd"/>
-            <stop offset="1" stop-color="#9b9ca3"/>
+          <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e4e6eb"/>
+            <stop offset="1" stop-color="#7c808b"/>
           </linearGradient>
-          <linearGradient id="banner" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#e3363a"/>
-            <stop offset="1" stop-color="#a5161b"/>
+          <linearGradient id="paneWarm" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe2a8" stop-opacity="0.95"/>
+            <stop offset="1" stop-color="#f0a445" stop-opacity="0.75"/>
           </linearGradient>
-          <linearGradient id="window" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#ffd98a"/>
-            <stop offset="1" stop-color="#f2a33a"/>
+          <linearGradient id="paneCool" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#bfe6ff" stop-opacity="0.8"/>
+            <stop offset="1" stop-color="#5aa6e0" stop-opacity="0.5"/>
           </linearGradient>
-          <radialGradient id="doorGlow" cx="0.5" cy="1" r="0.8">
-            <stop offset="0" stop-color="#ffcf7a" stop-opacity="0.55"/>
+          <linearGradient id="lobbyLight" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff4dc"/>
+            <stop offset="1" stop-color="#ffc56b"/>
+          </linearGradient>
+          <linearGradient id="plaza" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1a1a22"/>
+            <stop offset="1" stop-color="#0d0d0f"/>
+          </linearGradient>
+          <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity="0.5"/>
+            <stop offset="0.7" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="entryGlow" cx="0.5" cy="1" r="0.7">
+            <stop offset="0" stop-color="#ffcf7a" stop-opacity="0.5"/>
             <stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/>
           </radialGradient>
-          <pattern id="brick" width="40" height="20" patternUnits="userSpaceOnUse">
-            <path d="M0 0H40M0 10H40M20 0V10M0 10V20M40 10V20" stroke="#000" stroke-opacity="0.18" stroke-width="1" fill="none"/>
+          <radialGradient id="haloGlow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#d92b2f" stop-opacity="0.35"/>
+            <stop offset="1" stop-color="#d92b2f" stop-opacity="0"/>
+          </radialGradient>
+          <pattern id="mullions" width="28" height="34" patternUnits="userSpaceOnUse">
+            <path d="M0 0H28M0 0V34" stroke="#8fa3c4" stroke-opacity="0.22" stroke-width="1" fill="none"/>
           </pattern>
+          <filter id="neon" x="-20%" y="-50%" width="140%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <clipPath id="towerClip"><polygon points="440,96 760,96 800,440 400,440"/></clipPath>
+          <clipPath id="wingLClip"><polygon points="90,276 420,238 420,440 90,440"/></clipPath>
+          <clipPath id="wingRClip"><polygon points="780,238 1110,276 1110,440 780,440"/></clipPath>
+          <mask id="reflectMask"><rect x="0" y="440" width="1200" height="80" fill="url(#fade)"/></mask>
         </defs>
 
-        <!-- Ground -->
-        <rect x="0" y="468" width="1200" height="52" fill="#141012"/>
-        <ellipse cx="600" cy="470" rx="560" ry="18" fill="#000" opacity="0.35"/>
+        <!-- Distant skyline -->
+        <g fill="#141a2a" opacity="0.9">
+          <rect x="0" y="250" width="70" height="190"/>
+          <rect x="30" y="190" width="46" height="250"/>
+          <rect x="160" y="170" width="60" height="100"/>
+          <rect x="250" y="200" width="40" height="80"/>
+          <rect x="880" y="180" width="54" height="100"/>
+          <rect x="960" y="150" width="44" height="130"/>
+          <rect x="1120" y="200" width="80" height="240"/>
+          <rect x="1080" y="240" width="50" height="200"/>
+        </g>
+        <g fill="#ffd98a" opacity="0.35">
+          <rect x="40" y="206" width="4" height="6"/><rect x="56" y="230" width="4" height="6"/><rect x="40" y="262" width="4" height="6"/>
+          <rect x="172" y="186" width="4" height="6"/><rect x="196" y="214" width="4" height="6"/>
+          <rect x="972" y="170" width="4" height="6"/><rect x="988" y="204" width="4" height="6"/><rect x="894" y="200" width="4" height="6"/>
+          <rect x="1136" y="222" width="4" height="6"/><rect x="1160" y="256" width="4" height="6"/>
+        </g>
+        <!-- Aircraft warning light -->
+        <circle cx="982" cy="146" r="3" fill="#ff4040" class="lit"/>
 
-        <!-- Left wing -->
-        <rect x="70" y="210" width="290" height="258" fill="url(#wing)"/>
-        <rect x="70" y="210" width="290" height="258" fill="url(#brick)"/>
-        <rect x="60" y="196" width="310" height="16" fill="url(#stone)"/>
+        <!-- Everything in this group is mirrored onto the plaza below -->
+        <g id="academy">
+          <!-- Left wing -->
+          <polygon points="90,276 420,238 420,440 90,440" fill="url(#glassWing)"/>
+          <g clip-path="url(#wingLClip)">
+            <rect x="90" y="230" width="330" height="210" fill="url(#mullions)"/>
+            <rect class="lit" x="118" y="300" width="84" height="32" fill="url(#paneWarm)"/>
+            <rect class="lit d2" x="230" y="300" width="56" height="32" fill="url(#paneCool)"/>
+            <rect class="lit d3" x="314" y="300" width="84" height="32" fill="url(#paneWarm)"/>
+            <rect class="lit d2" x="146" y="350" width="112" height="32" fill="url(#paneWarm)"/>
+            <rect class="lit" x="286" y="350" width="56" height="32" fill="url(#paneCool)"/>
+            <rect class="lit d3" x="118" y="400" width="56" height="30" fill="url(#paneCool)"/>
+            <rect class="lit" x="230" y="400" width="168" height="30" fill="url(#paneWarm)"/>
+            <!-- Floor slabs -->
+            <g fill="#2a3246"><rect x="90" y="290" width="330" height="5"/><rect x="90" y="340" width="330" height="5"/><rect x="90" y="390" width="330" height="5"/></g>
+            <!-- Glass reflection -->
+            <polygon points="150,240 210,240 110,440 50,440" fill="#fff" opacity="0.05"/>
+            <polygon points="300,230 330,230 230,440 200,440" fill="#fff" opacity="0.04"/>
+          </g>
+          <line x1="88" y1="276" x2="420" y2="237" stroke="#d92b2f" stroke-width="3" filter="url(#neon)"/>
+
+          <!-- Right wing -->
+          <polygon points="780,238 1110,276 1110,440 780,440" fill="url(#glassWing)"/>
+          <g clip-path="url(#wingRClip)">
+            <rect x="780" y="230" width="330" height="210" fill="url(#mullions)"/>
+            <rect class="lit d2" x="802" y="300" width="84" height="32" fill="url(#paneWarm)"/>
+            <rect class="lit" x="914" y="300" width="56" height="32" fill="url(#paneCool)"/>
+            <rect class="lit d3" x="998" y="300" width="84" height="32" fill="url(#paneWarm)"/>
+            <rect class="lit" x="858" y="350" width="56" height="32" fill="url(#paneCool)"/>
+            <rect class="lit d2" x="942" y="350" width="112" height="32" fill="url(#paneWarm)"/>
+            <rect class="lit d3" x="802" y="400" width="168" height="30" fill="url(#paneWarm)"/>
+            <rect class="lit" x="1026" y="400" width="56" height="30" fill="url(#paneCool)"/>
+            <g fill="#2a3246"><rect x="780" y="290" width="330" height="5"/><rect x="780" y="340" width="330" height="5"/><rect x="780" y="390" width="330" height="5"/></g>
+            <polygon points="900,240 960,240 860,440 800,440" fill="#fff" opacity="0.05"/>
+            <polygon points="1040,230 1070,230 970,440 940,440" fill="#fff" opacity="0.04"/>
+          </g>
+          <line x1="780" y1="237" x2="1112" y2="276" stroke="#d92b2f" stroke-width="3" filter="url(#neon)"/>
+
+          <!-- Center tower -->
+          <polygon points="440,96 760,96 800,440 400,440" fill="url(#glass)"/>
+          <g clip-path="url(#towerClip)">
+            <rect x="400" y="96" width="400" height="344" fill="url(#mullions)"/>
+            <!-- Training floors -->
+            <rect class="lit" x="448" y="238" width="112" height="34" fill="url(#paneWarm)"/>
+            <rect class="lit d3" x="588" y="238" width="56" height="34" fill="url(#paneCool)"/>
+            <rect class="lit d2" x="672" y="238" width="84" height="34" fill="url(#paneWarm)"/>
+            <rect class="lit d2" x="448" y="290" width="56" height="34" fill="url(#paneCool)"/>
+            <rect class="lit" x="532" y="290" width="168" height="34" fill="url(#paneWarm)"/>
+            <rect class="lit d3" x="728" y="290" width="40" height="34" fill="url(#paneCool)"/>
+            <g fill="#2a3246"><rect x="400" y="228" width="400" height="6"/><rect x="400" y="280" width="400" height="6"/><rect x="400" y="332" width="400" height="6"/></g>
+            <!-- Big diagonal reflections -->
+            <polygon points="500,96 580,96 470,440 390,440" fill="#fff" opacity="0.06"/>
+            <polygon points="640,96 670,96 560,440 530,440" fill="#fff" opacity="0.04"/>
+          </g>
+          <!-- Steel edge blades with red light -->
+          <polygon points="436,94 448,94 408,440 396,440" fill="url(#steel)"/>
+          <polygon points="752,94 764,94 804,440 792,440" fill="url(#steel)"/>
+          <line x1="444" y1="100" x2="404" y2="438" stroke="#d92b2f" stroke-width="2" filter="url(#neon)"/>
+          <line x1="756" y1="100" x2="796" y2="438" stroke="#d92b2f" stroke-width="2" filter="url(#neon)"/>
+          <!-- Roof cap -->
+          <rect x="426" y="88" width="348" height="10" rx="2" fill="url(#steel)"/>
+
+          <!-- Floating ring above the roof -->
+          <ellipse cx="600" cy="54" rx="230" ry="46" fill="url(#haloGlow)"/>
+          <line x1="492" y1="88" x2="500" y2="64" stroke="#9aa0ab" stroke-width="3"/>
+          <line x1="708" y1="88" x2="700" y2="64" stroke="#9aa0ab" stroke-width="3"/>
+          <ellipse cx="600" cy="58" rx="170" ry="20" fill="none" stroke="#d92b2f" stroke-width="7" filter="url(#neon)" class="lit d2"/>
+          <ellipse cx="600" cy="58" rx="170" ry="20" fill="none" stroke="#ffb3b5" stroke-width="1.5" opacity="0.8"/>
+          <!-- Spire with beacon -->
+          <line x1="600" y1="88" x2="600" y2="14" stroke="#c9cbd1" stroke-width="3"/>
+          <circle cx="600" cy="12" r="4" fill="#ff4d4d" filter="url(#neon)" class="lit"/>
+
+          <!-- LED sign blade across the tower -->
+          <g>
+            <rect x="360" y="146" width="480" height="66" rx="6" fill="#07080c"/>
+            <rect x="360" y="146" width="480" height="66" rx="6" fill="none" stroke="#d92b2f" stroke-width="2" filter="url(#neon)"/>
+            <rect x="364" y="150" width="472" height="58" rx="4" fill="none" stroke="#fff" stroke-opacity="0.12"/>
+            <text x="600" y="193" text-anchor="middle" fill="#d92b2f" opacity="0.7" font-family="Anton, Impact, sans-serif" font-size="38" letter-spacing="3" filter="url(#neon)">FIGHT FORWARD ACADEMY</text>
+            <text x="600" y="193" text-anchor="middle" fill="#fff" font-family="Anton, Impact, sans-serif" font-size="38" letter-spacing="3">FIGHT FORWARD <tspan fill="#ff5a5e">ACADEMY</tspan></text>
+          </g>
+
+          <!-- Entrance -->
+          <rect x="470" y="330" width="260" height="110" fill="url(#entryGlow)"/>
+          <rect x="500" y="364" width="200" height="76" fill="url(#lobbyLight)" opacity="0.92" class="lit d3"/>
+          <g stroke="#1a1f2b" stroke-width="3">
+            <line x1="550" y1="364" x2="550" y2="440"/><line x1="600" y1="364" x2="600" y2="440"/><line x1="650" y1="364" x2="650" y2="440"/>
+          </g>
+          <!-- Silhouettes inside the lobby -->
+          <g fill="#3a2a22" opacity="0.55">
+            <circle cx="530" cy="398" r="5"/><rect x="525" y="404" width="10" height="26" rx="4"/>
+            <circle cx="672" cy="400" r="5"/><rect x="667" y="406" width="10" height="24" rx="4"/>
+          </g>
+          <!-- Cantilevered canopy -->
+          <polygon points="456,350 744,350 764,362 436,362" fill="url(#steel)"/>
+          <rect x="436" y="362" width="328" height="3" fill="#d92b2f" filter="url(#neon)"/>
+          <g fill="#fff4dc" opacity="0.9">
+            <circle cx="490" cy="365" r="2"/><circle cx="560" cy="365" r="2"/><circle cx="640" cy="365" r="2"/><circle cx="710" cy="365" r="2"/>
+          </g>
+        </g>
+
+        <!-- Plaza with reflection -->
+        <rect x="0" y="440" width="1200" height="80" fill="url(#plaza)"/>
+        <use href="#academy" transform="translate(0 880) scale(1 -1)" opacity="0.28" mask="url(#reflectMask)"/>
+        <rect x="0" y="439" width="1200" height="2" fill="#2e3140"/>
+        <!-- Light bollards -->
         <g>
-          <rect class="lit" x="100" y="250" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="100" y="250" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M125 250V320M100 285H150" stroke="#111" stroke-width="3"/>
-          <rect class="lit d2" x="190" y="250" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="190" y="250" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M215 250V320M190 285H240" stroke="#111" stroke-width="3"/>
-          <rect x="280" y="250" width="50" height="70" rx="3" fill="#2b3040"/>
-          <rect x="280" y="250" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M305 250V320M280 285H330" stroke="#111" stroke-width="3"/>
-          <rect x="100" y="360" width="50" height="70" rx="3" fill="#2b3040"/>
-          <rect x="100" y="360" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M125 360V430M100 395H150" stroke="#111" stroke-width="3"/>
-          <rect class="lit d3" x="190" y="360" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="190" y="360" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M215 360V430M190 395H240" stroke="#111" stroke-width="3"/>
-          <rect class="lit" x="280" y="360" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="280" y="360" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M305 360V430M280 395H330" stroke="#111" stroke-width="3"/>
+          <rect x="360" y="424" width="6" height="18" fill="#2a2d38"/><rect x="359" y="422" width="8" height="4" fill="#ffd98a" class="lit"/>
+          <rect x="834" y="424" width="6" height="18" fill="#2a2d38"/><rect x="833" y="422" width="8" height="4" fill="#ffd98a" class="lit d2"/>
+          <rect x="250" y="424" width="6" height="18" fill="#2a2d38"/><rect x="249" y="422" width="8" height="4" fill="#ffd98a" class="lit d3"/>
+          <rect x="944" y="424" width="6" height="18" fill="#2a2d38"/><rect x="943" y="422" width="8" height="4" fill="#ffd98a" class="lit"/>
         </g>
-
-        <!-- Right wing -->
-        <rect x="840" y="210" width="290" height="258" fill="url(#wing)"/>
-        <rect x="840" y="210" width="290" height="258" fill="url(#brick)"/>
-        <rect x="830" y="196" width="310" height="16" fill="url(#stone)"/>
-        <g>
-          <rect x="870" y="250" width="50" height="70" rx="3" fill="#2b3040"/>
-          <rect x="870" y="250" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M895 250V320M870 285H920" stroke="#111" stroke-width="3"/>
-          <rect class="lit d3" x="960" y="250" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="960" y="250" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M985 250V320M960 285H1010" stroke="#111" stroke-width="3"/>
-          <rect class="lit" x="1050" y="250" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="1050" y="250" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M1075 250V320M1050 285H1100" stroke="#111" stroke-width="3"/>
-          <rect class="lit d2" x="870" y="360" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="870" y="360" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M895 360V430M870 395H920" stroke="#111" stroke-width="3"/>
-          <rect x="960" y="360" width="50" height="70" rx="3" fill="#2b3040"/>
-          <rect x="960" y="360" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M985 360V430M960 395H1010" stroke="#111" stroke-width="3"/>
-          <rect class="lit" x="1050" y="360" width="50" height="70" rx="3" fill="url(#window)"/>
-          <rect x="1050" y="360" width="50" height="70" rx="3" fill="none" stroke="#111" stroke-width="4"/>
-          <path d="M1075 360V430M1050 395H1100" stroke="#111" stroke-width="3"/>
-        </g>
-
-        <!-- Center block -->
-        <rect x="340" y="150" width="520" height="318" fill="url(#wall)"/>
-        <rect x="340" y="150" width="520" height="318" fill="url(#brick)"/>
-
-        <!-- Pediment -->
-        <polygon points="320,150 600,40 880,150" fill="url(#stone)"/>
-        <polygon points="360,140 600,56 840,140" fill="#b9bac0"/>
-        <!-- Star in pediment -->
-        <polygon points="600,72 609,98 636,98 614,114 622,140 600,124 578,140 586,114 564,98 591,98" fill="#d92b2f"/>
-        <rect x="320" y="146" width="560" height="14" fill="#8e8f96"/>
-
-        <!-- Flag poles -->
-        <line x1="330" y1="150" x2="330" y2="60" stroke="#9b9ca3" stroke-width="4"/>
-        <path d="M332 62 Q352 56 372 64 Q352 72 332 80 Z" fill="#d92b2f"/>
-        <line x1="870" y1="150" x2="870" y2="60" stroke="#9b9ca3" stroke-width="4"/>
-        <path d="M868 62 Q848 56 828 64 Q848 72 868 80 Z" fill="#d92b2f"/>
-
-        <!-- Banner across the front -->
-        <g>
-          <rect x="300" y="170" width="600" height="72" rx="4" fill="url(#banner)"/>
-          <rect x="300" y="170" width="600" height="72" rx="4" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="2"/>
-          <polygon points="300,170 272,206 300,242" fill="#8a1116"/>
-          <polygon points="900,170 928,206 900,242" fill="#8a1116"/>
-          <circle cx="316" cy="182" r="4" fill="#e9e9ec"/>
-          <circle cx="884" cy="182" r="4" fill="#e9e9ec"/>
-          <text x="600" y="221" text-anchor="middle" fill="#fff" font-family="Anton, Impact, sans-serif" font-size="46" letter-spacing="3">FIGHT FORWARD ACADEMY</text>
-        </g>
-
-        <!-- Columns -->
-        <g fill="url(#stone)">
-          <rect x="372" y="256" width="26" height="196"/>
-          <rect x="452" y="256" width="26" height="196"/>
-          <rect x="722" y="256" width="26" height="196"/>
-          <rect x="802" y="256" width="26" height="196"/>
-        </g>
-        <g fill="#8e8f96">
-          <rect x="366" y="250" width="38" height="8"/>
-          <rect x="446" y="250" width="38" height="8"/>
-          <rect x="716" y="250" width="38" height="8"/>
-          <rect x="796" y="250" width="38" height="8"/>
-          <rect x="366" y="448" width="38" height="8"/>
-          <rect x="446" y="448" width="38" height="8"/>
-          <rect x="716" y="448" width="38" height="8"/>
-          <rect x="796" y="448" width="38" height="8"/>
-        </g>
-
-        <!-- Doors -->
-        <rect x="490" y="300" width="220" height="168" fill="url(#doorGlow)"/>
-        <path d="M530 456 V330 a70 70 0 0 1 140 0 V456 Z" fill="#141015"/>
-        <path d="M538 456 V332 a62 62 0 0 1 124 0 V456 Z" fill="url(#window)" opacity="0.9" class="lit d2"/>
-        <line x1="600" y1="272" x2="600" y2="456" stroke="#141015" stroke-width="6"/>
-        <path d="M538 340 H662" stroke="#141015" stroke-width="4"/>
-        <circle cx="588" cy="400" r="4" fill="#141015"/>
-        <circle cx="612" cy="400" r="4" fill="#141015"/>
-
-        <!-- Steps -->
-        <rect x="470" y="456" width="260" height="8" fill="#b9bac0"/>
-        <rect x="450" y="464" width="300" height="8" fill="#9b9ca3"/>
-        <rect x="430" y="472" width="340" height="8" fill="#7d7e85"/>
-
-        <!-- Lamps -->
-        <g>
-          <line x1="420" y1="472" x2="420" y2="400" stroke="#2a2a2f" stroke-width="5"/>
-          <rect x="410" y="384" width="20" height="18" rx="3" fill="#ffd98a" class="lit"/>
-          <line x1="780" y1="472" x2="780" y2="400" stroke="#2a2a2f" stroke-width="5"/>
-          <rect x="770" y="384" width="20" height="18" rx="3" fill="#ffd98a" class="lit d3"/>
-        </g>
+        <!-- Walkway lit toward the doors -->
+        <polygon points="520,440 680,440 760,520 440,520" fill="#ffcf7a" opacity="0.07"/>
       </svg>
     </section>
 
     <section class="paths" id="paths" aria-labelledby="paths-title">
       <div class="paths-head">
         <h2 id="paths-title">Choose your path</h2>
-        <p>Five doors. Every one of them moves you forward.</p>
+        <p>Four doors. Every one of them moves you forward.</p>
       </div>
 
       <ul class="path-grid">
         <li>
-          <a class="path" href="#fight-forward">
+          <a class="path" href="fight-forward.html">
             <div class="badge-plate">
               <img src="assets/badges/fight-forward.jpg" alt="" width="201" height="240">
             </div>
@@ -479,7 +405,7 @@
         <li>
           <a class="path" href="#bring-it-to-the-ring">
             <div class="badge-plate">
-              <img src="assets/badges/bring-it-to-the-ring.png" alt="" width="213" height="320">
+              <img src="assets/badges/bring-it-to-the-ring.png" alt="" width="213" height="216">
             </div>
             <div class="path-body">
               <span class="path-num">Path 03</span>
@@ -492,28 +418,12 @@
           </a>
         </li>
         <li>
-          <a class="path" href="#parent-circle">
-            <span class="tag">Adults only</span>
-            <div class="badge-plate">
-              <img src="assets/badges/parent-circle.jpg" alt="" width="243" height="276">
-            </div>
-            <div class="path-body">
-              <span class="path-num">Path 04</span>
-              <h3 class="path-title">Parent Circle</h3>
-              <p class="path-desc">For parents and guardians: your child’s progress, other parents, and help resources.</p>
-              <span class="path-go">Enter
-                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h9M7 3l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-            </div>
-          </a>
-        </li>
-        <li>
           <a class="path" href="#coaching-corner">
             <div class="badge-plate">
               <img src="assets/badges/coaching-corner.png" alt="" width="223" height="213">
             </div>
             <div class="path-body">
-              <span class="path-num">Path 05</span>
+              <span class="path-num">Path 04</span>
               <h3 class="path-title">Coaching Corner</h3>
               <p class="path-desc">Questions about a lesson, or something private? Talk with a safety adult.</p>
               <span class="path-go">Enter
@@ -525,12 +435,6 @@
       </ul>
     </section>
 
-    <section class="safety" aria-label="Get help">
-      <div class="safety-inner">
-        <p><strong>In trouble or need to talk?</strong> A trusted adult is always in your corner. Conversations are recorded to keep everyone safe.</p>
-        <a class="btn" href="#coaching-corner">Reach a safety adult</a>
-      </div>
-    </section>
   </main>
 
   <footer>

@@ -1,0 +1,100 @@
+/* Shared styles for every Fight Forward Academy page */
+:root {
+  --ink: #0d0d0f;
+  --ink-2: #16161a;
+  --ink-3: #222228;
+  --red: #d92b2f;
+  --red-deep: #9e1419;
+  --silver: #c9cbd1;
+  --text: #f4f4f5;
+  --muted: #a4a6ad;
+  --plate: #ececec;
+  --radius: 14px;
+  --gutter: clamp(16px, 4vw, 40px);
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; }
+
+.skip {
+  position: absolute; left: -9999px; top: 8px;
+  background: var(--red); color: #fff; padding: 8px 14px; border-radius: 8px; z-index: 10;
+}
+.skip:focus { left: 8px; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--ink-3);
+  background: var(--ink);
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: 20px; letter-spacing: 0.06em; text-transform: uppercase;
+  text-decoration: none;
+}
+.brand-mark {
+  width: 30px; height: 30px; border-radius: 6px;
+  background: var(--red); display: grid; place-items: center;
+  font-size: 14px; letter-spacing: 0;
+}
+.user {
+  display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted);
+}
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--ink-3); border: 2px solid var(--red);
+  display: grid; place-items: center; color: var(--text); font-weight: 600; font-size: 13px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--red);
+  margin: 0 0 10px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--red); color: #fff; text-decoration: none;
+  font: inherit; font-weight: 600; font-size: 14px;
+  padding: 10px 16px; border: 0; border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn:hover { background: var(--red-deep); }
+.btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.btn-ghost {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--ink-3);
+}
+.btn-ghost:hover { background: var(--ink-3); }
+
+footer {
+  border-top: 1px solid var(--ink-3);
+  padding: 20px var(--gutter);
+  text-align: center; color: var(--muted); font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .user-name { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
