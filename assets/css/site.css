@@ -70,6 +70,11 @@ a { color: inherit; }
   color: var(--red);
   margin: 0 0 10px;
 }
+/* Centered variant: padding offsets the trailing letter-spacing so the text is truly centered. */
+.eyebrow.center {
+  display: block; text-align: center; text-wrap: balance;
+  padding-left: 0.22em;
+}
 
 /* ---------- Buttons ---------- */
 .btn {
