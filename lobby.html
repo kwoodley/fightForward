@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fight Forward Academy</title>
+  <meta name="description" content="Welcome to Fight Forward Academy. Train the mind. Move the body. Build the future.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <style>
+    /* ---------- Hero ---------- */
+    .hero {
+      position: relative;
+      text-align: center;
+      padding: clamp(28px, 5vw, 56px) var(--gutter) 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.28), transparent 70%),
+        linear-gradient(180deg, #0a0b12 0%, #141523 55%, #1d1216 100%);
+    }
+    .hero h1 {
+      font-family: "Anton", Impact, sans-serif;
+      font-weight: 400;
+      font-size: clamp(34px, 7vw, 76px);
+      line-height: 1.02;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      margin: 0;
+      text-wrap: balance;
+    }
+    .hero h1 span { color: var(--red); }
+    .tagline {
+      margin: 12px auto 0;
+      color: var(--silver);
+      font-size: clamp(15px, 2vw, 18px);
+      max-width: 36em;
+    }
+    .tagline strong { color: var(--text); font-weight: 600; }
+
+    .building {
+      position: relative;
+      width: 100%;
+      max-width: 1100px;
+      margin: clamp(20px, 4vw, 40px) auto 0;
+      border-radius: var(--radius) var(--radius) 0 0;
+      overflow: hidden;
+    }
+    .building img { display: block; width: 100%; height: auto; }
+    .metaphor {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: clamp(10px, 2vw, 18px) clamp(12px, 3vw, 24px) clamp(22px, 4vw, 40px);
+      background: linear-gradient(180deg, rgba(5, 6, 10, 0.82), rgba(5, 6, 10, 0));
+      color: #fff; text-align: center; font-weight: 600; font-style: italic;
+      font-size: clamp(12px, 1.9vw, 18px); letter-spacing: 0.02em;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+    }
+
+    /* ---------- Paths ---------- */
+    .paths {
+      padding: clamp(36px, 6vw, 64px) var(--gutter) clamp(48px, 7vw, 80px);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .paths-head { text-align: center; margin-bottom: clamp(24px, 4vw, 36px); }
+    .paths-head h2 {
+      font-family: "Anton", Impact, sans-serif;
+      font-weight: 400;
+      font-size: clamp(26px, 4vw, 38px);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin: 0;
+    }
+    .paths-head p { color: var(--muted); margin: 6px 0 0; }
+
+    .path-grid {
+      list-style: none; margin: 0; padding: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .path {
+      position: relative;
+      display: flex; flex-direction: column;
+      height: 100%;
+      text-decoration: none;
+      background: var(--ink-2);
+      border: 1px solid var(--ink-3);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .path:hover {
+      transform: translateY(-4px);
+      border-color: var(--red);
+      box-shadow: 0 14px 30px -12px rgba(217, 43, 47, 0.55);
+    }
+    .path:focus-visible {
+      outline: 3px solid var(--red);
+      outline-offset: 3px;
+    }
+
+    /* Light plate: the badge artwork has a light background, so it sits on a matching plate */
+    .badge-plate {
+      background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--plate) 70%);
+      display: grid; place-items: center;
+      padding: 18px 12px 14px;
+      
+      border-bottom: 3px solid var(--red);
+    }
+    /* Every badge renders in the same square frame, whatever the source image's size */
+    .badge-plate img {
+      width: 150px;
+      height: 150px;
+      max-width: 100%;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      transition: transform 0.25s ease;
+    }
+    .badge-plate img.art { mix-blend-mode: normal; }
+    .path:hover .badge-plate img { transform: scale(1.05); }
+
+    .path-body { padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .path-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red);
+    }
+    .path-title {
+      font-family: "Anton", Impact, sans-serif;
+      font-weight: 400;
+      font-size: 22px;
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin: 0;
+    }
+    .path-desc { color: var(--muted); font-size: 14px; margin: 0; }
+    .path-go {
+      margin-top: auto; padding-top: 10px;
+      font-size: 13px; font-weight: 600; color: var(--text);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .path-go svg { transition: transform 0.2s ease; }
+    .path:hover .path-go svg { transform: translateX(3px); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1080px) {
+      .path-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .path-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .path-title { font-size: 19px; }
+      .path-desc { font-size: 13px; }
+    }
+    @media (max-width: 400px) {
+      .path-grid { grid-template-columns: 1fr; }
+    }
+
+  </style>
+</head>
+<body>
+  <a class="skip" href="#paths">Skip to your paths</a>
+
+  <header class="topbar">
+    <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby">
+      <span class="brand-mark" aria-hidden="true">FF</span>
+      Fight Forward
+    </a>
+    <div class="user">
+      <span class="user-name" data-user-greeting>Welcome back</span>
+      <span class="avatar" aria-hidden="true" data-user-initial>F</span>
+      <a class="signout" href="index.html" data-signout>Log out</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="welcome">
+      <p class="eyebrow">Train the mind · Move the body · Build the future</p>
+      <h1 id="welcome">Welcome to <span>Fight Forward</span> Academy</h1>
+      <p class="tagline">Every day is a new round. <strong>Choose your path wisely.</strong></p>
+
+      <figure class="building">
+        <img src="assets/img/academy.jpg" width="1800" height="1012" alt="The Fight Forward Academy building: a glass-and-steel training center with the Fight Forward shield on the front, and signs for Practice Decision-Making, Bring It to the Ring, Impact Lab and Coaching Corner.">
+        <figcaption class="metaphor">This academy is a visual metaphor for the digital experience.</figcaption>
+      </figure>
+    </section>
+
+    <section class="paths" id="paths" aria-labelledby="paths-title">
+      <div class="paths-head">
+        <h2 id="paths-title">Choose your path</h2>
+        <p>Four doors. Every one of them moves you forward.</p>
+      </div>
+
+      <ul class="path-grid">
+        <li>
+          <a class="path" href="fight-forward.html">
+            <div class="badge-plate">
+              <img class="art" src="assets/badges/fight-forward-button.png" alt="" width="480" height="513">
+            </div>
+            <div class="path-body">
+              <span class="path-num">Path 01</span>
+              <h3 class="path-title">Fight Forward</h3>
+              <p class="path-desc">Real-life scenarios and youth programming. Make the call, see where it leads.</p>
+              <span class="path-go">Enter
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h9M7 3l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="path" href="#impact-lab">
+            <div class="badge-plate">
+              <img src="assets/badges/impact-lab.png" alt="" width="226" height="215">
+            </div>
+            <div class="path-body">
+              <span class="path-num">Path 02</span>
+              <h3 class="path-title">Impact Lab</h3>
+              <p class="path-desc">Hit the gym. Boxing-inspired cardio workouts and basic boxing training.</p>
+              <span class="path-go">Enter
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h9M7 3l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="path" href="#bring-it-to-the-ring">
+            <div class="badge-plate">
+              <img src="assets/badges/bring-it-to-the-ring.png" alt="" width="213" height="216">
+            </div>
+            <div class="path-body">
+              <span class="path-num">Path 03</span>
+              <h3 class="path-title">Bring It to the Ring</h3>
+              <p class="path-desc">Step in and face today’s topic. Open, honest talk about real life.</p>
+              <span class="path-go">Enter
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h9M7 3l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="path" href="#coaching-corner">
+            <div class="badge-plate">
+              <img class="art" src="assets/badges/coaching-corner-button.png" alt="" width="480" height="480">
+            </div>
+            <div class="path-body">
+              <span class="path-num">Path 04</span>
+              <h3 class="path-title">Coaching Corner</h3>
+              <p class="path-desc">Questions about a lesson, or something private? Talk with a safety adult.</p>
+              <span class="path-go">Enter
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h9M7 3l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.
+  </footer>
+  <script src="assets/js/auth.js"></script>
+  <script>FFAuth.requireUser();</script>
+</body>
+</html>

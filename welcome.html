@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome · Fight Forward Academy</title>
+  <meta name="description" content="Welcome to Fight Forward Academy. Every day is a new round. Choose your path wisely.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+    main {
+      flex: 1; display: grid; place-items: center; text-align: center;
+      padding: clamp(28px, 6vw, 64px) var(--gutter);
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.28), transparent 70%),
+        linear-gradient(180deg, #0a0b12 0%, #141523 55%, #1d1216 100%);
+    }
+    .inner { max-width: 720px; }
+    h1 {
+      font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
+      font-size: clamp(36px, 8vw, 76px); line-height: 1.04; margin: 0; text-wrap: balance;
+    }
+    h1 .name { color: var(--red); display: block; overflow-wrap: anywhere; }
+    h1 .sub { display: block; font-size: 0.62em; margin-top: 4px; }
+    .tagline { color: var(--silver); font-size: clamp(16px, 2.2vw, 20px); margin: 20px 0 0; }
+    .tagline strong { color: var(--text); }
+    .about { color: var(--silver); max-width: 38em; margin: 22px auto 0; font-size: clamp(15px, 1.8vw, 17px); }
+    .btn { margin-top: 32px; font-size: 18px; padding: 14px 30px; }
+    .switch { display: block; margin-top: 18px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="inner">
+      <p class="eyebrow">Train the mind · Move the body · Build the future</p>
+      <h1>Welcome, <span class="name" data-user-name>Champ</span><span class="sub">to Fight Forward Academy</span></h1>
+      <p class="tagline">Every day is a new round. <strong>Choose your path wisely.</strong></p>
+      <p class="about">Fight Forward is an interactive decision-making training platform where young people practice real-life choices, build confidence, and strengthen decision-making skills in a safe, engaging environment.</p>
+      <a class="btn" href="lobby.html">Enter Here
+        <svg width="16" height="16" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h9M7 3l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="switch" href="index.html?switch" data-signout>Not you? Log out</a>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.
+  </footer>
+
+  <script src="assets/js/auth.js"></script>
+  <script>FFAuth.requireUser();</script>
+</body>
+</html>

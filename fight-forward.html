@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fight Forward · Scenarios</title>
-  <meta name="description" content="Real-life scenarios. Make the call, see where it leads.">
+  <title>Fight Forward · Monthly Sessions</title>
+  <meta name="description" content="Monthly sessions: video scenarios, games and scenarios. Make the call, see where it leads.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/modules.css">
   <style>
     .wrap { max-width: 1100px; margin: 0 auto; padding: 0 var(--gutter); }
 
@@ -27,7 +28,7 @@
       flex: none;
       width: clamp(84px, 14vw, 120px); aspect-ratio: 1;
       border-radius: var(--radius);
-      background: #e4e4e6; /* matches the badge JPG's own background so its edges disappear */
+      background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--plate) 75%);
       display: grid; place-items: center;
       border-bottom: 3px solid var(--red);
       overflow: hidden;
@@ -184,6 +185,23 @@
       font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline;
     }
 
+    /* ---------- Month + week pickers ---------- */
+    .picker { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; padding: 0; list-style: none; }
+    .tab {
+      font: inherit; cursor: pointer; color: var(--text); text-align: left;
+      background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: 12px; padding: 10px 16px;
+    }
+    .tab small { display: block; color: var(--muted); font-size: 12px; }
+    .tab:hover { border-color: var(--red); }
+    .tab:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .tab[aria-pressed="true"] { border-color: var(--red); background: #1c1113; }
+    .tab:disabled { opacity: 0.45; cursor: default; border-color: var(--ink-3); }
+    .week-tab { padding: 6px 14px; border-radius: 999px; }
+    .session-head { margin: 22px 0 14px; }
+    .session-head h3 { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 24px; text-transform: uppercase; margin: 0; }
+    .session-head p { margin: 4px 0 0; color: var(--muted); }
+    .rounds { padding-bottom: clamp(32px, 5vw, 48px); }
+
     @media (max-width: 900px) {
       .round-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -197,35 +215,40 @@
   <a class="skip" href="#rounds">Skip to the rounds</a>
 
   <header class="topbar">
-    <a class="brand" href="index.html" aria-label="Fight Forward Academy home">
+    <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby">
       <span class="brand-mark" aria-hidden="true">FF</span>
       Fight Forward
     </a>
     <div class="user">
-      <span class="user-name">Welcome back, Lamont</span>
-      <span class="avatar" aria-hidden="true">L</span>
+      <span class="user-name" data-user-greeting>Welcome back</span>
+      <span class="avatar" aria-hidden="true" data-user-initial>F</span>
+      <a class="signout" href="index.html" data-signout>Log out</a>
     </div>
   </header>
 
   <main class="wrap">
     <div class="page-head">
-      <div class="page-badge"><img src="assets/badges/fight-forward.jpg" alt="" width="201" height="240"></div>
+      <div class="page-badge"><img src="assets/badges/fight-forward-button.png" alt="" width="480" height="513"></div>
       <div>
-        <a class="back" href="index.html">
+        <a class="back" href="lobby.html">
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 7H3M7 3L3 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Back to the lobby
         </a>
         <p class="eyebrow">Path 01</p>
         <h1>Make the <span>call</span></h1>
-        <p>Real situations, real pressure. Pick what you’d actually do and see where it leads. No grades here, just your calls.</p>
+        <p>One topic each month. Every weekly session has six modules: two video scenarios, two games, and two scenarios. Coach explains every answer at the end.</p>
       </div>
     </div>
 
-    <section class="ring" id="ring" hidden aria-live="polite"></section>
+    <section class="ring" id="ring" hidden></section>
 
     <section class="rounds" id="rounds" aria-labelledby="rounds-title">
-      <h2 class="section-title" id="rounds-title">Pick a round</h2>
-      <p class="section-sub">Each round comes with a different kind of pressure and a different level of backup.</p>
+      <h2 class="section-title" id="rounds-title">Pick your month</h2>
+      <p class="section-sub">Each month covers one topic. You meet once a week.</p>
+      <ul class="picker" id="months"></ul>
+      <p class="section-sub" id="month-blurb"></p>
+      <ul class="picker" id="weeks" aria-label="Weekly sessions"></ul>
+      <div class="session-head"><h3 id="session-title"></h3><p id="session-sub">Six modules. Do them in any order.</p></div>
       <ul class="round-grid" id="round-grid"></ul>
     </section>
 
@@ -240,270 +263,110 @@
     © 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.
   </footer>
 
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/content.js"></script>
+  <script src="assets/js/modules.js"></script>
   <script>
-    // ---------- Vocabulary ----------
-    // Every choice is one of four moves. These are what the record tracks over time.
-    const MOVES = {
-      react:  { label: "React",            note: "Going with the first impulse, or going along with it." },
-      step:   { label: "Step back",        note: "Removing yourself from the situation." },
-      speak:  { label: "Speak up",         note: "Saying what you think, directly and calmly." },
-      corner: { label: "Call your corner", note: "Bringing in someone you trust." }
-    };
-    const PRESSURE = {
-      peer:      "Peer pressure",
-      heat:      "Heat of the moment",
-      clock:     "Clock is ticking",
-      authority: "Adult in charge",
-      online:    "Online"
-    };
-    const SUPPORT = {
-      alone:  "On your own",
-      crowd:  "People watching",
-      peers:  "Friends nearby",
-      adult:  "Adult a call away"
-    };
-
-    // ---------- Rounds ----------
-    const ROUNDS = [
-      {
-        id: "group-chat", title: "The Group Chat", pressure: "peer", support: "alone",
-        teaser: "The chat is roasting somebody, and now they’re waiting on you.",
-        setup: "It’s 11pm. Your group chat is clowning a kid from your class: screenshots of old posts, jokes about his clothes. Somebody tags you: “you quiet tonight 👀”. Everybody’s waiting.",
-        choices: [
-          { text: "Drop a joke so they get off your back.", move: "react",
-            outcome: "The chat laughs for a minute. Tomorrow a screenshot with your name on it is going around school, and the kid saw it. Something in writing is hard to take back." },
-          { text: "Say nothing and mute the chat.", move: "step",
-            outcome: "You stay out of it. The roast keeps going without you. You didn’t add to it, but nobody pushed back either." },
-          { text: "“Nah, this is corny. Leave him alone.”", move: "speak",
-            outcome: "A couple people say “relax.” Then a friend DMs you: “fr, it was getting weird.” The chat moves on faster than you expected." },
-          { text: "Screenshot it and show a trusted adult tomorrow.", move: "corner",
-            outcome: "The adult thanks you and handles it without saying who told. The kid gets support, and the chat gets a reminder about where the line is." }
-        ]
-      },
-      {
-        id: "hallway", title: "Bumped in the Hallway", pressure: "heat", support: "crowd",
-        teaser: "Someone shoulders you hard. A crowd turns to see what you’ll do.",
-        setup: "Between classes someone shoulders you hard and keeps walking. Your books hit the floor. A crowd turns around. Somebody says, “You gonna let him do you like that?”",
-        choices: [
-          { text: "Catch up to him and shove him back.", move: "react",
-            outcome: "It turns into a fight in seconds. You both get suspended, and the video is online by lunch. The crowd forgets about it by Friday. You don’t." },
-          { text: "Pick up your books and keep moving.", move: "step",
-            outcome: "People talk for a minute. By next period it’s old news. Your heart is still racing, and that’s okay. You kept control." },
-          { text: "“Yo, watch where you’re going.” Firm, without stepping to him.", move: "speak",
-            outcome: "He turns, sizes it up, and mutters “my bad.” You stood your ground without throwing a punch." },
-          { text: "Let it go for now and tell a teacher, since it’s happened before.", move: "corner",
-            outcome: "Turns out he’s been doing this to other people too. The teacher already had his name. You weren’t the only one who noticed." }
-        ]
-      },
-      {
-        id: "ride-home", title: "The Ride Home", pressure: "clock", support: "adult",
-        teaser: "You’re late, and the only ride has been drinking.",
-        setup: "The party’s ending. It’s 12:40 and curfew was 12:30. Your older cousin offers you a ride, but he’s been drinking and his eyes are red. “Come on, I’m good, let’s go.” Your mom’s number is in your phone.",
-        choices: [
-          { text: "Get in. You’re already late.", move: "react",
-            outcome: "Nothing happens tonight, but your stomach is in knots the whole ride. Getting home fine doesn’t mean it was safe. It means you got lucky." },
-          { text: "Say you’ll find another way and wait inside.", move: "step",
-            outcome: "You don’t have a plan yet, but you’re safe. A friend’s parent notices you waiting and offers you a ride." },
-          { text: "Tell him he shouldn’t drive either, and ask for his keys.", move: "speak",
-            outcome: "He’s annoyed, but a friend backs you up and he crashes on the couch. You might have kept more than one person safe tonight." },
-          { text: "Call your mom, even though you’re late.", move: "corner",
-            outcome: "She’s upset about curfew for about five minutes. Then she says, “Thank you for calling me.” That’s exactly the call she wants you to make." }
-        ]
-      },
-      {
-        id: "answers", title: "Send the Answers", pressure: "peer", support: "peers",
-        teaser: "Your best friend didn’t study and wants your help during the test.",
-        setup: "Your best friend texts at 7am: “I didn’t study at all. Send me a pic of your answers during the test. You got me, right?”",
-        choices: [
-          { text: "Send them. He’s your boy.", move: "react",
-            outcome: "Two tests match word for word. The teacher notices. Now you’re both in trouble, and you’re the one who studied." },
-          { text: "Leave him on read.", move: "step",
-            outcome: "You stay out of trouble, but he’s salty at lunch. He doesn’t really know why you went quiet." },
-          { text: "“Can’t do that, but I’ll quiz you on the bus.”", move: "speak",
-            outcome: "He’s frustrated, but he takes you up on it. He passes, barely. He owes you one, and he knows it." },
-          { text: "Tell him to ask the teacher for more time.", move: "corner",
-            outcome: "He’s nervous, but he asks. The teacher gives him a retake plan. Adults say yes more often than you’d think." }
-        ]
-      },
-      {
-        id: "practice", title: "Called Out at Practice", pressure: "authority", support: "peers",
-        teaser: "Coach blames you in front of everyone for something that wasn’t your fault.",
-        setup: "Coach blames you in front of the whole team for a play that wasn’t your fault. “That’s on you. Take a lap.” Your teammates go quiet. Your face is burning.",
-        choices: [
-          { text: "Argue back right there.", move: "react",
-            outcome: "It gets louder. Coach benches you for the next game. You were right, but nobody heard it." },
-          { text: "Take the lap and let it go.", move: "step",
-            outcome: "You cool off while you run. It still doesn’t sit right, and that feeling is worth paying attention to." },
-          { text: "Take the lap, then ask Coach for a minute after practice.", move: "speak",
-            outcome: "One-on-one, Coach listens. “I might’ve been quick on that.” Picking the right moment got you heard." },
-          { text: "Tell a parent or another staff member how it felt.", move: "corner",
-            outcome: "They help you figure out what to say, or go talk to Coach with you. You don’t have to handle every adult by yourself." }
-        ]
-      },
-      {
-        id: "the-dm", title: "The DM", pressure: "online", support: "adult",
-        teaser: "Someone online wants your friend to meet up, and keep it a secret.",
-        setup: "Your friend shows you DMs from someone who says they’re 17 and a music producer. They want your friend to meet up Saturday, alone, and “not tell anybody yet.”",
-        choices: [
-          { text: "“That’s a big opportunity. You should go.”", move: "react",
-            outcome: "Your friend goes. The person isn’t who they said they were. Your friend gets out of there, shaken. It could have gone a lot worse." },
-          { text: "Say “that’s kinda weird” and change the subject.", move: "step",
-            outcome: "Your friend stops bringing it up but keeps messaging them. You’re left wondering what happens Saturday." },
-          { text: "“Anybody who says don’t tell anyone is a red flag.”", move: "speak",
-            outcome: "Your friend gets defensive, then thinks about it and stops replying. Sometimes a friend saying it out loud is enough." },
-          { text: "Go with your friend to a safety adult.", move: "corner",
-            outcome: "The adult helps you both report and block the account, which turns out to be fake. You may have protected your friend from something serious." }
-        ]
-      }
-    ];
+    const user = FFAuth.requireUser();
+    const { MONTHS, MOVES, PRESSURE, SUPPORT } = window.FF_CONTENT;
+    const { el, chips, play, TYPE_LABEL } = window.FFModules;
+    const $ = (sel, root = document) => root.querySelector(sel);
 
     // ---------- Storage ----------
-    // For now decisions are saved on this device only. Each entry is the raw data point
-    // for "how decision-making changes over time, under pressure, with support".
-    const KEY = "ff.decisions.v1";
-    function loadDecisions() {
-      try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+    // Saved on this device only, per student. Each decision is the raw data point for
+    // "how decision-making changes over time, under pressure, with support".
+    const DKEY = "ff.decisions.v2:" + user.id;
+    const PKEY = "ff.progress.v1:" + user.id;
+    function load(key, fallback) {
+      try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; }
     }
-    function saveDecision(entry) {
-      const all = loadDecisions();
-      all.push(entry);
-      try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* storage unavailable */ }
-      memory.push(entry);
+    function save(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage unavailable */ }
     }
-    // Fallback so the record still works for this visit if storage is blocked.
-    const memory = loadDecisions();
+    // In-memory copies so everything still works this visit if storage is blocked.
+    const decisions = load(DKEY, []);
+    const progress = load(PKEY, {});
 
-    // ---------- Helpers ----------
-    const $ = (sel, root = document) => root.querySelector(sel);
-    function el(tag, attrs = {}, ...kids) {
-      const node = document.createElement(tag);
-      for (const [k, v] of Object.entries(attrs)) {
-        if (k === "class") node.className = v;
-        else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
-        else node.setAttribute(k, v);
-      }
-      for (const kid of kids) node.append(kid);
-      return node;
-    }
-    function chips(round) {
-      return el("div", { class: "tags" },
-        el("span", { class: "chip" }, el("b", {}, "Pressure: "), PRESSURE[round.pressure]),
-        el("span", { class: "chip" }, el("b", {}, "Corner: "), SUPPORT[round.support])
-      );
+    // ---------- State ----------
+    let monthIdx = 0, weekIdx = 0;
+    const month = () => MONTHS[monthIdx];
+    const week = () => month().weeks[weekIdx];
+
+    // ---------- Pickers ----------
+    function renderPickers() {
+      $("#months").replaceChildren(...MONTHS.map((m, i) => el("li", {},
+        el("button", { class: "tab", type: "button", "aria-pressed": String(i === monthIdx), onclick: () => { monthIdx = i; weekIdx = 0; closeRing(true); renderAll(); } },
+          m.name, el("small", {}, m.topic)))));
+      $("#month-blurb").textContent = `${month().name}: ${month().topic}. ${month().blurb}`;
+      $("#weeks").replaceChildren(...month().weeks.map((w, i) => el("li", {},
+        el("button", { class: "tab week-tab", type: "button", disabled: w.modules.length ? null : "", "aria-pressed": String(i === weekIdx),
+            onclick: () => { weekIdx = i; closeRing(true); renderAll(); } },
+          `Week ${w.n}`, w.modules.length ? "" : " · soon"))));
     }
 
-    // ---------- Round list ----------
-    function renderRounds() {
-      const played = new Set(memory.map(d => d.roundId));
+    // ---------- Module list ----------
+    function renderModules() {
+      const w = week();
+      $("#session-title").textContent = `Week ${w.n} · ${w.title}`;
       const grid = $("#round-grid");
-      grid.replaceChildren(...ROUNDS.map((r, i) => el("li", {},
-        el("button", { class: "round", type: "button", onclick: () => openRound(r) },
+      if (!w.modules.length) {
+        grid.replaceChildren(el("li", {}, el("p", { class: "round-teaser" }, "This session is coming soon.")));
+        return;
+      }
+      grid.replaceChildren(...w.modules.map((m, i) => el("li", {},
+        el("button", { class: "round", type: "button", onclick: () => openModule(m) },
           el("span", { class: "round-num" },
-            `Round ${String(i + 1).padStart(2, "0")}`,
-            played.has(r.id) ? el("span", { class: "done" }, "✓ Played") : ""
+            `Module ${i + 1}`,
+            progress[m.id] ? el("span", { class: "done" }, "✓ Done") : ""
           ),
-          el("h3", { class: "round-title" }, r.title),
-          el("p", { class: "round-teaser" }, r.teaser),
-          chips(r)
+          el("h3", { class: "round-title" }, m.title),
+          el("p", { class: "round-teaser" }, m.teaser),
+          chips(m)
         )
       )));
     }
 
-    // ---------- The ring ----------
-    function openRound(round) {
+    // ---------- Player ----------
+    const ctx = {
+      record(entry) {
+        const row = { ...entry, month: month().id, week: week().n, at: new Date().toISOString() };
+        decisions.push(row); save(DKEY, decisions);
+        renderRecord();
+      },
+      complete(id, info) {
+        progress[id] = { ...info, at: new Date().toISOString() }; save(PKEY, progress);
+        renderModules();
+        renderRecord();
+      },
+      nextModule(mod) {
+        const list = week().modules, i = list.indexOf(mod);
+        return i >= 0 && i < list.length - 1 ? list[i + 1] : null;
+      },
+      open: m => openModule(m),
+      close: () => closeRing()
+    };
+
+    function openModule(mod) {
       const ring = $("#ring");
-      const startedAt = performance.now();
-      let picked = null;
-      let msToDecide = 0;
-
-      const heading = el("h2", { tabindex: "-1" }, round.title);
-      const choiceButtons = round.choices.map((c, i) =>
-        el("button", { class: "choice", type: "button", "aria-pressed": "false", onclick: () => pick(i) },
-          el("span", { class: "choice-key", "aria-hidden": "true" }, "ABCD"[i]),
-          el("span", {}, c.text)
-        )
-      );
-
-      // Step 2: how sure were you? Asked before the outcome so the answer isn't colored by it.
-      const sureStep = el("div", { class: "step", hidden: "" },
-        el("p", { class: "prompt", id: "sure-label" }, "How sure are you about that call?"),
-        el("div", { class: "scale", role: "group", "aria-labelledby": "sure-label" },
-          ...[1, 2, 3, 4, 5].map(n => el("button", { type: "button", onclick: () => finish(n) }, String(n))),
-          el("button", { class: "skip-link", type: "button", onclick: () => finish(null) }, "Skip")
-        ),
-        el("div", { class: "scale-ends", "aria-hidden": "true" }, el("span", {}, "Not sure"), el("span", {}, "Totally sure"))
-      );
-
-      // Step 3: where it leads.
-      const outcomeStep = el("div", { class: "step", hidden: "" });
-
+      const heading = el("h2", { tabindex: "-1" }, mod.title);
+      const body = el("div", { class: "module-body" });
       ring.replaceChildren(
         el("div", { class: "ring-top" },
-          chips(round),
-          el("button", { class: "btn btn-ghost", type: "button", onclick: closeRing }, "Leave the ring")
+          chips(mod),
+          el("button", { class: "btn btn-ghost", type: "button", onclick: () => closeRing() }, "Leave the ring")
         ),
-        heading,
-        el("p", { class: "setup" }, round.setup),
-        el("p", { class: "prompt" }, "What do you do?"),
-        el("ul", { class: "choices" }, ...choiceButtons.map(b => el("li", {}, b))),
-        sureStep,
-        outcomeStep
+        heading, body
       );
       ring.hidden = false;
       ring.scrollIntoView({ behavior: "smooth", block: "start" });
       heading.focus({ preventScroll: true });
-
-      function pick(i) {
-        if (picked !== null) return;
-        picked = i;
-        msToDecide = Math.round(performance.now() - startedAt);
-        choiceButtons.forEach((b, j) => {
-          b.disabled = true;
-          b.setAttribute("aria-pressed", String(i === j));
-        });
-        sureStep.hidden = false;
-        sureStep.querySelector("button").focus();
-      }
-
-      function finish(confidence) {
-        const choice = round.choices[picked];
-        saveDecision({
-          roundId: round.id,
-          pressure: round.pressure,
-          support: round.support,
-          choice: picked,
-          move: choice.move,
-          confidence,
-          msToDecide,
-          at: new Date().toISOString()
-        });
-        sureStep.hidden = true;
-
-        const next = ROUNDS[(ROUNDS.indexOf(round) + 1) % ROUNDS.length];
-        outcomeStep.replaceChildren(
-          el("p", { class: "prompt" }, "Where it leads"),
-          el("div", { class: "outcome" },
-            el("span", { class: "move" }, MOVES[choice.move].label),
-            el("p", {}, choice.outcome),
-            el("p", { class: "outcome-note" }, "Every call has a cost and a payoff. Want to see how a different call would play out? Run it back.")
-          ),
-          el("div", { class: "actions" },
-            el("button", { class: "btn", type: "button", onclick: () => openRound(next) }, `Next round: ${next.title}`),
-            el("button", { class: "btn btn-ghost", type: "button", onclick: () => openRound(round) }, "Run it back"),
-            el("button", { class: "btn btn-ghost", type: "button", onclick: closeRing }, "Back to rounds")
-          )
-        );
-        outcomeStep.hidden = false;
-        outcomeStep.querySelector(".outcome").scrollIntoView({ behavior: "smooth", block: "nearest" });
-        outcomeStep.querySelector(".btn").focus({ preventScroll: true });
-
-        renderRounds();
-        renderRecord();
-      }
+      play(mod, body, ctx);
     }
 
-    function closeRing() {
-      $("#ring").hidden = true;
+    function closeRing(quiet) {
+      const ring = $("#ring");
+      ring.hidden = true; ring.replaceChildren();
+      if (quiet) return;
       $("#rounds").scrollIntoView({ behavior: "smooth", block: "start" });
       $("#rounds-title").setAttribute("tabindex", "-1");
       $("#rounds-title").focus({ preventScroll: true });
@@ -521,32 +384,27 @@
 
     function renderRecord() {
       const card = $("#record");
-      if (!memory.length) {
-        card.replaceChildren(el("p", { class: "record-empty" }, "No rounds yet. Pick one above and your record starts here."));
+      const done = Object.keys(progress).length;
+      if (!decisions.length && !done) {
+        card.replaceChildren(el("p", { class: "record-empty" }, "No modules yet. Pick one above and your record starts here."));
         return;
       }
-      const [topMove] = tally(memory)[0];
       const rows = [];
       for (const [key, label] of Object.entries(PRESSURE)) {
-        const list = memory.filter(d => d.pressure === key);
+        const list = decisions.filter(d => d.pressure === key);
         if (list.length) rows.push(["Pressure: " + label, list]);
       }
       for (const [key, label] of Object.entries(SUPPORT)) {
-        const list = memory.filter(d => d.support === key);
+        const list = decisions.filter(d => d.support === key);
         if (list.length) rows.push(["Corner: " + label, list]);
       }
+      const lead = [el("span", {}, `${user.name}, you’ve finished ${done} module${done === 1 ? "" : "s"}. `)];
+      if (decisions.length) lead.push(`${decisions.length} call${decisions.length === 1 ? "" : "s"} made. Your go-to move so far: `, el("strong", {}, MOVES[tally(decisions)[0][0]].label), ".");
 
       card.replaceChildren(
-        el("p", { class: "record-lead" },
-          `${memory.length} call${memory.length === 1 ? "" : "s"} made. Your go-to move so far: `,
-          el("strong", {}, MOVES[topMove].label), "."
-        ),
+        el("p", { class: "record-lead" }, ...lead),
         el("ul", { class: "record-list" }, ...rows.map(([label, list]) =>
-          el("li", {},
-            el("span", { class: "label" }, label),
-            el("span", { class: "detail" }, describe(list))
-          )
-        )),
+          el("li", {}, el("span", { class: "label" }, label), el("span", { class: "detail" }, describe(list))))),
         el("div", { class: "record-foot" },
           el("span", {}, "Saved on this device for now."),
           el("button", { type: "button", onclick: clearRecord }, "Clear my record")
@@ -555,15 +413,15 @@
     }
 
     function clearRecord() {
-      if (!confirm("Clear every call you’ve made on this device?")) return;
-      try { localStorage.removeItem(KEY); } catch (e) { /* storage unavailable */ }
-      memory.length = 0;
-      renderRounds();
-      renderRecord();
+      if (!confirm("Clear everything you’ve done on this device?")) return;
+      try { localStorage.removeItem(DKEY); localStorage.removeItem(PKEY); } catch (e) { /* storage unavailable */ }
+      decisions.length = 0;
+      for (const k of Object.keys(progress)) delete progress[k];
+      renderAll();
     }
 
-    renderRounds();
-    renderRecord();
+    function renderAll() { renderPickers(); renderModules(); renderRecord(); }
+    renderAll();
   </script>
 </body>
 </html>

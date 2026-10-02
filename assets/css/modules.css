@@ -1,0 +1,151 @@
+/* Styles for the animated scenes, coach, and games on the Fight Forward module pages */
+
+/* ---------- Animated scene ---------- */
+.scene { margin: 0 0 22px; }
+.stage {
+  position: relative; overflow: hidden;
+  height: clamp(280px, 46vw, 380px);
+  border-radius: var(--radius); border: 1px solid var(--ink-3);
+  background: #222;
+}
+.stage[data-setting="field"]     { background: linear-gradient(#69b4ee 0 54%, #3f9a4a 54% 100%); }
+.stage[data-setting="field"]::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 54%; height: 3px; background: rgba(255,255,255,0.35);
+}
+.stage[data-setting="hallway"]   {
+  background:
+    repeating-linear-gradient(90deg, #5a6b82 0 54px, #4a5a70 54px 58px) 0 0 / 100% 62% no-repeat,
+    linear-gradient(#cfd3d9 0 62%, #8c7b68 62% 100%);
+}
+.stage[data-setting="classroom"] { background: linear-gradient(#e8dcc2 0 62%, #8c7b68 62% 100%); }
+.stage[data-setting="cafeteria"] { background: linear-gradient(#f0d9a8 0 60%, #b58a5a 60% 100%); }
+.stage[data-setting="phone"]     { background: radial-gradient(ellipse at 50% 0%, #2a2d3a, #0e0f14 70%); }
+
+.stage-label {
+  position: absolute; top: 10px; left: 12px; z-index: 3;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #fff; background: rgba(0,0,0,0.55); padding: 4px 10px; border-radius: 999px;
+}
+
+.cast {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: space-around; align-items: flex-end;
+  padding: 0 4%;
+}
+.actor { display: flex; flex-direction: column; align-items: center; transition: transform 0.25s ease, opacity 0.25s ease; opacity: 0.8; }
+.fig { height: clamp(130px, 25vw, 210px); aspect-ratio: 100 / 140; }
+.fig svg { width: 100%; height: 100%; display: block; }
+.actor-name {
+  font-size: 12px; font-weight: 700; color: #fff; background: rgba(0,0,0,0.6);
+  padding: 2px 10px; border-radius: 999px; margin: 4px 0 8px;
+}
+.actor.speaking { opacity: 1; transform: translateY(-6px) scale(1.04); }
+.stage.phone-mode .cast { display: none; }
+
+.bubble {
+  position: absolute; z-index: 4; top: 46px; transform: translateX(-50%);
+  width: max-content; max-width: min(64%, 440px);
+  background: #fff; color: #111; border-radius: 16px; padding: 10px 14px;
+  font-size: clamp(14px, 2.1vw, 18px); line-height: 1.35;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+.bubble::after {
+  content: ""; position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%);
+  border: 9px solid transparent; border-bottom: 0; border-top-color: #fff;
+}
+.bubble b { color: var(--red-deep); }
+
+.narr {
+  position: absolute; z-index: 4; left: 50%; top: 46px; transform: translateX(-50%);
+  width: max-content; max-width: 88%; text-align: center;
+  background: rgba(10,10,14,0.85); color: #fff; border-radius: 10px; padding: 10px 16px;
+  font-weight: 600; font-size: clamp(14px, 2.1vw, 18px);
+  border-left: 4px solid var(--red);
+}
+.stage.phone-mode .narr { top: auto; bottom: 14px; }
+
+.phone {
+  position: absolute; z-index: 2; left: 50%; top: 44px; bottom: 12px; transform: translateX(-50%);
+  width: min(86%, 380px); display: flex; flex-direction: column;
+  background: #101116; border: 2px solid #3a3d4a; border-radius: 22px; overflow: hidden;
+}
+.phone[hidden] { display: none; }
+.phone-bar { background: #1c1e27; text-align: center; font-size: 12px; font-weight: 700; padding: 6px; color: var(--silver); }
+.phone-list { list-style: none; margin: 0; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; padding-bottom: 54px; }
+.msg { align-self: flex-start; max-width: 82%; background: #2a2d3a; border-radius: 16px 16px 16px 4px; padding: 7px 12px; animation: pop 0.25s ease; }
+.msg.mine { align-self: flex-end; background: var(--red); border-radius: 16px 16px 4px 16px; }
+.msg-from { display: block; font-size: 11px; font-weight: 700; color: var(--silver); }
+.msg-text { font-size: 15px; }
+.sysmsg { align-self: center; font-size: 12px; color: var(--muted); text-align: center; animation: pop 0.25s ease; }
+@keyframes pop { from { transform: translateY(6px) scale(0.97); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.stage-play {
+  position: absolute; inset: 0; z-index: 6; width: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: rgba(0,0,0,0.55); border: 0; color: #fff; cursor: pointer;
+  font: inherit; font-weight: 700; font-size: 18px;
+}
+.stage-play[hidden] { display: none; }
+.stage-play:hover .tri { background: var(--red-deep); }
+.stage-play:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+.tri {
+  width: 68px; height: 68px; border-radius: 50%; background: var(--red);
+  display: grid; place-items: center;
+}
+.tri::before { content: ""; border-left: 20px solid #fff; border-top: 12px solid transparent; border-bottom: 12px solid transparent; margin-left: 5px; }
+
+.scene-controls { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+.btn.small { padding: 6px 14px; font-size: 13px; }
+.progress { flex: 1; height: 6px; background: var(--ink-3); border-radius: 999px; overflow: hidden; }
+.progress-bar { display: block; height: 100%; width: 0; background: var(--red); transition: width 0.4s ease; }
+.real-video { width: 100%; border-radius: var(--radius); background: #000; margin-bottom: 10px; }
+[hidden] { display: none !important; }
+
+/* ---------- Coach ---------- */
+.coach {
+  display: flex; gap: 16px; align-items: flex-start;
+  background: var(--ink); border: 1px solid var(--ink-3); border-radius: var(--radius); padding: 16px;
+}
+.coach-who { flex: none; text-align: center; width: 84px; }
+.coach-fig { width: 84px; background: radial-gradient(circle at 50% 40%, #3a1013, #16161a); border-radius: 50%; border: 2px solid var(--red); aspect-ratio: 1; overflow: hidden; }
+.coach-fig svg { width: 100%; margin-top: 8px; display: block; }
+.coach-name { display: block; margin-top: 6px; font-family: "Anton", Impact, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; font-size: 14px; }
+.coach-talk { flex: 1; min-width: 0; }
+.coach-intro { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
+.why-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.why { border-left: 4px solid var(--ink-3); background: var(--ink-2); border-radius: 0 12px 12px 0; padding: 10px 14px; }
+.why.best  { border-left-color: #3fbf6f; }
+.why.ok    { border-left-color: #e0a526; }
+.why.rough { border-left-color: var(--red); }
+.why-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.why-title { font-weight: 600; font-size: 15px; flex: 1 1 14em; }
+.why-text { margin: 6px 0 0; color: var(--silver); font-size: 15px; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; color: #0d0d0f; }
+.tag.best  { background: #3fbf6f; }
+.tag.ok    { background: #e0a526; }
+.tag.rough { background: #ff6b6e; }
+.picked { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); border: 1px solid var(--silver); padding: 2px 8px; border-radius: 999px; }
+
+/* ---------- Games ---------- */
+.game-top { display: flex; justify-content: space-between; color: var(--muted); font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+.game-card {
+  background: var(--ink); border: 1px solid var(--ink-3); border-top: 3px solid var(--red); border-radius: 12px;
+  padding: clamp(18px, 3vw, 28px); font-size: clamp(18px, 2.6vw, 24px); font-weight: 600; margin-bottom: 14px; min-height: 5.5em;
+  display: flex; align-items: center;
+}
+.game-feedback { min-height: 1.6em; margin: 12px 0 0; font-weight: 600; }
+.game-feedback.good { color: #5fdc8c; }
+.game-feedback.bad { color: #ff8f92; }
+
+/* ---------- Chips by module type ---------- */
+.chip.type-video    { background: var(--red); border-color: var(--red); color: #fff; }
+.chip.type-game     { background: #e0a526; border-color: #e0a526; color: #111; }
+.chip.type-scenario { background: var(--silver); border-color: var(--silver); color: #111; }
+
+@media (max-width: 560px) {
+  .coach { flex-direction: column; align-items: stretch; }
+  .coach-who { display: flex; align-items: center; gap: 10px; width: auto; text-align: left; }
+  .coach-fig { width: 56px; }
+  .scene-controls { flex-wrap: wrap; }
+  .progress { flex-basis: 100%; order: 5; }
+}
