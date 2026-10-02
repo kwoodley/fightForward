@@ -16,6 +16,7 @@
 * { box-sizing: border-box; }
 
 html, body { margin: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
   background: var(--ink);
@@ -37,7 +38,7 @@ a { color: inherit; }
 /* ---------- Top bar ---------- */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px var(--gutter);
+  padding: 14px max(var(--gutter), env(safe-area-inset-right)) 14px max(var(--gutter), env(safe-area-inset-left));
   border-bottom: 1px solid var(--ink-3);
   background: var(--ink);
 }
@@ -95,12 +96,20 @@ a { color: inherit; }
 
 footer {
   border-top: 1px solid var(--ink-3);
-  padding: 20px var(--gutter);
+  padding: 20px var(--gutter) max(20px, env(safe-area-inset-bottom));
   text-align: center; color: var(--muted); font-size: 13px;
 }
 
 @media (max-width: 720px) {
   .user-name { display: none; }
+}
+
+/* Touch devices: comfortable tap targets, no tap flash */
+a, button { -webkit-tap-highlight-color: transparent; }
+@media (pointer: coarse) {
+  .btn { min-height: 44px; justify-content: center; }
+  .signout, .skip-link, .record-foot button { display: inline-block; padding: 10px 6px; }
+  .tab { min-height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
