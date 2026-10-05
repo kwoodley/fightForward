@@ -18,8 +18,18 @@
         radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.28), transparent 70%),
         linear-gradient(180deg, #0a0b12 0%, #141523 55%, #1d1216 100%);
     }
-    .card { width: 100%; max-width: 440px; text-align: center; }
-    .logo { width: clamp(120px, 28vw, 170px); height: auto; margin: 0 auto 8px; display: block; }
+    .card { width: 100%; max-width: 860px; text-align: center; }
+    .layout { display: grid; grid-template-columns: 1fr minmax(240px, 320px); gap: clamp(24px, 5vw, 56px); align-items: center; }
+    .side { order: 2; }
+    .login { order: 1; }
+    .logo { width: clamp(200px, 30vw, 300px); height: auto; margin: 0 auto 12px; display: block; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { order: 1; } .login { order: 2; }
+      .logo { width: clamp(160px, 50vw, 220px); }
+      .fields { grid-template-columns: 1fr; }
+    }
     h1 {
       font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
       font-size: clamp(30px, 6vw, 44px); line-height: 1.05; margin: 0 0 6px;
@@ -52,12 +62,13 @@
 <body>
   <main>
     <div class="card">
-      <img class="logo" src="assets/badges/fight-forward-button.png" alt="Fight Forward badge" width="480" height="513">
-      <p class="eyebrow">Train the mind · Move the body · Build the future</p>
       <h1>Fight Forward <span>Academy</span></h1>
       <p class="lede">Log in to step into the academy.</p>
 
+      <div class="layout">
+      <div class="login">
       <form id="login" novalidate>
+        <div class="fields">
         <label>
           What’s your first name?
           <input id="name" name="name" type="text" autocomplete="given-name" maxlength="20" required placeholder="First name">
@@ -71,10 +82,17 @@
             <option value="8">8th grade</option>
           </select>
         </label>
+        </div>
         <p class="error" id="error" role="alert"></p>
         <button class="btn" type="submit">Log in</button>
       </form>
       <p class="fine">First name only. Please don’t type your last name or other private info.</p>
+      </div>
+      <div class="side">
+        <img class="logo" src="assets/badges/fight-forward-button.png" alt="Fight Forward badge" width="480" height="513">
+        <p class="eyebrow">Train the mind · Move the body · Build the future</p>
+      </div>
+      </div>
     </div>
   </main>
 
