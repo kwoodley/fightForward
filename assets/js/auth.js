@@ -12,9 +12,22 @@
     return window.__ffUser || null;
   }
 
-  function signIn(name, grade) {
+  // Stand-in for the school roster the server will provide. Until then, the back office can
+  // pre-load profiles into localStorage "ff.roster.v1" ({ "lamont": { grade, school, group, level, permissions } }).
+  // Grade is set when the account is created, never chosen by the student.
+  function lookupProfile(id) {
+    try { return (JSON.parse(localStorage.getItem("ff.roster.v1")) || {})[id] || {}; } catch (e) { return {}; }
+  }
+
+  function signIn(name) {
     const clean = name.replace(/\s+/g, " ").trim().slice(0, 20);
-    const user = { name: clean, grade: grade || "", id: clean.toLowerCase().replace(/[^a-z0-9]+/g, "-") };
+    const id = clean.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const p = lookupProfile(id);
+    const user = {
+      name: p.displayName || clean, id,
+      grade: p.grade || "", school: p.school || "", group: p.group || "",
+      level: p.level || "", progress: p.progress || {}, permissions: p.permissions || ["student"]
+    };
     window.__ffUser = user;
     try { localStorage.setItem(USER_KEY, JSON.stringify(user)); } catch (e) { /* storage unavailable */ }
     return user;
@@ -43,6 +56,17 @@
     document.querySelectorAll("[data-signout]").forEach(n => n.addEventListener("click", e => { e.preventDefault(); signOut(); }));
   }
 
-  window.FFAuth = { getUser, signIn, signOut, requireUser, fillUser };
+  // Check-in answers (start of session now; end of session later) so we can compare how students feel.
+  function logCheckin(entry) {
+    const user = getUser(); if (!user) return;
+    const key = "ff.checkins." + user.id;
+    try {
+      const all = JSON.parse(localStorage.getItem(key)) || [];
+      all.push({ ...entry, at: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(all));
+    } catch (e) { /* storage unavailable */ }
+  }
+
+  window.FFAuth = { logCheckin, getUser, signIn, signOut, requireUser, fillUser };
   document.addEventListener("DOMContentLoaded", fillUser);
 })();

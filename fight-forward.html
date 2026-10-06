@@ -28,12 +28,12 @@
       flex: none;
       width: clamp(84px, 14vw, 120px); aspect-ratio: 1;
       border-radius: var(--radius);
-      background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--plate) 75%);
+      background: radial-gradient(circle at 50% 40%, #2a1416 0%, #050506 75%);
       display: grid; place-items: center;
       border-bottom: 3px solid var(--red);
       overflow: hidden;
     }
-    .page-badge img { width: 80%; height: 80%; object-fit: contain; }
+    .page-badge img { width: 80%; height: 80%; object-fit: contain; mix-blend-mode: screen; }
     .page-head .eyebrow { display: block; margin-bottom: 6px; }
     .page-head h1 {
       font-family: "Anton", Impact, sans-serif; font-weight: 400;
@@ -210,10 +210,11 @@
       .page-head { align-items: flex-start; }
     }
     body::before {
-      content: ""; position: fixed; inset: 0; z-index: -1;
+      content: ""; position: fixed; inset: 0; z-index: -1; filter: brightness(1.2);
       background:
-        linear-gradient(180deg, rgba(10, 11, 18, 0.78), rgba(10, 11, 18, 0.9)),
-        url("assets/img/path01-bg.jpg") center / cover no-repeat;
+        linear-gradient(180deg, #0a0b12 0, #0a0b12 330px, rgba(10, 11, 18, 0.15) 480px, rgba(10, 11, 18, 0.4) 100%),
+        url("assets/img/path01-bg.jpg") center top / cover no-repeat;
+      background-position: center top, center 290px;
     }
   </style>
 </head>
@@ -234,7 +235,7 @@
 
   <main class="wrap">
     <div class="page-head">
-      <div class="page-badge"><img src="assets/badges/fight-forward-button.png" alt="" width="480" height="513"></div>
+      <div class="page-badge"><img src="assets/badges/ff-final.png" alt="" width="1374" height="1145"></div>
       <div>
         <a class="back" href="lobby.html">
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 7H3M7 3L3 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -249,10 +250,9 @@
     <section class="ring" id="ring" hidden></section>
 
     <section class="rounds" id="rounds" aria-labelledby="rounds-title">
-      <h2 class="section-title" id="rounds-title">Pick your month</h2>
-      <p class="section-sub">Each month covers one topic. You meet once a week.</p>
-      <ul class="picker" id="months"></ul>
-      <p class="section-sub" id="month-blurb"></p>
+      <!-- Month picker lives in the back office; students see the current month's sessions. -->
+      <h2 class="section-title" id="rounds-title">This week’s sessions</h2>
+      <ul class="picker" id="months" hidden></ul>
       <ul class="picker" id="weeks" aria-label="Weekly sessions"></ul>
       <div class="session-head"><h3 id="session-title"></h3><p id="session-sub">Six modules. Do them in any order.</p></div>
       <ul class="round-grid" id="round-grid"></ul>
@@ -294,7 +294,7 @@
     const progress = load(PKEY, {});
 
     // ---------- State ----------
-    let monthIdx = 0, weekIdx = 0;
+    let monthIdx = Math.max(0, MONTHS.findIndex(m => m.name === new Date().toLocaleString("en-US", { month: "long" }))), weekIdx = 0;
     const month = () => MONTHS[monthIdx];
     const week = () => month().weeks[weekIdx];
 
@@ -303,7 +303,6 @@
       $("#months").replaceChildren(...MONTHS.map((m, i) => el("li", {},
         el("button", { class: "tab", type: "button", "aria-pressed": String(i === monthIdx), onclick: () => { monthIdx = i; weekIdx = 0; closeRing(true); renderAll(); } },
           m.name, el("small", {}, m.topic)))));
-      $("#month-blurb").textContent = `${month().name}: ${month().topic}. ${month().blurb}`;
       $("#weeks").replaceChildren(...month().weeks.map((w, i) => el("li", {},
         el("button", { class: "tab week-tab", type: "button", disabled: w.modules.length ? null : "", "aria-pressed": String(i === weekIdx),
             onclick: () => { weekIdx = i; closeRing(true); renderAll(); } },

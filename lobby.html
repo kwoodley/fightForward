@@ -103,7 +103,7 @@
 
     /* Light plate: the badge artwork has a light background, so it sits on a matching plate */
     .badge-plate {
-      background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--plate) 70%);
+      background: radial-gradient(circle at 50% 40%, #2a1416 0%, #050506 75%);
       display: grid; place-items: center;
       padding: 18px 12px 14px;
       
@@ -115,11 +115,19 @@
       height: 150px;
       max-width: 100%;
       object-fit: contain;
-      mix-blend-mode: multiply;
+      mix-blend-mode: screen;
       transition: transform 0.25s ease;
     }
-    .badge-plate img.art { mix-blend-mode: normal; }
-    .path:hover .badge-plate img { transform: scale(1.05); }
+    .badge-plate img.art { mix-blend-mode: screen; }
+    .path:hover .badge-plate img { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(217,43,47,.8)); }
+    .building { position: relative; overflow: hidden; }
+    .building::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,.18) 50%, transparent 60%);
+      transform: translateX(-100%); animation: sheen 6s ease-in-out 1s infinite; }
+    @keyframes sheen { 60%, 100% { transform: translateX(100%); } }
+    .hero h1, .tagline, .building { animation: rise .9s ease both; }
+    .tagline { animation-delay: .15s; } .building { animation-delay: .3s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
 
     .path-body { padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
     .path-num {
@@ -179,7 +187,7 @@
       <p class="tagline">Every day is a new round. <strong>Choose your path wisely.</strong></p>
 
       <figure class="building">
-        <img src="assets/img/academy.jpg" width="1536" height="1024" alt="The Fight Forward Academy building: a glass-and-steel training center with the Fight Forward shield on the front, and signs for Practice Decision-Making, Bring It to the Ring, Impact Lab and Coaching Corner.">
+        <img src="assets/img/academy-final.png" width="1536" height="1024" alt="The Fight Forward Academy building: a glass-and-steel training center with the Fight Forward shield on the front, and signs for Practice Decision-Making, Bring It to the Ring, Impact Lab and Coaching Corner.">
         <figcaption class="metaphor">This academy is a visual metaphor for the digital experience.</figcaption>
       </figure>
     </section>
@@ -194,7 +202,7 @@
         <li>
           <a class="path" href="fight-forward.html">
             <div class="badge-plate">
-              <img class="art" src="assets/badges/fight-forward-button.png" alt="" width="480" height="513">
+              <img class="art" src="assets/badges/ff-sq.png" alt="" width="1000" height="1000">
             </div>
             <div class="path-body">
               <span class="path-num">Path 01</span>
@@ -209,7 +217,7 @@
         <li>
           <a class="path" href="#impact-lab">
             <div class="badge-plate">
-              <img src="assets/badges/impact-lab.png" alt="" width="226" height="215">
+              <img src="assets/badges/impact-lab-sq.png" alt="" width="1000" height="1000">
             </div>
             <div class="path-body">
               <span class="path-num">Path 02</span>
@@ -224,7 +232,7 @@
         <li>
           <a class="path" href="#bring-it-to-the-ring">
             <div class="badge-plate">
-              <img src="assets/badges/bring-it-to-the-ring.png" alt="" width="213" height="216">
+              <img src="assets/badges/ring-sq.png" alt="" width="1000" height="1000">
             </div>
             <div class="path-body">
               <span class="path-num">Path 03</span>
@@ -239,7 +247,7 @@
         <li>
           <a class="path" href="#coaching-corner">
             <div class="badge-plate">
-              <img class="art" src="assets/badges/coaching-corner-button.png" alt="" width="480" height="480">
+              <img class="art" src="assets/badges/coaching-sq.png" alt="" width="1000" height="1000">
             </div>
             <div class="path-body">
               <span class="path-num">Path 04</span>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Welcome · Fight Forward Academy</title>
+  <title>Welcome · Fight Forward</title>
   <meta name="description" content="Welcome to Fight Forward Academy. Every day is a new round. Choose your path wisely.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,35 +12,92 @@
   <style>
     body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
     main {
-      flex: 1; display: grid; place-items: center; text-align: center;
+      flex: 1; display: grid; place-items: center; text-align: center; position: relative; overflow: hidden;
       padding: clamp(28px, 6vw, 64px) var(--gutter);
       background:
-        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.28), transparent 70%),
+        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.35), transparent 70%),
         linear-gradient(180deg, #0a0b12 0%, #141523 55%, #1d1216 100%);
     }
-    .inner { max-width: 720px; }
+    #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .inner { max-width: 720px; position: relative; z-index: 1; }
     h1 {
       font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
       font-size: clamp(36px, 8vw, 76px); line-height: 1.04; margin: 0; text-wrap: balance;
     }
-    h1 .name { color: var(--red); overflow-wrap: anywhere; }
-    .tagline { color: var(--silver); font-size: clamp(16px, 2.2vw, 20px); margin: 20px 0 0; }
-    .tagline strong { color: var(--text); }
-    .about { color: var(--silver); max-width: 38em; margin: 22px auto 0; font-size: clamp(15px, 1.8vw, 17px); }
-    .btn { margin-top: 32px; font-size: 18px; padding: 14px 30px; }
+    h1 .name { color: var(--red); overflow-wrap: anywhere; text-shadow: 0 0 28px rgba(217,43,47,.7); }
+    h2.ready { font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
+      font-size: clamp(22px, 4.5vw, 36px); margin: 10px 0 0; letter-spacing: .04em; color: var(--silver); }
+    .trio { margin: 26px 0 0; font-family: "Anton", Impact, sans-serif; text-transform: uppercase;
+      font-size: clamp(16px, 2.6vw, 22px); letter-spacing: .08em; line-height: 1.5; }
+    .trio span { display: block; } .trio span:last-child { color: var(--red); }
+    .welcome-to { margin: 22px 0 0; font-weight: 700; letter-spacing: .2em; font-size: 12px; color: var(--muted); text-transform: uppercase; }
+
+    .check { margin-top: 28px; background: rgba(22,22,26,.8); border: 1px solid var(--ink-3); border-top: 3px solid var(--red);
+      border-radius: var(--radius); padding: clamp(16px, 3vw, 24px); backdrop-filter: blur(6px); }
+    .check h3 { margin: 0 0 12px; font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase; font-size: 22px; letter-spacing: .04em; }
+    .opts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 0; padding: 0; list-style: none; }
+    .opt { font: inherit; font-size: 15px; color: var(--text); background: var(--ink); border: 1px solid var(--ink-3);
+      border-radius: 999px; padding: 10px 16px; cursor: pointer; min-height: 44px; }
+    .opt:hover { border-color: var(--red); }
+    .opt:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .opt[aria-pressed="true"] { background: var(--red); border-color: var(--red); }
+    #why { margin-top: 18px; }
+    .btn { margin-top: 28px; font-size: 18px; padding: 14px 30px; }
+    .btn[aria-disabled="true"] { opacity: .4; pointer-events: none; }
     .switch { display: block; margin-top: 18px; color: var(--muted); font-size: 13px; }
+
+    /* Entrance gate: tap to start (also unlocks browser audio) */
+    #gate { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; align-content: center; gap: 22px;
+      background: radial-gradient(circle at 50% 45%, #2a0f12 0%, #050506 70%); cursor: pointer; border: 0; color: var(--text);
+      font: inherit; transition: opacity .8s ease, transform .8s ease; }
+    #gate img { mix-blend-mode: screen; width: clamp(180px, 40vw, 300px); height: auto; animation: pulse 2s ease-in-out infinite; }
+    #gate span { font-family: "Anton", Impact, sans-serif; letter-spacing: .3em; text-transform: uppercase; font-size: 18px; color: var(--silver); animation: blink 1.6s ease-in-out infinite; }
+    #gate.go { opacity: 0; transform: scale(1.4); pointer-events: none; }
+    @keyframes pulse { 50% { transform: scale(1.06); filter: drop-shadow(0 0 30px rgba(217,43,47,.9)); } }
+    @keyframes blink { 50% { opacity: .35; } }
+
+    .stage { opacity: 0; transform: translateY(24px) scale(.97); }
+    body.live .stage { animation: rise .8s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--i) * .45s + .3s); }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    body.live h1 .name { animation: glow 2.4s ease-in-out infinite; }
+    @keyframes glow { 50% { text-shadow: 0 0 52px rgba(255,70,70,1); } }
+
+    #sound { position: fixed; top: 12px; right: 12px; z-index: 30; font: inherit; font-size: 13px; color: var(--silver);
+      background: rgba(22,22,26,.8); border: 1px solid var(--ink-3); border-radius: 999px; padding: 8px 14px; cursor: pointer; min-height: 40px; }
+    @media (prefers-reduced-motion: reduce) { .stage { opacity: 1; transform: none; animation: none !important; } }
   </style>
 </head>
 <body>
+  <button id="gate" type="button" aria-label="Tap to enter Fight Forward">
+    <img src="assets/badges/ff-final.png" alt="" width="1374" height="1145">
+    <span>Tap to enter</span>
+  </button>
+  <button id="sound" type="button" aria-pressed="true">🔊 Sound on</button>
+
   <main>
+    <canvas id="fx" aria-hidden="true"></canvas>
     <div class="inner">
-      <h1>Welcome <span class="name" data-user-name>Champ</span> to Fight Forward Academy</h1>
-      <p class="tagline">Every day is a new round. <strong>Choose your path wisely.</strong></p>
-      <p class="about">Fight Forward is an interactive decision-making training platform where young people practice real-life choices, build confidence, and strengthen decision-making skills in a safe, engaging environment.</p>
-      <a class="btn" href="lobby.html">Enter Here
+      <h1 class="stage" style="--i:0">Welcome back, <span class="name" data-user-name>Champ</span>.</h1>
+      <h2 class="ready stage" style="--i:1">Ready to Fight Forward?</h2>
+
+      <section class="check stage" style="--i:2" aria-labelledby="feel-q">
+        <h3 id="feel-q">How are you feeling today?</h3>
+        <ul class="opts" id="feel"></ul>
+        <div id="why" hidden>
+          <h3 id="why-q">Why?</h3>
+          <ul class="opts" id="why-opts"></ul>
+        </div>
+      </section>
+
+      <a class="btn stage" style="--i:3" id="enter" href="lobby.html" aria-disabled="true">Enter Here
         <svg width="16" height="16" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h9M7 3l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-      <a class="switch" href="index.html?switch" data-signout>Not you? Log out</a>
+
+      <div class="stage" style="--i:4">
+        <p class="welcome-to">Welcome to Fight Forward™</p>
+        <p class="trio"><span>Practice decisions.</span><span>Explore consequences.</span><span>Fight Forward.</span></p>
+        <a class="switch" href="index.html?switch" data-signout>Not you? Log out</a>
+      </div>
     </div>
   </main>
 
@@ -49,6 +106,97 @@
   </footer>
 
   <script src="assets/js/auth.js"></script>
-  <script>FFAuth.requireUser();</script>
+  <script>
+    const user = FFAuth.requireUser();
+    const $ = s => document.querySelector(s);
+
+    // The same questions are asked again at the end of each session.
+    const FEELINGS = [
+      { id: "great", label: "😄 Great",  why: ["Something good happened", "I slept well", "I'm with friends", "I'm excited for today"] },
+      { id: "good",  label: "🙂 Good",   why: ["Nothing special, just a good day", "I'm relaxed", "Things at home are good", "School is going well"] },
+      { id: "okay",  label: "😐 Okay",   why: ["I'm tired", "Just an average day", "I'm not sure", "Something's on my mind"] },
+      { id: "down",  label: "😔 Down",   why: ["Something at home", "Something with friends", "Something at school", "I'm tired or didn't sleep", "I'd rather not say"] },
+      { id: "stress", label: "😤 Stressed or angry", why: ["A conflict with someone", "Too much going on", "Something at school", "Something at home", "I'd rather not say"] }
+    ];
+    let feeling = null, reason = null;
+
+    function chips(list, onPick) {
+      return list.map(item => {
+        const li = document.createElement("li"), b = document.createElement("button");
+        b.type = "button"; b.className = "opt"; b.setAttribute("aria-pressed", "false"); b.textContent = item.label || item;
+        b.addEventListener("click", () => {
+          li.parentNode.querySelectorAll(".opt").forEach(x => x.setAttribute("aria-pressed", "false"));
+          b.setAttribute("aria-pressed", "true"); onPick(item); sfx.tick();
+        });
+        li.append(b); return li;
+      });
+    }
+    $("#feel").replaceChildren(...chips(FEELINGS, f => {
+      feeling = f; reason = null; $("#enter").setAttribute("aria-disabled", "true");
+      $("#why-opts").replaceChildren(...chips(f.why, r => { reason = r; $("#enter").removeAttribute("aria-disabled"); }));
+      $("#why").hidden = false;
+    }));
+    $("#enter").addEventListener("click", e => {
+      if (!feeling || !reason) { e.preventDefault(); return; }
+      FFAuth.logCheckin({ phase: "start", feeling: feeling.id, reason });
+    });
+
+    // ---------- Audio: synthesized (no files needed) + spoken greeting ----------
+    let ctx = null, soundOn = true;
+    const sfx = {
+      tone(f, t, d, type = "sawtooth", v = 0.12) {
+        if (!ctx || !soundOn) return;
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type; o.frequency.setValueAtTime(f, ctx.currentTime + t);
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(v, ctx.currentTime + t + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + d);
+        o.connect(g).connect(ctx.destination); o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + d + 0.05);
+      },
+      intro() {
+        if (!ctx || !soundOn) return;
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sawtooth"; o.frequency.setValueAtTime(70, ctx.currentTime); o.frequency.exponentialRampToValueAtTime(700, ctx.currentTime + 1.1);
+        g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + 0.9); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.3);
+        o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 1.4);
+        [196, 294, 392, 587].forEach((f, i) => this.tone(f, 1.1 + i * 0.01, 1.4, "square", 0.07));
+      },
+      tick() { this.tone(660, 0, 0.12, "triangle", 0.1); }
+    };
+    function speak(text) {
+      if (!soundOn || !("speechSynthesis" in window)) return;
+      const u = new SpeechSynthesisUtterance(text); u.rate = 0.95; u.pitch = 0.9;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    }
+    $("#sound").addEventListener("click", e => {
+      soundOn = !soundOn; e.currentTarget.setAttribute("aria-pressed", soundOn);
+      e.currentTarget.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+      if (!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+    });
+
+    // ---------- Sparks ----------
+    function sparks() {
+      const c = $("#fx"), g = c.getContext("2d"); let w, h;
+      const size = () => { w = c.width = c.offsetWidth; h = c.height = c.offsetHeight; }; size(); addEventListener("resize", size);
+      const ps = Array.from({ length: 60 }, () => ({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 2 + .5, v: Math.random() * .8 + .3 }));
+      (function frame() {
+        g.clearRect(0, 0, w, h);
+        for (const p of ps) {
+          p.y -= p.v; if (p.y < -5) { p.y = h + 5; p.x = Math.random() * w; }
+          g.fillStyle = `rgba(255,${80 + p.r * 40 | 0},60,${0.25 + p.r / 5})`; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.3); g.fill();
+        }
+        requestAnimationFrame(frame);
+      })();
+    }
+
+    $("#gate").addEventListener("click", () => {
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ctx = null; }
+      sfx.intro();
+      $("#gate").classList.add("go"); document.body.classList.add("live");
+      setTimeout(() => $("#gate").remove(), 900);
+      setTimeout(() => speak(`Welcome back, ${user ? user.name : "champ"}. Ready to fight forward?`), 900);
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) sparks();
+    }, { once: true });
+  </script>
 </body>
 </html>
