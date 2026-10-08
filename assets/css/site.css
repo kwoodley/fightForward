@@ -28,6 +28,8 @@ body {
 }
 
 a { color: inherit; }
+img, video, iframe, svg { max-width: 100%; }
+h1, h2, h3, p, li { overflow-wrap: break-word; }
 
 .skip {
   position: absolute; left: -9999px; top: 8px;
@@ -102,6 +104,13 @@ footer {
 
 @media (max-width: 720px) {
   .user-name { display: none; }
+  .bg-hero { min-height: 120px; }
+}
+
+/* Short landscape phones: keep fixed overlays and heroes from eating the screen */
+@media (max-height: 480px) and (orientation: landscape) {
+  .bg-hero { height: 14vw; min-height: 60px; }
+  #intro span { padding: 6px 12px; }
 }
 
 /* Touch devices: comfortable tap targets, no tap flash */

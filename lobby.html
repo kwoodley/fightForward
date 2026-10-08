@@ -111,8 +111,8 @@
     }
     /* Every badge renders in the same square frame, whatever the source image's size */
     .badge-plate img {
-      width: 150px;
-      height: 150px;
+      width: clamp(96px, 30vw, 150px);
+      height: clamp(96px, 30vw, 150px);
       max-width: 100%;
       object-fit: contain;
       mix-blend-mode: screen;
