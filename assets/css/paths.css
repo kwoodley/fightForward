@@ -1,0 +1,38 @@
+/* Shared layout for Path 02-04 pages (Impact Lab, Bring It to the Ring, Coaching Corner) */
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 var(--gutter); }
+.back { display: flex; width: fit-content; margin-bottom: 10px; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; text-decoration: none; }
+.back:hover { color: var(--text); }
+.page-head { padding: clamp(24px, 4vw, 44px) 0 clamp(20px, 3vw, 32px); display: flex; gap: clamp(16px, 3vw, 28px); align-items: center; }
+.page-badge { flex: none; width: clamp(84px, 14vw, 120px); aspect-ratio: 1; border-radius: var(--radius);
+  background: radial-gradient(circle at 50% 40%, #2a1416 0%, #050506 75%); display: grid; place-items: center;
+  border-bottom: 3px solid var(--red); overflow: hidden; }
+.page-badge img { width: 90%; height: 90%; object-fit: contain; mix-blend-mode: screen; }
+.page-head .eyebrow { display: block; margin-bottom: 6px; }
+.page-head h1 { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: clamp(32px, 6vw, 60px); line-height: 1.02; text-transform: uppercase; margin: 0; }
+.page-head h1 span { color: var(--red); }
+.page-head p { margin: 8px 0 0; color: var(--silver); max-width: 36em; }
+.section-title { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: clamp(22px, 3vw, 30px); text-transform: uppercase; letter-spacing: .03em; margin: 0 0 4px; }
+.section-sub { color: var(--muted); margin: 0 0 18px; font-size: 15px; }
+section.block { padding-bottom: clamp(28px, 5vw, 44px); }
+.card { background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: var(--radius); padding: clamp(16px, 3vw, 26px); }
+.grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.tile { width: 100%; height: 100%; text-align: left; display: flex; flex-direction: column; gap: 8px; font: inherit; color: inherit; cursor: pointer;
+  background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: var(--radius); padding: 16px; transition: transform .2s, border-color .2s; }
+.tile:hover { transform: translateY(-3px); border-color: var(--red); }
+.tile:focus-visible, .pill:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+.tile .num { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--red); }
+.tile h3 { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 22px; line-height: 1.1; text-transform: uppercase; margin: 0; }
+.tile p { color: var(--muted); font-size: 14px; margin: 0; }
+.meta { margin-top: auto; font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--silver); }
+.pill { font: inherit; font-size: 14px; color: var(--text); cursor: pointer; background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: 999px; padding: 8px 16px; }
+.pill:hover { border-color: var(--red); }
+.pill[aria-pressed="true"] { border-color: var(--red); background: #1c1113; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.notice { display: flex; gap: 10px; align-items: flex-start; background: var(--ink); border: 1px solid var(--ink-3); border-left: 4px solid var(--red);
+  border-radius: 0 12px 12px 0; padding: 12px 16px; font-size: 14px; color: var(--silver); margin: 0 0 18px; }
+.notice strong { color: var(--text); }
+textarea, input[type=text] { width: 100%; font: inherit; font-size: 16px; color: var(--text); background: var(--ink); border: 1px solid var(--ink-3); border-radius: 12px; padding: 12px 14px; }
+textarea { resize: vertical; min-height: 84px; }
+.stage-panel[hidden], [hidden] { display: none !important; }
+@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } .page-head { align-items: flex-start; } }

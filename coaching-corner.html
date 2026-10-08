@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Coaching Corner · Fight Forward Academy</title>
+  <meta name="description" content="Questions about a lesson, or something private? Talk with a safety adult.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/paths.css">
+  <style>
+    body::before { content: ""; position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(217,43,47,.22), transparent 70%), var(--ink); }
+    .urgent { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; justify-content: space-between;
+      background: #1c1113; border: 1px solid var(--red); border-radius: var(--radius); padding: 14px 18px; margin-bottom: clamp(24px, 4vw, 36px); }
+    .urgent p { margin: 0; max-width: 40em; }
+    .urgent a.btn { white-space: nowrap; }
+    .urgent-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .topics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 0 18px; padding: 0; list-style: none; }
+    .topics .tile h3 { font-size: 20px; }
+    .topics .tile[aria-pressed="true"] { border-color: var(--red); background: #1c1113; }
+    form.card { display: grid; gap: 12px; }
+    label { font-weight: 600; font-size: 14px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; }
+    .hint { font-size: 12px; color: var(--muted); font-weight: 400; }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; font-size: 14px; color: var(--silver); }
+    .check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--red); flex: none; }
+    .sent { border-left: 4px solid var(--red); background: var(--ink); border-radius: 0 12px 12px 0; padding: 14px 16px; }
+    .sent p { margin: 0 0 4px; }
+    .convo { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .msg { background: var(--ink); border: 1px solid var(--ink-3); border-radius: 12px; padding: 10px 14px; }
+    .msg header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+    .msg header b { color: var(--text); }
+    .msg .tag { color: var(--red); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .msg p { margin: 0; overflow-wrap: anywhere; }
+    .status { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .empty { color: var(--muted); margin: 0; }
+    .foot { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .foot button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 6px 0; }
+    @media (max-width: 700px) { .topics { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#ask">Skip to ask a question</a>
+  <header class="topbar">
+    <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby"><span class="brand-mark" aria-hidden="true">FF</span>Fight Forward</a>
+    <div class="user">
+      <span class="user-name" data-user-greeting>Welcome back</span>
+      <span class="avatar" aria-hidden="true" data-user-initial>F</span>
+      <a class="signout" href="index.html" data-signout>Log out</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head">
+      <div class="page-badge"><img src="assets/badges/coaching-sq.png" alt="" width="1000" height="1000"></div>
+      <div>
+        <a class="back" href="lobby.html"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 7H3M7 3L3 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Back to the lobby</a>
+        <p class="eyebrow">Path 04</p>
+        <h1>Coaching <span>Corner</span></h1>
+        <p>Questions about a lesson? Something private? In trouble? Talk with a safety adult. Every fighter needs someone in their corner.</p>
+      </div>
+    </div>
+
+    <div class="urgent" role="region" aria-label="If you are in danger">
+      <p><strong>In danger or need help right now?</strong> Don’t wait for a reply here. Tell a trusted adult near you, or reach out below. It’s free and always open.</p>
+      <div class="urgent-links">
+        <a class="btn" href="tel:911">Call 911</a>
+        <a class="btn" href="tel:988">Call or text 988</a>
+      </div>
+    </div>
+
+    <section class="block" id="ask" aria-labelledby="ask-title">
+      <h2 class="section-title" id="ask-title">What do you need?</h2>
+      <p class="section-sub">Pick the one that fits best. You can always send another.</p>
+      <ul class="topics" id="topics"></ul>
+
+      <p class="notice"><span><strong>Please know:</strong> everything you send here is recorded and kept to protect both you and the safety adult. Only the safety team can read it. If you share that you or someone else could get hurt, the adult has to act to keep people safe.</span></p>
+
+      <form class="card" id="form">
+        <label for="text" id="prompt">Your message</label>
+        <textarea id="text" maxlength="1000" required placeholder=""></textarea>
+        <div class="row"><span class="hint" id="left">1000 characters left</span></div>
+        <label class="check"><input type="checkbox" id="ack"> <span>I understand this conversation is recorded.</span></label>
+        <div class="row"><span class="hint" id="err" role="alert"></span><button class="btn" type="submit">Send to my safety adult</button></div>
+      </form>
+    </section>
+
+    <section class="block" aria-labelledby="c-title">
+      <h2 class="section-title" id="c-title">Your messages</h2>
+      <p class="section-sub">What you’ve sent, and when a safety adult has answered.</p>
+      <div class="card">
+        <div class="sent" id="sent" hidden role="status"></div>
+        <ul class="convo" id="convo"></ul>
+        <p class="empty" id="empty">Nothing sent yet.</p>
+        <div class="foot"><span>Saved on this device for now.</span> <button type="button" id="clear">Clear my messages</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.</footer>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    const user = FFAuth.requireUser();
+    const $ = s => document.querySelector(s);
+    function el(tag, attrs = {}, ...kids) {
+      const n = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v == null) continue;
+        if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+      }
+      n.append(...kids); return n;
+    }
+
+    const REASONS = [
+      { id: "lesson", title: "A question about a lesson", sub: "Something from a session you want to understand better.", prompt: "What would you like to ask about?", ph: "Which lesson or module? What’s confusing or on your mind?" },
+      { id: "private", title: "Something private", sub: "Something you’d rather talk about one-on-one.", prompt: "What do you want to talk about?", ph: "Take your time. Say as much or as little as you want." },
+      { id: "trouble", title: "I’m in trouble", sub: "You or someone you know needs a trusted adult.", prompt: "Tell us what’s going on", ph: "What happened? Are you safe right now? Where are you?", urgent: true }
+    ];
+    let reason = REASONS[0];
+
+    const KEY = "ff.coaching.v1:" + user.id;
+    const SKEY = "ff.safety.queue.v1"; // stand-in for the safety adult's inbox until there is a server
+    const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+    const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } };
+    const convo = read(KEY, []);
+
+    function renderTopics() {
+      $("#topics").replaceChildren(...REASONS.map(r => el("li", {}, el("button", { class: "tile", type: "button", "aria-pressed": String(r === reason),
+        onclick: () => { reason = r; renderTopics(); $("#prompt").textContent = r.prompt; $("#text").placeholder = r.ph; $("#text").focus(); } },
+        el("h3", {}, r.title), el("p", {}, r.sub)))));
+      $("#prompt").textContent = reason.prompt; $("#text").placeholder = reason.ph;
+    }
+
+    function renderConvo() {
+      $("#empty").hidden = convo.length > 0;
+      $("#convo").replaceChildren(...convo.slice().reverse().map(m => el("li", { class: "msg" },
+        el("header", {}, el("span", {}, el("b", {}, "You"), " · ", el("span", { class: "tag" }, m.reasonTitle)),
+          el("span", {}, new Date(m.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))),
+        el("p", {}, m.text),
+        el("p", { class: "status" }, m.reply ? "Safety adult: " + m.reply : "Waiting for a safety adult to reply."))));
+    }
+
+    $("#text").addEventListener("input", e => { $("#left").textContent = `${1000 - e.target.value.length} characters left`; });
+    $("#form").addEventListener("submit", e => {
+      e.preventDefault();
+      const text = $("#text").value.replace(/[ \t]+/g, " ").trim();
+      const err = $("#err");
+      if (!text) { err.textContent = "Write a message first."; return; }
+      if (!$("#ack").checked) { err.textContent = "Please check the box to say you understand it’s recorded."; return; }
+      err.textContent = "";
+      const at = new Date().toISOString();
+      convo.push({ reason: reason.id, reasonTitle: reason.title, text, at, reply: null }); write(KEY, convo);
+      const q = read(SKEY, []);
+      q.push({ student: user.id, name: user.name, source: "coaching", kind: reason.id, urgent: !!reason.urgent, text, at, status: "new" });
+      write(SKEY, q);
+      $("#text").value = ""; $("#left").textContent = "1000 characters left"; $("#ack").checked = false;
+      const sent = $("#sent");
+      sent.replaceChildren(el("p", {}, el("strong", {}, "Sent. Thank you for reaching out, " + user.name + ".")),
+        el("p", {}, reason.urgent ? "A safety adult will get to this first. If you’re not safe right now, tell an adult near you or call 911 or 988." : "A safety adult will reply here."));
+      sent.hidden = false; sent.focus && sent.scrollIntoView({ behavior: "smooth", block: "center" });
+      renderConvo();
+    });
+    $("#clear").addEventListener("click", () => {
+      if (!confirm("Clear your messages on this device? Messages already sent to a safety adult stay on record.")) return;
+      convo.length = 0; try { localStorage.removeItem(KEY); } catch (e) { /* storage unavailable */ } renderConvo();
+    });
+
+    renderTopics(); renderConvo();
+  </script>
+</body>
+</html>

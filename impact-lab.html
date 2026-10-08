@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Impact Lab · Fight Forward Academy</title>
+  <meta name="description" content="Hit the gym. Boxing-inspired cardio workouts and basic boxing training.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/paths.css">
+  <style>
+    body::before { content: ""; position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(217,43,47,.22), transparent 70%), var(--ink); }
+    .player { text-align: center; border-top: 3px solid var(--red); margin-bottom: clamp(28px, 5vw, 44px);
+      background: radial-gradient(ellipse 90% 70% at 50% 0%, rgba(217,43,47,.18), transparent 70%), var(--ink-2); }
+    .player-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; text-align: left; }
+    .player h2 { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: clamp(24px, 4vw, 34px); text-transform: uppercase; margin: 0; }
+    .player h2:focus { outline: none; }
+    .phase { margin: 22px 0 0; font-weight: 700; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--red); }
+    .phase.rest { color: #5fb8ff; }
+    .move { font-family: "Anton", Impact, sans-serif; font-size: clamp(34px, 7vw, 64px); text-transform: uppercase; line-height: 1.05; margin: 6px 0; }
+    .clock { font-family: "Anton", Impact, sans-serif; font-size: clamp(72px, 18vw, 140px); line-height: 1; font-variant-numeric: tabular-nums; }
+    .cue { color: var(--silver); max-width: 34em; margin: 4px auto 0; min-height: 3em; }
+    .bar { height: 8px; border-radius: 99px; background: var(--ink-3); overflow: hidden; margin: 18px auto 0; max-width: 520px; }
+    .bar i { display: block; height: 100%; width: 0; background: var(--red); transition: width .3s linear; }
+    .count { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+    .done-msg { font-size: 18px; }
+    .safe { font-size: 13px; color: var(--muted); margin-top: 18px; }
+    .badge-done { color: var(--silver); letter-spacing: .08em; }
+    .stats { display: flex; flex-wrap: wrap; gap: 24px; }
+    .stat b { display: block; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 36px; color: var(--red); }
+    .stat span { color: var(--muted); font-size: 13px; }
+    .foot { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .foot button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 6px 0; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#workouts">Skip to the workouts</a>
+  <header class="topbar">
+    <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby"><span class="brand-mark" aria-hidden="true">FF</span>Fight Forward</a>
+    <div class="user">
+      <span class="user-name" data-user-greeting>Welcome back</span>
+      <span class="avatar" aria-hidden="true" data-user-initial>F</span>
+      <a class="signout" href="index.html" data-signout>Log out</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head">
+      <div class="page-badge"><img src="assets/badges/impact-lab-sq.png" alt="" width="1000" height="1000"></div>
+      <div>
+        <a class="back" href="lobby.html"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 7H3M7 3L3 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Back to the lobby</a>
+        <p class="eyebrow">Path 02</p>
+        <h1>Impact <span>Lab</span></h1>
+        <p>Hit the gym. Boxing-inspired cardio and basic boxing training. Pick a workout, press start, and follow the clock.</p>
+      </div>
+    </div>
+
+    <section class="player card" id="player" hidden aria-live="polite"></section>
+
+    <section class="block" id="workouts" aria-labelledby="w-title">
+      <h2 class="section-title" id="w-title">Pick your workout</h2>
+      <p class="section-sub">No equipment needed. Every workout starts with a warm-up.</p>
+      <div class="pills" id="filters" role="group" aria-label="Filter workouts"></div>
+      <ul class="grid" id="grid"></ul>
+    </section>
+
+    <section class="block" aria-labelledby="s-title">
+      <h2 class="section-title" id="s-title">Your gym log</h2>
+      <p class="section-sub">Every finished workout counts.</p>
+      <div class="card"><div class="stats" id="stats"></div>
+        <div class="foot"><span>Saved on this device for now.</span> <button type="button" id="clear">Clear my log</button></div></div>
+    </section>
+  </main>
+
+  <footer>© 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.</footer>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    const user = FFAuth.requireUser();
+    const $ = s => document.querySelector(s);
+    function el(tag, attrs = {}, ...kids) {
+      const n = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v == null) continue;
+        if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+      }
+      n.append(...kids); return n;
+    }
+
+    // ---------- Workouts ----------
+    // Built from rounds: each move is a work interval, with a short rest between rounds.
+    const W = (name, cue, secs) => ({ name, cue, secs, type: "work" });
+    const R = (secs, cue = "Shake it out. Breathe in through your nose, out through your mouth.") => ({ name: "Rest", cue, secs, type: "rest" });
+    const warm = [
+      W("Jog in place", "Easy pace. Loosen up your legs.", 30),
+      W("Arm circles", "Big circles forward, then backward.", 20),
+      W("Shadow shuffle", "Light bounce on your toes, hands up by your chin.", 30)
+    ];
+    function rounds(n, moves, rest) {
+      const out = [];
+      for (let i = 0; i < n; i++) { out.push(...moves); if (i < n - 1) out.push(R(rest)); }
+      return out;
+    }
+    const WORKOUTS = [
+      { id: "cardio-starter", kind: "Cardio", level: "Starter", title: "Corner Cardio",
+        teaser: "Get your heart pumping with easy, steady moves.",
+        steps: [...warm, ...rounds(3, [W("Jumping jacks", "Land soft. Keep a steady rhythm.", 30), W("High knees", "Knees up to your waist. Pump your arms.", 30), W("Shadow punches", "Quick, light punches. Stay on your toes.", 30)], 20), R(20, "Slow it down. Walk it out.")] },
+      { id: "cardio-power", kind: "Cardio", level: "Strong", title: "Round Burner",
+        teaser: "Three hard rounds. Push, rest, push again.",
+        steps: [...warm, ...rounds(4, [W("Fast feet", "Quick little steps. Stay light.", 30), W("Squat and reach", "Sit back, then stand tall and reach up.", 30), W("Mountain climbers", "Hips low. Drive your knees in.", 30), W("Burst punches", "Fast one-two punches. Breathe out with each punch.", 30)], 25), R(20, "Strong work. Walk it out.")] },
+      { id: "boxing-stance", kind: "Boxing basics", level: "Starter", title: "Stance & Guard",
+        teaser: "Learn how to stand, move and keep your hands up.",
+        steps: [...warm,
+          W("Find your stance", "Feet shoulder-width, one foot a step back, knees soft, weight on the balls of your feet.", 30),
+          W("Guard up", "Fists by your cheeks, elbows in. Keep your chin down.", 30), R(15),
+          W("Step and slide", "Move forward, back, left, right. Never cross your feet.", 40),
+          W("Guard and move", "Slide around the room with your hands up the whole time.", 40), R(15),
+          W("Pivot", "Plant your front foot and turn on the ball of it. Switch directions.", 40),
+          W("Put it together", "Stance, guard, slide, pivot. Smooth and calm.", 45)] },
+      { id: "boxing-jab-cross", kind: "Boxing basics", level: "Starter", title: "Jab & Cross",
+        teaser: "Your first two punches, done the right way.",
+        steps: [...warm,
+          W("The jab", "Front hand shoots straight out and snaps back to your chin. Slow and clean.", 40),
+          W("The cross", "Back hand punches straight. Turn your back foot and hips into it.", 40), R(15),
+          W("One-two", "Jab, then cross. Say it out loud: one, two.", 40),
+          W("One-two and reset", "Throw it, then hands right back up to your guard.", 40), R(15),
+          ...rounds(2, [W("One-two, slide", "Punch, then slide out of the way.", 30), W("Shadow box free flow", "Your choice. Stay balanced, hands up.", 30)], 15)] },
+      { id: "boxing-combos", kind: "Boxing basics", level: "Strong", title: "Hooks & Combos",
+        teaser: "Add the hook and string punches into combinations.",
+        steps: [...warm,
+          W("Jab, cross", "Warm those punches up.", 30),
+          W("The hook", "Elbow bent, turn your whole body, punch around like a door swinging.", 40), R(15),
+          W("Jab, cross, hook", "Three punches, one flow. Reset your guard.", 40),
+          W("Hook, cross, slide", "Finish every combo by moving away.", 40), R(15),
+          ...rounds(3, [W("Combo of your choice", "Pick three punches. Stay light and sharp.", 30), W("Bounce and breathe", "Stay loose. Shake your hands out.", 15)], 15)] }
+    ];
+    const total = w => w.steps.reduce((a, s) => a + s.secs, 0);
+    const mins = w => Math.round(total(w) / 60);
+
+    // ---------- Storage (this device only, per student) ----------
+    const KEY = "ff.workouts.v1:" + user.id;
+    function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+    const log = load();
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(log)); } catch (e) { /* storage unavailable */ } }
+
+    // ---------- Grid ----------
+    let filter = "All";
+    function renderFilters() {
+      const kinds = ["All", ...new Set(WORKOUTS.map(w => w.kind))];
+      $("#filters").replaceChildren(...kinds.map(k => el("button", { class: "pill", type: "button", "aria-pressed": String(k === filter),
+        onclick: () => { filter = k; renderFilters(); renderGrid(); } }, k)));
+    }
+    function renderGrid() {
+      $("#grid").replaceChildren(...WORKOUTS.filter(w => filter === "All" || w.kind === filter).map(w => {
+        const n = log.filter(l => l.id === w.id).length;
+        return el("li", {}, el("button", { class: "tile", type: "button", onclick: () => start(w) },
+          el("span", { class: "num" }, w.kind, n ? el("span", { class: "badge-done" }, `✓ ×${n}`) : ""),
+          el("h3", {}, w.title), el("p", {}, w.teaser),
+          el("span", { class: "meta" }, `${w.level} · about ${mins(w)} min`)));
+      }));
+    }
+    function renderStats() {
+      const secs = log.reduce((a, l) => a + l.secs, 0);
+      const stat = (v, l) => el("div", { class: "stat" }, el("b", {}, String(v)), el("span", {}, l));
+      $("#stats").replaceChildren(stat(log.length, "workouts finished"), stat(Math.round(secs / 60), "minutes moving"),
+        stat(new Set(log.map(l => l.at.slice(0, 10))).size, "days at the gym"));
+    }
+    $("#clear").addEventListener("click", () => {
+      if (!confirm("Clear your gym log on this device?")) return;
+      log.length = 0; try { localStorage.removeItem(KEY); } catch (e) { /* storage unavailable */ }
+      renderGrid(); renderStats();
+    });
+
+    // ---------- Player ----------
+    let timer = null;
+    function stop() { clearInterval(timer); timer = null; }
+    function close() { stop(); const p = $("#player"); p.hidden = true; p.replaceChildren(); $("#workouts").scrollIntoView({ behavior: "smooth" }); }
+
+    function start(w) {
+      stop();
+      const p = $("#player");
+      let i = 0, left = w.steps[0].secs, paused = false, elapsed = 0;
+      const h2 = el("h2", { tabindex: "-1" }, w.title);
+      const phase = el("p", { class: "phase" }), move = el("div", { class: "move" }), clock = el("div", { class: "clock", role: "timer" }),
+            cue = el("p", { class: "cue" }), fill = el("i"), count = el("p", { class: "count" });
+      const pauseBtn = el("button", { class: "btn", type: "button", onclick: () => { paused = !paused; pauseBtn.textContent = paused ? "Resume" : "Pause"; } }, "Pause");
+      const skipBtn = el("button", { class: "btn btn-ghost", type: "button", onclick: () => next() }, "Skip");
+      const view = el("div", {}, phase, move, clock, cue, el("div", { class: "bar" }, fill), count,
+        el("div", { class: "actions" }, pauseBtn, skipBtn),
+        el("p", { class: "safe" }, "Feel dizzy or hurt? Stop right away, sit down, drink water and tell an adult. You never have to push through pain."));
+      p.replaceChildren(el("div", { class: "player-top" }, h2, el("button", { class: "btn btn-ghost", type: "button", onclick: close }, "Leave the gym")), view);
+      p.hidden = false; p.scrollIntoView({ behavior: "smooth", block: "start" }); h2.focus({ preventScroll: true });
+
+      function draw() {
+        const s = w.steps[i];
+        phase.textContent = s.type === "rest" ? "Rest" : "Work"; phase.className = "phase " + s.type;
+        move.textContent = s.name; clock.textContent = left; cue.textContent = s.cue;
+        fill.style.width = (100 * (s.secs - left) / s.secs) + "%";
+        count.textContent = `Step ${i + 1} of ${w.steps.length}` + (w.steps[i + 1] ? ` · Up next: ${w.steps[i + 1].name}` : " · Last one!");
+      }
+      function finish() {
+        stop();
+        log.push({ id: w.id, secs: elapsed, at: new Date().toISOString() }); save(); renderGrid(); renderStats();
+        view.replaceChildren(el("p", { class: "phase" }, "Workout complete"),
+          el("div", { class: "move" }, "Nice work, " + user.name),
+          el("p", { class: "done-msg" }, `You moved for about ${Math.max(1, Math.round(elapsed / 60))} minutes. Drink some water and cool down.`),
+          el("div", { class: "actions" }, el("button", { class: "btn", type: "button", onclick: close }, "Back to workouts"),
+            el("button", { class: "btn btn-ghost", type: "button", onclick: () => start(w) }, "Go again")));
+      }
+      function next() { if (++i >= w.steps.length) return finish(); left = w.steps[i].secs; draw(); }
+      draw();
+      timer = setInterval(() => {
+        if (paused) return;
+        elapsed++; left--;
+        if (left <= 0) next(); else draw();
+      }, 1000);
+    }
+
+    renderFilters(); renderGrid(); renderStats();
+  </script>
+</body>
+</html>

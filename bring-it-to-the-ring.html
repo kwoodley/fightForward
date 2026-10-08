@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bring It to the Ring · Fight Forward Academy</title>
+  <meta name="description" content="Step in and face today's topic. Open, honest talk about real life.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/paths.css">
+  <style>
+    body::before { content: ""; position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(217,43,47,.22), transparent 70%), var(--ink); }
+
+    /* ---------- Walk to the ring ---------- */
+    .walk { position: relative; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--ink-3);
+      height: clamp(240px, 42vw, 360px);
+      background: radial-gradient(ellipse 60% 70% at 70% 45%, rgba(255,255,255,.16), transparent 70%), linear-gradient(#10111a 0 68%, #1b1b22 68% 100%); }
+    .walk::after { content: ""; position: absolute; left: 0; right: 0; top: 68%; height: 2px; background: rgba(255,255,255,.12); }
+    .ring-art { position: absolute; right: 4%; bottom: 32%; width: clamp(150px, 34%, 300px); }
+    .boxer { position: absolute; bottom: 30%; left: -12%; width: clamp(52px, 10vw, 90px); animation: walk 5.5s ease-in-out forwards; }
+    .boxer svg, .ring-art svg { width: 100%; height: auto; display: block; }
+    .boxer .bob { animation: bob .55s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+    .opp { position: absolute; right: calc(4% + clamp(36px, 8%, 70px)); bottom: 36%; width: clamp(44px, 8vw, 76px); opacity: 0; animation: appear 1.6s ease 3.2s forwards; }
+    .opp svg { width: 100%; height: auto; display: block; }
+    .opp-name { position: absolute; right: 4%; top: 12%; width: clamp(150px, 34%, 300px); text-align: center; opacity: 0; animation: appear 1.2s ease 3.6s forwards;
+      font-family: "Anton", Impact, sans-serif; text-transform: uppercase; font-size: clamp(22px, 4.6vw, 44px); line-height: 1; color: #fff; text-shadow: 0 0 22px rgba(217,43,47,.9); }
+    .opp-name small { display: block; font-family: "Inter", sans-serif; font-size: 11px; letter-spacing: .22em; color: var(--red); margin-bottom: 6px; text-shadow: none; }
+    @keyframes walk { to { left: 38%; } }
+    @keyframes bob { to { transform: translateY(-6px); } }
+    @keyframes appear { to { opacity: 1; } }
+    .walk-cta { text-align: center; margin: 18px 0 0; }
+
+    /* ---------- Discussion ---------- */
+    .room-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .room h2 { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: clamp(26px, 4vw, 40px); text-transform: uppercase; margin: 0; }
+    .room h2 span { color: var(--red); }
+    .starter { background: var(--ink); border-left: 4px solid var(--red); border-radius: 0 12px 12px 0; padding: 14px 16px; margin: 0 0 16px; }
+    .starter b { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--red); margin-bottom: 4px; }
+    .starter p { margin: 0; font-size: 17px; }
+    .starters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+    .thread { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; max-height: 420px; overflow-y: auto; }
+    .msg { background: var(--ink); border: 1px solid var(--ink-3); border-radius: 12px; padding: 10px 14px; }
+    .msg.coach { border-color: var(--red); }
+    .msg header { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+    .msg header b { color: var(--text); }
+    .msg p { margin: 0; overflow-wrap: anywhere; }
+    .empty { color: var(--muted); margin: 0 0 16px; }
+    .compose { display: grid; gap: 10px; }
+    .compose-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .care { background: var(--ink); border: 1px solid var(--red); border-radius: 12px; padding: 14px 16px; margin: 0 0 16px; }
+    .care p { margin: 0 0 6px; } .care p:last-child { margin: 0; }
+    .care a { color: #fff; font-weight: 600; }
+    .foot { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .foot button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 6px 0; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to the ring</a>
+  <header class="topbar">
+    <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby"><span class="brand-mark" aria-hidden="true">FF</span>Fight Forward</a>
+    <div class="user">
+      <span class="user-name" data-user-greeting>Welcome back</span>
+      <span class="avatar" aria-hidden="true" data-user-initial>F</span>
+      <a class="signout" href="index.html" data-signout>Log out</a>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <div class="page-head">
+      <div class="page-badge"><img src="assets/badges/ring-sq.png" alt="" width="1000" height="1000"></div>
+      <div>
+        <a class="back" href="lobby.html"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 7H3M7 3L3 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Back to the lobby</a>
+        <p class="eyebrow">Path 03</p>
+        <h1>Bring it to the <span>Ring</span></h1>
+        <p>Step in and face today’s topic. This is where we have open, honest talk about real life.</p>
+      </div>
+    </div>
+
+    <section class="block" id="walk" aria-labelledby="walk-title">
+      <h2 class="section-title" id="walk-title">Walk to the ring</h2>
+      <p class="section-sub">Every session, you face a new opponent. Today’s opponent is the topic.</p>
+      <div class="walk" role="img" id="walk-art">
+        <div class="ring-art" aria-hidden="true">
+          <svg viewBox="0 0 300 150"><path d="M10 140 L50 30 H250 L290 140 Z" fill="#14141b" stroke="#d92b2f" stroke-width="3"/><path d="M28 100 H272 M36 70 H264 M44 46 H256" stroke="#fff" stroke-width="3" opacity=".8"/><path d="M50 30 V140 M250 30 V140" stroke="#d92b2f" stroke-width="4"/></svg>
+        </div>
+        <div class="opp" aria-hidden="true"><svg viewBox="0 0 60 120"><circle cx="30" cy="16" r="13" fill="#000"/><path d="M12 36 Q30 28 48 36 L52 84 H8 Z M16 84 L14 118 H28 L30 92 L32 118 H46 L44 84 Z" fill="#000"/></svg></div>
+        <div class="opp-name" aria-hidden="true"><small>Today’s opponent</small><span id="opp-name">Topic</span></div>
+        <div class="boxer" aria-hidden="true"><div class="bob"><svg viewBox="0 0 60 120"><circle cx="30" cy="16" r="12" fill="#e0ac69"/><path d="M18 8 Q30 -2 42 8 L42 12 H18 Z" fill="#d92b2f"/><path d="M12 36 Q30 28 48 36 L52 84 H8 Z" fill="#d92b2f"/><circle cx="10" cy="60" r="9" fill="#fff"/><circle cx="50" cy="60" r="9" fill="#fff"/><path d="M12 84 H48 L46 118 H32 L30 92 L28 118 H14 Z" fill="#16161a" stroke="#fff" stroke-width="1.5"/></svg></div></div>
+      </div>
+      <p class="walk-cta"><button class="btn" type="button" id="enter">Step into the ring</button></p>
+    </section>
+
+    <section class="block room" id="room" hidden aria-labelledby="room-title">
+      <div class="room-top">
+        <h2 id="room-title" tabindex="-1">Ring talk: <span id="room-topic">Topic</span></h2>
+        <button class="btn btn-ghost" type="button" id="leave">Leave the ring</button>
+      </div>
+      <p class="notice"><span><strong>Heads up:</strong> this space is watched over to keep everyone safe. If a message sounds like someone could get hurt, a safety adult is notified so they can check in and help. Be real, be respectful.</span></p>
+      <div class="card">
+        <div class="starter"><b>Coach asks</b><p id="starter"></p></div>
+        <div class="starters" id="starters" role="group" aria-label="More questions"></div>
+        <div class="care" id="care" hidden role="alert"></div>
+        <ul class="thread" id="thread" aria-live="polite"></ul>
+        <p class="empty" id="empty">Nobody has spoken yet. Be the first to throw a punch (with words).</p>
+        <form class="compose" id="form">
+          <label for="text" class="hint">What’s your take?</label>
+          <textarea id="text" maxlength="500" placeholder="Say what you really think..."></textarea>
+          <div class="compose-row"><span class="hint" id="left">500 characters left</span><button class="btn" type="submit">Post to the ring</button></div>
+        </form>
+        <div class="foot"><span>Saved on this device for now.</span> <button type="button" id="clear">Clear this thread</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.</footer>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/content.js"></script>
+  <script>
+    const user = FFAuth.requireUser();
+    const $ = s => document.querySelector(s);
+    function el(tag, attrs = {}, ...kids) {
+      const n = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v == null) continue;
+        if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+      }
+      n.append(...kids); return n;
+    }
+
+    // ---------- Today's topic ----------
+    const MONTHS = window.FF_CONTENT.MONTHS;
+    const curMonth = new Date().toLocaleString("en-US", { month: "long" });
+    const topic = (MONTHS.find(m => m.name === curMonth) || MONTHS[0]).topic;
+    $("#opp-name").textContent = topic;
+    $("#room-topic").textContent = topic;
+    $("#walk-art").setAttribute("aria-label", `A boxer walks to the ring. Waiting on the other side is an outline of today's opponent: ${topic}.`);
+
+    // Starter questions are written by the team; unknown topics fall back to the general set.
+    const QUESTIONS = {
+      Communication: ["Tell about a time words got misunderstood. What happened?", "What’s the hardest thing to say out loud, and why?", "How do you know when someone is really listening?"],
+      Bullying: ["What does bullying look like where you are? What do people miss?", "What would make it easier to speak up when you see it?", "What can a friend do that actually helps?"],
+      general: ["What’s one thing about this topic you wish adults understood?", "What’s something about this topic you’ve seen with your own eyes?", "What advice would you give a younger kid about this?"]
+    };
+    const questions = QUESTIONS[topic] || QUESTIONS.general;
+    let qi = 0;
+    function renderStarters() {
+      $("#starter").textContent = questions[qi];
+      $("#starters").replaceChildren(...questions.map((q, i) => el("button", { class: "pill", type: "button", "aria-pressed": String(i === qi),
+        onclick: () => { qi = i; renderStarters(); } }, `Question ${i + 1}`)));
+    }
+
+    // ---------- Storage (this device only, per student) ----------
+    const TKEY = `ff.ring.thread.v1:${user.id}:${curMonth}`;
+    const SKEY = "ff.safety.queue.v1"; // stand-in for the safety adult's inbox until there is a server
+    const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+    const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } };
+    const thread = read(TKEY, []);
+
+    // ---------- Safety check ----------
+    // Plain keyword screen. It only catches obvious language and is a first pass, not a replacement for the safety adult.
+    const SELF = /\b(kill myself|suicide|suicidal|want to die|end it all|hurt myself|cut myself|self[- ]?harm)\b/i;
+    const OTHERS = /\b(kill (him|her|them|you)|gonna kill|going to kill|shoot (him|her|them|you|up)|bring a (gun|knife|weapon)|stab (him|her|them|you)|bomb|beat (him|her|them) up)\b/i;
+    const ABUSE = /\b(touches me|touched me|hits me|beats me|afraid to go home|not safe at home)\b/i;
+    function screen(text) {
+      if (SELF.test(text)) return "self";
+      if (OTHERS.test(text)) return "others";
+      if (ABUSE.test(text)) return "abuse";
+      return null;
+    }
+    function showCare(kind) {
+      const care = $("#care");
+      const lines = {
+        self: "It sounds like you might be hurting. You matter, and you don’t have to carry this alone.",
+        others: "That sounds serious. Talk to a safety adult right now so everyone stays safe.",
+        abuse: "Thank you for trusting us with that. You deserve to be safe, and a trusted adult can help."
+      };
+      care.replaceChildren(
+        el("p", {}, el("strong", {}, "A safety adult has been notified and will check in with you. "), lines[kind]),
+        el("p", {}, "Want to talk right now? ", el("a", { href: "coaching-corner.html" }, "Go to the Coaching Corner"), "."),
+        el("p", {}, "In the US you can call or text ", el("a", { href: "tel:988" }, "988"), " any time. If you’re in danger, call ", el("a", { href: "tel:911" }, "911"), "."));
+      care.hidden = false;
+    }
+
+    // ---------- Render ----------
+    function render() {
+      $("#empty").hidden = thread.length > 0;
+      $("#thread").hidden = thread.length === 0;
+      $("#thread").replaceChildren(...thread.map(m => el("li", { class: "msg" },
+        el("header", {}, el("b", {}, m.name), el("span", {}, new Date(m.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))),
+        el("p", {}, m.text))));
+      const t = $("#thread"); t.scrollTop = t.scrollHeight;
+    }
+
+    $("#text").addEventListener("input", e => { $("#left").textContent = `${500 - e.target.value.length} characters left`; });
+    $("#form").addEventListener("submit", e => {
+      e.preventDefault();
+      const text = $("#text").value.replace(/\s+/g, " ").trim();
+      if (!text) return;
+      const entry = { name: user.name, text, q: questions[qi], at: new Date().toISOString() };
+      thread.push(entry); write(TKEY, thread);
+      const kind = screen(text);
+      if (kind) {
+        const q = read(SKEY, []);
+        q.push({ student: user.id, name: user.name, source: "ring", topic, kind, text, at: entry.at, status: "new" });
+        write(SKEY, q); showCare(kind);
+      } else $("#care").hidden = true;
+      $("#text").value = ""; $("#left").textContent = "500 characters left";
+      render();
+    });
+    $("#clear").addEventListener("click", () => {
+      if (!confirm("Clear this thread on this device?")) return;
+      thread.length = 0; try { localStorage.removeItem(TKEY); } catch (e) { /* storage unavailable */ } render();
+    });
+
+    // ---------- Flow ----------
+    function enter() {
+      $("#walk").hidden = true; $("#room").hidden = false;
+      $("#room-title").focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    $("#enter").addEventListener("click", enter);
+    $("#leave").addEventListener("click", () => { $("#room").hidden = true; $("#walk").hidden = false; $("#care").hidden = true; window.scrollTo({ top: 0 }); });
+
+    renderStarters(); render();
+  </script>
+</body>
+</html>
