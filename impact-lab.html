@@ -11,8 +11,6 @@
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/paths.css">
   <style>
-    body::before { content: ""; position: fixed; inset: 0; z-index: -1;
-      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(217,43,47,.22), transparent 70%), var(--ink); }
     .player { text-align: center; border-top: 3px solid var(--red); margin-bottom: clamp(28px, 5vw, 44px);
       background: radial-gradient(ellipse 90% 70% at 50% 0%, rgba(217,43,47,.18), transparent 70%), var(--ink-2); }
     .player-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; text-align: left; }
@@ -37,7 +35,8 @@
     .foot button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 6px 0; }
   </style>
 </head>
-<body>
+<body class="themed intro-on bg-path02">
+  <button id="intro" type="button" aria-label="Skip intro"><span>Tap to skip</span></button>
   <a class="skip" href="#workouts">Skip to the workouts</a>
   <header class="topbar">
     <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby"><span class="brand-mark" aria-hidden="true">FF</span>Fight Forward</a>
@@ -47,6 +46,8 @@
       <a class="signout" href="index.html" data-signout>Log out</a>
     </div>
   </header>
+
+  <div class="bg-hero" aria-hidden="true"></div>
 
   <main class="wrap">
     <div class="page-head">
@@ -78,6 +79,7 @@
 
   <footer>© 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.</footer>
 
+  <script src="assets/js/intro.js"></script>
   <script src="assets/js/auth.js"></script>
   <script>
     const user = FFAuth.requireUser();

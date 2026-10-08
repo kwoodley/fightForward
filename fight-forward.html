@@ -209,25 +209,9 @@
       .round-grid { grid-template-columns: 1fr; }
       .page-head { align-items: flex-start; }
     }
-    /* Intro: just the bright background art for 10 seconds, then the programming fades in. Tap to skip. */
-    #intro { position: fixed; inset: 0; z-index: 50; border: 0; cursor: pointer; color: var(--text); font: inherit;
-      background: #0a0b12 url("assets/img/path01-bg.jpg") center / cover no-repeat; filter: brightness(1.15);
-      display: flex; align-items: flex-end; justify-content: center; padding: 0 0 max(28px, env(safe-area-inset-bottom));
-      transition: opacity 1.2s ease; }
-    #intro.out { opacity: 0; pointer-events: none; }
-    #intro span { font-size: 13px; letter-spacing: .2em; text-transform: uppercase; color: #fff; background: rgba(5,6,10,.55);
-      border-radius: 999px; padding: 8px 16px; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
-    body.intro-on { overflow: hidden; }
-    body::before {
-      content: ""; position: fixed; inset: 0; z-index: -1; filter: brightness(1.2);
-      background:
-        linear-gradient(180deg, #0a0b12 0, #0a0b12 330px, rgba(10, 11, 18, 0.15) 480px, rgba(10, 11, 18, 0.4) 100%),
-        url("assets/img/path01-bg.jpg") center top / cover no-repeat;
-      background-position: center top, center 290px;
-    }
   </style>
 </head>
-<body class="intro-on">
+<body class="themed intro-on bg-path01">
   <button id="intro" type="button" aria-label="Skip intro"><span>Tap to skip</span></button>
   <a class="skip" href="#rounds">Skip to the rounds</a>
 
@@ -242,6 +226,8 @@
       <a class="signout" href="index.html" data-signout>Log out</a>
     </div>
   </header>
+
+  <div class="bg-hero" aria-hidden="true"></div>
 
   <main class="wrap">
     <div class="page-head">
@@ -279,21 +265,12 @@
     © 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.
   </footer>
 
+  <script src="assets/js/intro.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/content.js"></script>
   <script src="assets/js/modules.js"></script>
   <script>
     const user = FFAuth.requireUser();
-    (function intro() {
-      const el = document.getElementById("intro"); let done = false;
-      function end() {
-        if (done) return; done = true;
-        el.classList.add("out"); document.body.classList.remove("intro-on");
-        setTimeout(() => el.remove(), 1300);
-      }
-      el.addEventListener("click", end);
-      setTimeout(end, 10000);
-    })();
     const { MONTHS, MOVES, PRESSURE, SUPPORT } = window.FF_CONTENT;
     const { el, chips, play, TYPE_LABEL } = window.FFModules;
     const $ = (sel, root = document) => root.querySelector(sel);

@@ -11,8 +11,6 @@
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/paths.css">
   <style>
-    body::before { content: ""; position: fixed; inset: 0; z-index: -1;
-      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(217,43,47,.22), transparent 70%), var(--ink); }
     .urgent { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; justify-content: space-between;
       background: #1c1113; border: 1px solid var(--red); border-radius: var(--radius); padding: 14px 18px; margin-bottom: clamp(24px, 4vw, 36px); }
     .urgent p { margin: 0; max-width: 40em; }
@@ -42,7 +40,8 @@
     @media (max-width: 700px) { .topics { grid-template-columns: 1fr; } }
   </style>
 </head>
-<body>
+<body class="themed intro-on bg-path04">
+  <button id="intro" type="button" aria-label="Skip intro"><span>Tap to skip</span></button>
   <a class="skip" href="#ask">Skip to ask a question</a>
   <header class="topbar">
     <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby"><span class="brand-mark" aria-hidden="true">FF</span>Fight Forward</a>
@@ -52,6 +51,8 @@
       <a class="signout" href="index.html" data-signout>Log out</a>
     </div>
   </header>
+
+  <div class="bg-hero" aria-hidden="true"></div>
 
   <main class="wrap">
     <div class="page-head">
@@ -102,6 +103,7 @@
 
   <footer>© 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.</footer>
 
+  <script src="assets/js/intro.js"></script>
   <script src="assets/js/auth.js"></script>
   <script>
     const user = FFAuth.requireUser();

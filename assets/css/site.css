@@ -115,3 +115,24 @@ a, button { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Path pages: art intro + sign banner ---------- */
+/* Set --bg on <body style="--bg: url(...)">. The banner shows the building sign at full brightness;
+   the same art sits dimmed behind the page so text stays readable. */
+#intro { position: fixed; inset: 0; z-index: 50; border: 0; cursor: pointer; color: var(--text); font: inherit;
+  background: #0a0b12 var(--bg) center top / cover no-repeat; filter: brightness(1.15);
+  display: flex; align-items: flex-end; justify-content: center; padding: 0 0 max(28px, env(safe-area-inset-bottom));
+  transition: opacity 1.2s ease; }
+#intro.out { opacity: 0; pointer-events: none; }
+#intro span { font-size: 13px; letter-spacing: .2em; text-transform: uppercase; color: #fff; background: rgba(5,6,10,.55);
+  border-radius: 999px; padding: 8px 16px; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+body.intro-on { overflow: hidden; }
+body.themed::before { content: ""; position: fixed; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(10,11,18,.55), rgba(10,11,18,.82)), var(--bg) center top / cover no-repeat, var(--ink); }
+.bg-hero { position: relative; height: 21vw; min-height: 84px; background: var(--bg) center top / 100% auto no-repeat; }
+.bg-hero::after { content: ""; position: absolute; inset: auto 0 0; height: 40%;
+  background: linear-gradient(180deg, transparent, rgba(10,11,18,.82)); }
+body.bg-path01 { --bg: url("../img/path01-bg.jpg"); }
+body.bg-path02 { --bg: url("../img/path02-bg.png"); }
+body.bg-path03 { --bg: url("../img/path03-bg.png"); }
+body.bg-path04 { --bg: url("../img/path04-bg.png"); }

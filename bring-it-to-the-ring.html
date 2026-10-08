@@ -11,8 +11,6 @@
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/paths.css">
   <style>
-    body::before { content: ""; position: fixed; inset: 0; z-index: -1;
-      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(217,43,47,.22), transparent 70%), var(--ink); }
 
     /* ---------- Walk to the ring ---------- */
     .walk { position: relative; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--ink-3);
@@ -58,7 +56,8 @@
     .foot button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 6px 0; }
   </style>
 </head>
-<body>
+<body class="themed intro-on bg-path03">
+  <button id="intro" type="button" aria-label="Skip intro"><span>Tap to skip</span></button>
   <a class="skip" href="#main">Skip to the ring</a>
   <header class="topbar">
     <a class="brand" href="lobby.html" aria-label="Fight Forward Academy lobby"><span class="brand-mark" aria-hidden="true">FF</span>Fight Forward</a>
@@ -118,6 +117,7 @@
 
   <footer>© 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.</footer>
 
+  <script src="assets/js/intro.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/content.js"></script>
   <script>
