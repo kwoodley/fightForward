@@ -1,0 +1,41 @@
+# Fight Forward Academy
+
+Youth decision-making platform: a static site of plain HTML, CSS and JS. No build step, no framework, no server yet.
+Open `index.html` in a browser to run it (or serve the folder with `python3 -m http.server`).
+
+## Pages and flow
+`index.html` (first-name login) → `welcome.html` (entrance gate, start-of-session check-in) → `lobby.html` (path cards) →
+- Path 01 `fight-forward.html`: practice decision-making scenarios and games
+- Path 02 `impact-lab.html`: guided cardio and boxing workouts
+- Path 03 `bring-it-to-the-ring.html` (B.I.2.T.R.): monthly youth discussion thread
+- Path 04 `coaching-corner.html`: messages to a safety adult
+- `dashboard.html`: organization Youth Impact Dashboard mockup (sample data only)
+
+## Code layout
+- `assets/css/site.css` shared styles; `paths.css` and `modules.css` for the path pages
+- `assets/js/auth.js` sign-in, `FFAuth.logCheckin`; `content.js` curriculum data; `modules.js` scenario/game player; `intro.js`
+- `assets/badges`, `assets/img` artwork
+- `docs/data-events.md` plan for the analytics events each page needs
+- `FFBrain.pages`: product concept doc (the data and reporting layer is "the brain" of the platform)
+
+## Conventions
+- Pages build UI with a local `el(tag, attrs, ...kids)` helper and `$ = s => document.querySelector(s)`.
+- Storage is `localStorage` wrapped in try/catch. Keys are versioned and per student: `ff.decisions.v2:<id>`, `ff.progress.v1:<id>`,
+  `ff.workouts.v1:<id>`, `ff.checkins.<id>`, `ff.coaching.v1:<id>`, `ff.ring.thread.v1:<id>:<month>`, `ff.safety.queue.v1`, `ff.roster.v1`.
+- Dark theme with CSS variables in `site.css` (`--red`, `--ink`, ...). Fonts: Anton for headings, Inter for body.
+- Sound is synthesized with the Web Audio API in `welcome.html`; no audio files.
+- Keep mobile working: fluid sizes, no horizontal scroll, 44px touch targets.
+
+## Product rules (from the concept doc)
+- Present decision data as development and trends, never "good/bad" labels, and never a single score per child.
+- Check-in data is self-reported, shown to organizations only as aggregates, and never framed as a mental-health diagnosis.
+- Early support flags go to an authorized adult, who decides what to do. No predicting who will "get in trouble".
+- Privacy by design: role-based access, guardian consent, minimum data, retention rules, audit logs, small-group suppression.
+- Safety messages (`ff.safety.queue.v1`) stay out of analytics.
+
+## Where we left off
+- Added `dashboard.html` mockup and `docs/data-events.md`; both pushed to `main`.
+- Next likely step: client changes from the build-order list in `docs/data-events.md` (session id, session start/end, end-of-session check-in, per-attempt decision rows).
+- Tried a heartbeat sound synced to the welcome-page logo pulse, with a two-step gate for Safari. Reverted at the user's request; not in the code.
+- Idea list for sounds (not built): Impact Lab interval bells and countdown, check-in chip ticks, scenario lock-in thump, completion chimes, and one shared remembered mute setting.
+- Open questions: whether to promise punch count/accuracy (needs a sensor or camera), and whether each scenario maps to the four dashboard skills (only a `pressure` field exists today).
