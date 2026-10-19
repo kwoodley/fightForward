@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fight Forward · Youth Impact Dashboard</title>
+  <meta name="description" content="Mockup of the Fight Forward organization Youth Impact Dashboard. Sample data only.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <style>
+    main { max-width: 1100px; margin: 0 auto; padding: clamp(20px, 4vw, 40px) var(--gutter) 56px; }
+    h1 { font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase; font-size: clamp(28px, 5vw, 42px); line-height: 1.05; margin: 0 0 6px; }
+    h1 sup { font-size: 0.4em; vertical-align: super; }
+    h2 { font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; font-size: 20px; margin: 0 0 14px; }
+    .lede { color: var(--silver); margin: 0 0 20px; }
+    .sample { display: inline-block; background: var(--ink-3); border: 1px dashed var(--muted); color: var(--silver); font-size: 12px; padding: 4px 10px; border-radius: 999px; margin-bottom: 16px; }
+
+    .scope { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 22px; }
+    .scope label { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .scope select { font: inherit; font-size: 15px; color: var(--text); background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: 10px; padding: 10px 12px; min-width: 190px; }
+    .scope select:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .role { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+    .grid { display: grid; gap: 14px; }
+    .kpis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 14px; }
+    .panels { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .card { background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: var(--radius); padding: 18px; }
+    .card.accent { border-top: 3px solid var(--red); }
+    .kpi .n { font-family: "Anton", Impact, sans-serif; font-size: clamp(30px, 5vw, 40px); line-height: 1; }
+    .kpi .l { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+    .bars { display: grid; gap: 12px; }
+    .bar-row { display: grid; gap: 4px; font-size: 14px; }
+    .bar-row .top { display: flex; justify-content: space-between; gap: 8px; }
+    .track { height: 10px; background: var(--ink-3); border-radius: 999px; overflow: hidden; }
+    .fill { height: 100%; background: var(--red); border-radius: 999px; transition: width 0.3s ease; }
+    .fill.calm { background: var(--silver); }
+    .up { color: #7fd99a; font-weight: 700; }
+    .note { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+
+    .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .list li { display: flex; gap: 12px; align-items: baseline; font-size: 14px; }
+    .list b { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 26px; min-width: 44px; }
+    .privacy { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { font-size: 12px; border: 1px solid var(--ink-3); border-radius: 999px; padding: 4px 10px; color: var(--silver); }
+    .suppressed { color: var(--muted); font-style: italic; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="lobby.html"><span class="brand-mark">FF</span> Fight Forward</a>
+    <div class="user"><span class="user-name">Staff view</span></div>
+  </header>
+
+  <main>
+    <p class="eyebrow">Organization dashboard</p>
+    <h1>Fight Forward<sup>™</sup> | Youth Impact Dashboard</h1>
+    <p class="lede">Participation, progress, and where extra support may help. Patterns and trends, never a score for any one young person.</p>
+    <span class="sample">Mockup · sample data only</span>
+
+    <div class="scope">
+      <label>Organization / site
+        <select id="site"></select>
+      </label>
+      <label>Program / group
+        <select id="group"></select>
+      </label>
+      <label>Period
+        <select id="period"><option>This month</option><option>This quarter</option><option>This semester</option><option>This year</option></select>
+      </label>
+      <span class="role">Signed in as: Program Director · sees aggregates for all sites</span>
+    </div>
+
+    <section class="grid kpis" id="kpis" aria-label="Headline numbers"></section>
+
+    <section class="grid panels">
+      <div class="card accent">
+        <h2>Decision-making development</h2>
+        <div class="bars" id="skills"></div>
+        <p class="note">Change since the start of the program. Shown as growth over time, not as grades.</p>
+      </div>
+
+      <div class="card accent">
+        <h2>Youth check-in trends</h2>
+        <div class="bars" id="mood"></div>
+        <p class="note">Self-reported by youth, shown only as group totals. Not a mental-health assessment.</p>
+      </div>
+
+      <div class="card accent">
+        <h2>Engagement</h2>
+        <ul class="list" id="engage"></ul>
+      </div>
+
+      <div class="card accent">
+        <h2>Support opportunities</h2>
+        <ul class="list" id="support"></ul>
+        <p class="note">Observable patterns only. An authorized adult decides what, if anything, to do. Names appear only to roles with permission.</p>
+      </div>
+
+      <div class="card">
+        <h2>Impact Lab cardio</h2>
+        <ul class="list" id="cardio"></ul>
+      </div>
+
+      <div class="card">
+        <h2>B.I.2.T.R. youth leadership</h2>
+        <ul class="list" id="leaders"></ul>
+      </div>
+    </section>
+
+    <div class="card" style="margin-top:14px">
+      <h2>Built-in privacy</h2>
+      <p class="lede" style="margin:0">Groups smaller than 10 youth are hidden so no one can be picked out of the numbers.</p>
+      <div class="privacy">
+        <span class="tag">Role-based access</span><span class="tag">Parent/guardian consent</span><span class="tag">Minimum necessary data</span>
+        <span class="tag">Retention &amp; deletion rules</span><span class="tag">Audit log of who viewed what</span><span class="tag">No single score per child</span>
+      </div>
+    </div>
+  </main>
+
+  <footer>Fight Forward Academy · Mockup for planning. All figures are invented.</footer>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    const $ = s => document.querySelector(s);
+    const MIN_GROUP = 10;
+
+    // Sample data. In the real product these come from the events listed in docs/data-events.md.
+    const SITES = {
+      "All sites": { groups: ["All groups"], n: 127, part: 91, comp: 84, lab: 73,
+        skills: [["Peer pressure", 18], ["Conflict resolution", 22], ["Emotional control", 14], ["Responsible choices", 19]],
+        mood: [["Focused", 48], ["Calm", 27], ["Frustrated", 15], ["Stressed", 10]],
+        engage: [[1284, "scenarios completed"], [462, "cardio sessions completed"], [184, "Coach's Corner interactions"]],
+        support: [[12, "may benefit from an extra check-in or programming"], [7, "have declining participation"], [18, "showed significant improvement this month"]],
+        cardio: [["8,420", "punches thrown this month"], ["+12%", "average accuracy since start"], ["+9%", "average endurance since start"]],
+        leaders: [[34, "sessions led by youth"], [212, "minutes facilitating"], [96, "invitations for others to join in"]] },
+      "Eastside Rec Center": { groups: ["All groups", "After-school 6th grade", "After-school 7th grade"], n: 58, part: 94, comp: 88, lab: 77,
+        skills: [["Peer pressure", 21], ["Conflict resolution", 25], ["Emotional control", 16], ["Responsible choices", 20]],
+        mood: [["Focused", 51], ["Calm", 26], ["Frustrated", 14], ["Stressed", 9]],
+        engage: [[602, "scenarios completed"], [231, "cardio sessions completed"], [88, "Coach's Corner interactions"]],
+        support: [[5, "may benefit from an extra check-in or programming"], [3, "have declining participation"], [9, "showed significant improvement this month"]],
+        cardio: [["4,310", "punches thrown this month"], ["+14%", "average accuracy since start"], ["+10%", "average endurance since start"]],
+        leaders: [[17, "sessions led by youth"], [109, "minutes facilitating"], [51, "invitations for others to join in"]] },
+      "Lincoln Middle School": { groups: ["All groups", "Advisory 8A", "Advisory 8B"], n: 69, part: 89, comp: 81, lab: 70,
+        skills: [["Peer pressure", 16], ["Conflict resolution", 20], ["Emotional control", 12], ["Responsible choices", 18]],
+        mood: [["Focused", 46], ["Calm", 28], ["Frustrated", 16], ["Stressed", 10]],
+        engage: [[682, "scenarios completed"], [231, "cardio sessions completed"], [96, "Coach's Corner interactions"]],
+        support: [[7, "may benefit from an extra check-in or programming"], [4, "have declining participation"], [9, "showed significant improvement this month"]],
+        cardio: [["4,110", "punches thrown this month"], ["+10%", "average accuracy since start"], ["+8%", "average endurance since start"]],
+        leaders: [[17, "sessions led by youth"], [103, "minutes facilitating"], [45, "invitations for others to join in"]] }
+    };
+    const GROUP_SIZE = { "All groups": null, "After-school 6th grade": 31, "After-school 7th grade": 27, "Advisory 8A": 36, "Advisory 8B": 33 };
+
+    const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+
+    function bars(target, rows, fmt, cls) {
+      target.replaceChildren(...rows.map(([label, v]) => {
+        const r = el("div", "bar-row");
+        r.append(el("div", "top", `<span>${label}</span><span class="${cls === "up" ? "up" : ""}">${fmt(v)}</span>`));
+        const t = el("div", "track"); const f = el("div", "fill" + (label === "Calm" ? " calm" : ""));
+        f.style.width = Math.min(100, v * (cls === "up" ? 3 : 1)) + "%"; t.append(f); r.append(t); return r;
+      }));
+    }
+    function stats(target, rows) { target.replaceChildren(...rows.map(([n, l]) => el("li", "", `<b>${n}</b><span>${l}</span>`))); }
+
+    function render() {
+      const d = SITES[$("#site").value], g = $("#group").value, size = GROUP_SIZE[g];
+      const hidden = size != null && size < MIN_GROUP;
+      $("#kpis").replaceChildren(...[[size ?? d.n, "youth enrolled"], [d.part + "%", "participation"], [d.comp + "%", "session completion"], [d.lab + "%", "Impact Lab completion"]]
+        .map(([n, l]) => el("div", "card kpi", `<div class="n">${n}</div><div class="l">${l}</div>`)));
+      // A single group is shown with the same sample figures as its site; the point of the mockup is the drill-down shape.
+      bars($("#skills"), d.skills, v => "↑ " + v + "%", "up");
+      bars($("#mood"), d.mood, v => v + "%");
+      stats($("#engage"), d.engage); stats($("#support"), d.support); stats($("#cardio"), d.cardio); stats($("#leaders"), d.leaders);
+      if (hidden) document.querySelectorAll("#mood, #support").forEach(n => n.replaceChildren(el("p", "suppressed", `Hidden: groups under ${MIN_GROUP} youth are not shown.`)));
+    }
+
+    $("#site").replaceChildren(...Object.keys(SITES).map(s => new Option(s)));
+    function fillGroups() { $("#group").replaceChildren(...SITES[$("#site").value].groups.map(s => new Option(s))); render(); }
+    $("#site").addEventListener("change", fillGroups);
+    $("#group").addEventListener("change", render);
+    fillGroups();
+  </script>
+</body>
+</html>
