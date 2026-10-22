@@ -340,6 +340,8 @@
         // Picked a different option than last time, after seeing Coach's breakdown.
         if (prev) row.changedAfterDebrief = prev.choice !== entry.choice;
         decisions.push(row); save(DKEY, decisions);
+        const { type: moduleType, at, ...fields } = row;
+        FFAuth.logEvent("decision", { ...fields, moduleType });
         renderRecord();
       },
       complete(id, info) {
@@ -363,7 +365,7 @@
     function openModule(mod) {
       const attempt = attempts.filter(a => a.moduleId === mod.id).length + 1;
       current = { mod, attempt, openedAt: performance.now() };
-      FFAuth.logEvent("module_open", { moduleId: mod.id, type: mod.type, skill: mod.skill, attempt });
+      FFAuth.logEvent("module_open", { moduleId: mod.id, moduleType: mod.type, skill: mod.skill, attempt });
       const ring = $("#ring");
       const heading = el("h2", { tabindex: "-1" }, mod.title);
       const body = el("div", { class: "module-body" });

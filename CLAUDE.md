@@ -15,6 +15,7 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - `assets/css/site.css` shared styles; `paths.css` and `modules.css` for the path pages
 - `assets/js/auth.js` sign-in, `FFAuth.logCheckin`; `content.js` curriculum data; `modules.js` scenario/game player; `intro.js`
 - `assets/badges`, `assets/img` artwork
+- `server/server.py` dev events endpoint (run `python3 server/server.py`)
 - `docs/data-events.md` plan for the analytics events each page needs
 - `FFBrain.pages`: product concept doc (the data and reporting layer is "the brain" of the platform)
 
@@ -34,9 +35,10 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - Safety messages (`ff.safety.queue.v1`) stay out of analytics.
 
 ## Where we left off
-- Built the first client data changes from `docs/data-events.md`: session id with start/end (`auth.js`), end-of-session check-in (`goodbye.html`), `module_open`/`module_complete` events, per-attempt rows, and a `skill` tag on every module. Not yet committed.
+- Built the first client data changes from `docs/data-events.md`: session id with start/end (`auth.js`), end-of-session check-in (`goodbye.html`), `module_open`/`module_complete` events, per-attempt rows, and a `skill` tag on every module.
 - New storage keys: `ff.session.v1` (current visit), `ff.events.v1:<id>` (event log), `ff.attempts.v1:<id>`.
-- Next: event queue plus backend endpoint, roster with org/site/group, then wire `dashboard.html` to real data. Still open from the first group: `page_view` and `workout_start` events.
+- Built an event queue (`ff.outbox.v1`, in `auth.js`) and a dev reference server, `server/server.py` (stdlib + SQLite, `POST /events`). Off until `ff.events.url` is set. See `docs/data-events.md` build order step 2 for what is still missing (auth, consent check, HTTPS, retention, audit log).
+- Next: roster with org/site/group on the server, aggregate API, then wire `dashboard.html` to real data. Still open from the first group: `page_view` and `workout_start` events.
 - Decided: cardio sensing (punch count/accuracy) goes in the pitch; sensing approach and privacy review still to pick. A parent cycle is wanted later.
 - Tried a heartbeat sound synced to the welcome-page logo pulse, with a two-step gate for Safari. Reverted at the user's request; not in the code.
 - Idea list for sounds (not built): Impact Lab interval bells and countdown, check-in chip ticks, scenario lock-in thump, completion chimes, and one shared remembered mute setting.

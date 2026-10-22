@@ -1,2 +1,4 @@
 .DS_Store
 *.pages
+server/events.db
+server/events.db-*

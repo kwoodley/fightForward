@@ -6,6 +6,8 @@
   const SESSION_KEY = "ff.session.v1";
   const EVENT_CAP = 5000;
   const IDLE_MS = 30 * 60 * 1000;   // no activity for this long ends the visit
+  const OUTBOX_KEY = "ff.outbox.v1"; // events not yet accepted by the server
+  const BATCH = 100;
   let memSession = null;            // keeps the visit working if storage is blocked
 
   function getUser() {
@@ -38,11 +40,55 @@
   }
   function appendEvent(s, type, data, at) {
     const key = "ff.events.v1:" + s.studentId;
+    const event = { ...data, eventId: newId(), studentId: s.studentId, org: s.org, site: s.site, group: s.group, type, at, sessionId: s.id };
     try {
       const all = JSON.parse(localStorage.getItem(key)) || [];
-      all.push({ studentId: s.studentId, org: s.org, site: s.site, group: s.group, type, at, sessionId: s.id, ...data });
+      all.push(event);
       localStorage.setItem(key, JSON.stringify(all.slice(-EVENT_CAP)));
     } catch (e) { /* storage unavailable */ }
+    enqueue(event);
+  }
+
+  // ---------- Event queue ----------
+  // Events are sent to the server in batches. Until a URL is set (window.FF_EVENTS_URL, or localStorage "ff.events.url"),
+  // nothing is sent. Failed sends stay in the outbox and are retried; the server ignores repeats by eventId.
+  function eventsUrl() {
+    try { return window.FF_EVENTS_URL || localStorage.getItem("ff.events.url") || ""; } catch (e) { return window.FF_EVENTS_URL || ""; }
+  }
+  function readOutbox() {
+    try { return JSON.parse(localStorage.getItem(OUTBOX_KEY)) || []; } catch (e) { return []; }
+  }
+  function writeOutbox(list) {
+    try { localStorage.setItem(OUTBOX_KEY, JSON.stringify(list.slice(-EVENT_CAP))); } catch (e) { /* storage unavailable */ }
+  }
+  function enqueue(event) {
+    if (!eventsUrl()) return;
+    writeOutbox(readOutbox().concat(event));
+    if (readOutbox().length >= BATCH) flush();
+  }
+  let flushing = false;
+  // Sends one batch at a time until the outbox is empty or a send fails. `leaving` uses keepalive so it survives a page close.
+  async function flush(leaving) {
+    const url = eventsUrl();
+    if (!url || flushing || !window.fetch) return;
+    flushing = true;
+    try {
+      for (;;) {
+        const batch = readOutbox().slice(0, BATCH);
+        if (!batch.length) break;
+        const res = await fetch(url, {
+          method: "POST", headers: { "Content-Type": "application/json" }, keepalive: !!leaving,
+          body: JSON.stringify({ events: batch })
+        });
+        // Success, or a rejection that will never succeed (bad request): drop the batch so it can't block the queue.
+        const permanent = res.status >= 400 && res.status < 500 && res.status !== 408 && res.status !== 429;
+        if (!res.ok && !permanent) break;
+        const sent = new Set(batch.map(e => e.eventId));
+        writeOutbox(readOutbox().filter(e => !sent.has(e.eventId)));
+        if (leaving) break;
+      }
+    } catch (e) { /* offline or server down: try again later */ }
+    flushing = false;
   }
   function startSession(user) {
     const now = new Date().toISOString();
@@ -108,6 +154,7 @@
     endSession("signout", extra);
     window.__ffUser = null;
     try { localStorage.removeItem(USER_KEY); } catch (e) { /* storage unavailable */ }
+    flush(true);
     location.href = "index.html";
   }
 
@@ -159,11 +206,15 @@
       all.push({ ...entry, sessionId: s && s.id, at: new Date().toISOString() });
       localStorage.setItem(key, JSON.stringify(all));
     } catch (e) { /* storage unavailable */ }
+    logEvent("checkin", { phase: entry.phase, feeling: entry.feeling, reason: entry.reason });
   }
 
-  window.FFAuth = { FEELINGS, logCheckin, logEvent, getSession: currentSession, getUser, signIn, signOut, finishSignOut, requireUser, fillUser };
+  window.FFAuth = { FEELINGS, logCheckin, logEvent, flush, getSession: currentSession, getUser, signIn, signOut, finishSignOut, requireUser, fillUser };
   document.addEventListener("DOMContentLoaded", () => { fillUser(); currentSession(); });
   // Remember when we last saw the student, so a closed tab still gets a sensible end time.
-  addEventListener("pagehide", touch);
+  addEventListener("pagehide", () => { touch(); flush(true); });
+  addEventListener("online", () => flush());
+  setInterval(flush, 30000);
+  flush();
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") touch(); });
 })();
