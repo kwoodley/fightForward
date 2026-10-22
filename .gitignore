@@ -2,3 +2,4 @@
 *.pages
 server/events.db
 server/events.db-*
+__pycache__/

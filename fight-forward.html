@@ -349,7 +349,7 @@
         attempts.push({ moduleId: id, type: current.mod.type, skill: current.mod.skill, attempt: current.attempt,
           ...info, durationMs, month: month().id, week: week().n, at: new Date().toISOString() });
         save(AKEY, attempts);
-        FFAuth.logEvent("module_complete", { moduleId: id, attempt: current.attempt, durationMs });
+        FFAuth.logEvent("module_complete", { moduleId: id, moduleType: current.mod.type, skill: current.mod.skill, attempt: current.attempt, durationMs });
         progress[id] = { ...info, at: new Date().toISOString() }; save(PKEY, progress);
         renderModules();
         renderRecord();

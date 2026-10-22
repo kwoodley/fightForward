@@ -118,7 +118,13 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
    - Events sent: `session_start`, `session_end`, `checkin` (ids only), `module_open`, `module_complete`, `decision`. Each has a unique `eventId`.
    - Server: `server/server.py` (standard library, SQLite). Try it: `python3 server/server.py`, then in the browser console `localStorage.setItem("ff.events.url", "http://localhost:8787/events")`. It ignores repeat `eventId`s and rejects unknown event types, so safety messages and free text cannot be sent by mistake.
    - Not done: per-site authentication, guardian-consent check, HTTPS, retention and delete-student, audit log, read APIs. The roster is still `localStorage`.
-3. Aggregate API and wire `dashboard.html` to it (replace sample data).
+3. Aggregate API (**built in the dev server**) and wiring `dashboard.html` to it (not done; the page still shows sample data).
+   - Roster: `PUT /roster` upserts `{studentId, org, site, group, grade, status, consent, enrolledAt}`. No names are stored. Set `FF_REQUIRE_CONSENT=1` to keep events only from students with consent on the roster (others are acknowledged but dropped).
+   - `GET /api/aggregate?org=&site=&group=&from=&to=` returns group totals: enrolled, participation, engagement, per-skill share of "best" calls with change versus the previous period of equal length, and start/end check-in totals by feeling. Check-in reasons are never output. Only active roster students count; events from unrostered students are stored but not reported.
+   - Small groups: a scope with fewer than `FF_MIN_GROUP` (default 10) enrolled is returned as `suppressed`, and any skill or check-in figure from fewer than that many youth is suppressed.
+   - Admin calls need `Authorization: Bearer $FF_ADMIN_TOKEN` (refused when no token is set) and are written to the `audit` table. `DELETE /students/<id>` removes a student's roster row and events.
+   - Known gap: showing a site and its groups side by side lets someone subtract one from the other to expose a small remainder. Needs complementary suppression before the dashboard shows both.
+   - Not yet in the API: Impact Lab, B.I.2.T.R. and early-support figures (no events for them yet).
 4. Derived early-support flags and audit log.
 5. Cardio sensing and B.I.2.T.R. facilitation tracking, once the product decisions above are made.
 
