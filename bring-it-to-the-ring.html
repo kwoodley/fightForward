@@ -52,6 +52,12 @@
     .care { background: var(--ink); border: 1px solid var(--red); border-radius: 12px; padding: 14px 16px; margin: 0 0 16px; }
     .care p { margin: 0 0 6px; } .care p:last-child { margin: 0; }
     .care a { color: #fff; font-weight: 600; }
+    .lead { border-top: 1px solid var(--ink-3); margin: 0 0 16px; padding-top: 14px; display: grid; gap: 10px; }
+    .lead[data-on="true"] { border-top-color: var(--red); }
+    .lead-tools { display: grid; gap: 10px; }
+    .ask { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+    .ask label { grid-column: 1 / -1; }
+    @media (max-width: 480px) { .ask { grid-template-columns: 1fr; } }
     .foot { margin-top: 14px; font-size: 13px; color: var(--muted); }
     .foot button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 6px 0; }
   </style>
@@ -100,8 +106,21 @@
       </div>
       <p class="notice"><span><strong>Heads up:</strong> this space is watched over to keep everyone safe. If a message sounds like someone could get hurt, a safety adult is notified so they can check in and help. Be real, be respectful.</span></p>
       <div class="card">
-        <div class="starter"><b>Coach asks</b><p id="starter"></p></div>
+        <div class="starter"><b id="starter-who">Coach asks</b><p id="starter"></p></div>
         <div class="starters" id="starters" role="group" aria-label="More questions"></div>
+        <div class="lead" id="lead" data-on="false">
+          <button class="btn btn-ghost" type="button" id="lead-toggle" aria-pressed="false">Lead this round</button>
+          <p class="hint" id="lead-hint">Leading means you choose the questions and invite others to share. Tap a question above to ask it, or write your own.</p>
+          <div class="lead-tools" id="lead-tools" hidden>
+            <form class="ask" id="ask-form">
+              <label for="ask-text" class="hint">Ask the group your own question</label>
+              <input type="text" id="ask-text" maxlength="140" placeholder="Write a question...">
+              <button class="btn btn-ghost" type="submit">Ask</button>
+            </form>
+            <button class="btn btn-ghost" type="button" id="invite">I invited someone to share</button>
+            <p class="hint" id="lead-count" aria-live="polite"></p>
+          </div>
+        </div>
         <div class="care" id="care" hidden role="alert"></div>
         <ul class="thread" id="thread" aria-live="polite"></ul>
         <p class="empty" id="empty">Nobody has spoken yet. Be the first to throw a punch (with words).</p>
@@ -147,12 +166,65 @@
       general: ["What’s one thing about this topic you wish adults understood?", "What’s something about this topic you’ve seen with your own eyes?", "What advice would you give a younger kid about this?"]
     };
     const questions = QUESTIONS[topic] || QUESTIONS.general;
-    let qi = 0;
+    let qi = 0, own = null;   // own = a question the student wrote while leading
+    const currentQuestion = () => own || questions[qi];
     function renderStarters() {
-      $("#starter").textContent = questions[qi];
-      $("#starters").replaceChildren(...questions.map((q, i) => el("button", { class: "pill", type: "button", "aria-pressed": String(i === qi),
-        onclick: () => { qi = i; renderStarters(); } }, `Question ${i + 1}`)));
+      $("#starter").textContent = currentQuestion();
+      $("#starter-who").textContent = own ? "You ask" : "Coach asks";
+      $("#starters").replaceChildren(...questions.map((q, i) => el("button", { class: "pill", type: "button", "aria-pressed": String(!own && i === qi),
+        onclick: () => { qi = i; own = null; renderStarters(); if (leading) introduced("picked"); } }, `Question ${i + 1}`)));
     }
+
+    // ---------- Events ----------
+    // Only counts and sources are sent: never what anyone wrote, and nothing that marks a post as flagged for safety.
+    // Time is capped at an hour so a forgotten open tab does not count as hours of leading.
+    let inRing = null, leading = null;
+    const secsSince = t => Math.min(3600, Math.round((Date.now() - t) / 1000));
+    function introduced(source) {
+      leading.questions++;
+      FFAuth.logEvent("question_introduced", { topic, source });   // source: "picked" or "written"
+      renderLead();
+    }
+    function startLeading() {
+      leading = { startedAt: Date.now(), questions: 0, invites: 0 };
+      FFAuth.logEvent("facilitate_start", { topic });
+      renderLead();
+    }
+    function stopLeading(reason) {
+      if (!leading) return;
+      const l = leading; leading = null;
+      FFAuth.logEvent("facilitate_end", { topic, secs: secsSince(l.startedAt), questions: l.questions, invitations: l.invites, reason });
+      own = null; renderStarters(); renderLead();
+    }
+    function leaveRing(reason) {
+      stopLeading(reason);
+      if (!inRing) return;
+      const t = inRing; inRing = null;
+      FFAuth.logEvent("ring_leave", { topic, secs: secsSince(t), reason });
+    }
+    function renderLead() {
+      const on = !!leading;
+      $("#lead").dataset.on = String(on);
+      $("#lead-toggle").setAttribute("aria-pressed", String(on));
+      $("#lead-toggle").textContent = on ? "Stop leading" : "Lead this round";
+      $("#lead-hint").hidden = on; $("#lead-tools").hidden = !on;
+      if (on) $("#lead-count").textContent = `This round: ${leading.questions} question${leading.questions === 1 ? "" : "s"} asked, ${leading.invites} invitation${leading.invites === 1 ? "" : "s"}.`;
+    }
+    $("#lead-toggle").addEventListener("click", () => (leading ? stopLeading("stopped") : startLeading()));
+    $("#ask-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const text = $("#ask-text").value.replace(/\s+/g, " ").trim();
+      if (!text || !leading) return;
+      own = text; $("#ask-text").value = "";
+      renderStarters(); introduced("written");
+    });
+    $("#invite").addEventListener("click", () => {
+      if (!leading) return;
+      leading.invites++;
+      FFAuth.logEvent("invite_sent", { topic });
+      renderLead();
+    });
+    addEventListener("pagehide", () => { leaveRing("page_closed"); FFAuth.flush(true); });
 
     // ---------- Storage (this device only, per student) ----------
     const TKEY = `ff.ring.thread.v1:${user.id}:${curMonth}`;
@@ -201,8 +273,9 @@
       e.preventDefault();
       const text = $("#text").value.replace(/\s+/g, " ").trim();
       if (!text) return;
-      const entry = { name: user.name, text, q: questions[qi], at: new Date().toISOString() };
+      const entry = { name: user.name, text, q: currentQuestion(), at: new Date().toISOString() };
       thread.push(entry); write(TKEY, thread);
+      FFAuth.logEvent("ring_post", { topic, leading: !!leading });
       const kind = screen(text);
       if (kind) {
         const q = read(SKEY, []);
@@ -220,12 +293,13 @@
     // ---------- Flow ----------
     function enter() {
       $("#walk").hidden = true; $("#room").hidden = false;
+      if (!inRing) { inRing = Date.now(); FFAuth.logEvent("ring_enter", { topic }); }
       $("#room-title").focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "smooth" });
     }
     $("#enter").addEventListener("click", enter);
-    $("#leave").addEventListener("click", () => { $("#room").hidden = true; $("#walk").hidden = false; $("#care").hidden = true; window.scrollTo({ top: 0 }); });
+    $("#leave").addEventListener("click", () => { leaveRing("left_ring"); $("#room").hidden = true; $("#walk").hidden = false; $("#care").hidden = true; window.scrollTo({ top: 0 }); });
 
-    renderStarters(); render();
+    renderStarters(); renderLead(); render();
   </script>
 </body>
 </html>

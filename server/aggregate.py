@@ -143,4 +143,18 @@ def aggregate(db, scope, start, end, min_group):
         out["cardio"] = {"youth": youth, "youthPercent": pct(youth, enrolled), "started": started, "finished": finished or 0,
                          "finishedPercent": min(100, pct(finished or 0, started)), "minutesMoving": round((secs or 0) / 60),
                          "startedByKind": by_kind}
+
+    # B.I.2.T.R. leadership: explicit actions only (leading a round, questions asked, invitations). Nothing is read from what students write.
+    leaders = q("SELECT COUNT(DISTINCT student_id) " + base + "AND type = 'facilitate_start'")[0][0]
+    joined = q("SELECT COUNT(DISTINCT student_id) " + base + "AND type = 'ring_enter'")[0][0]
+    if leaders < min_group:
+        out["leadership"] = {"suppressed": True, "joinedPercent": pct(joined, enrolled) if joined >= min_group else None}
+    else:
+        led, secs = q("SELECT COUNT(*), SUM(json_extract(payload, '$.secs')) " + base + "AND type = 'facilitate_end'")[0]
+        sources = dict(q("SELECT json_extract(payload, '$.source'), COUNT(*) " + base + "AND type = 'question_introduced' GROUP BY 1"))
+        invites = q("SELECT COUNT(*) " + base + "AND type = 'invite_sent'")[0][0]
+        out["leadership"] = {"youthLeading": leaders, "youthPercent": pct(leaders, enrolled), "sessionsLed": led,
+                             "minutesFacilitating": round((secs or 0) / 60), "invitations": invites,
+                             "questionsPicked": sources.get("picked", 0), "questionsWritten": sources.get("written", 0),
+                             "joinedPercent": pct(joined, enrolled) if joined >= min_group else None}
     return out

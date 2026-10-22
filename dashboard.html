@@ -301,7 +301,13 @@
           [c.minutesMoving, "minutes moving"], [c.youthPercent + "%", "of youth did a workout"]]);
         $("#cardio").append(el("li", "", `<span class="suppressed">Punch count and accuracy are not captured yet. They need a sensor or camera.</span>`));
       }
-      $("#leaders").replaceChildren(notTracked("B.I.2.T.R. facilitation events are not built yet."));
+      const l = d.leadership;
+      if (l.suppressed) $("#leaders").replaceChildren(hiddenMsg());
+      else {
+        stats($("#leaders"), [[l.sessionsLed, "rounds led by youth"], [l.minutesFacilitating, "minutes facilitating"],
+          [l.invitations, "invitations for others to share"], [l.questionsWritten + l.questionsPicked, `questions asked (${l.questionsWritten} written by youth)`]]);
+        $("#leaders").append(el("li", "", `<span class="suppressed">Redirects and respectful disagreement need observer tagging. Not tracked yet.</span>`));
+      }
     }
 
     async function renderLive() {

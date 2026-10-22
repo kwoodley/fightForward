@@ -37,7 +37,8 @@ MAX_BODY = 1_000_000
 MAX_BATCH = 500
 MAX_EVENT = 4096
 # Only these event types are accepted. Safety messages and free text are deliberately not here.
-TYPES = {"session_start", "session_end", "checkin", "module_open", "module_complete", "decision", "workout_start", "workout_end"}
+TYPES = {"session_start", "session_end", "checkin", "module_open", "module_complete", "decision", "workout_start", "workout_end",
+         "ring_enter", "ring_leave", "ring_post", "facilitate_start", "facilitate_end", "question_introduced", "invite_sent"}
 REQUIRED = ("eventId", "studentId", "type", "at", "sessionId")
 COLUMNS = ("eventId", "studentId", "org", "site", "group", "type", "at", "sessionId")
 

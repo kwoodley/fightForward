@@ -93,10 +93,12 @@ Stored today in `ff.ring.thread.v1:<id>:<month>` as `{ name, text, q, at }` (`br
 
 | Needed | Status | Gap |
 |---|---|---|
-| Sessions led, time facilitating | Missing | Add a `facilitator` role per session and `facilitate_start/end`. |
-| Questions introduced | Partly (`q`) | Distinguish prompts the student wrote from prompts they picked. |
-| Invitations to others | Missing | Add an "invite someone to share" action and log it. |
-| Redirects, respectful disagreement, conflict practice | Missing | Needs facilitator or peer tagging (a one-tap rubric), not text analysis. |
+| Sessions led, time facilitating | **Built** | "Lead this round" on the Ring page. `facilitate_start`, then `facilitate_end` with `secs` (capped at 1 hour), `questions`, `invitations`, `reason` (`stopped`, `left_ring`, `page_closed`). `ring_enter` / `ring_leave` track time in the ring, and `ring_post` counts posts. |
+| Questions introduced | **Built** | `question_introduced` with `source` `picked` or `written`, only while leading. The text of a written question stays on the device. |
+| Invitations to others | **Built** | "I invited someone to share" button (a tap when the student asks a quieter person in the room) logs `invite_sent`. No names. |
+| Redirects, respectful disagreement, conflict practice | Missing | Needs facilitator or peer tagging (a one-tap rubric), not text analysis. Needs an observer role and a server-side thread first; today the thread lives on one device. |
+
+Events carry counts and sources, never post text, and a post flagged by the safety screen sends exactly the same `ring_post` as any other post. Safety messages stay in `ff.safety.queue.v1`.
 
 Do not run sentiment analysis on posts to fill these in. Use explicit actions or adult-entered observations.
 
@@ -125,7 +127,8 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
    - Admin calls need `Authorization: Bearer $FF_ADMIN_TOKEN` (refused when no token is set) and are written to the `audit` table. `DELETE /students/<id>` removes a student's roster row and events.
    - Complementary suppression: if a small group (or site) is hidden, its siblings are hidden too until the hidden total reaches the minimum, so subtracting from the parent total cannot expose the few. `GET /api/scopes` feeds the dashboard pickers and withholds counts for hidden groups. This covers enrolled counts; figures that depend on activity (for example youth with check-ins) have their own minimum but are not cross-checked between siblings.
    - Impact Lab in the API (`cardio`): workouts started, share finished, minutes moving, share of youth who did a workout, starts by kind. Suppressed under the minimum youth. Punch count and accuracy are still not captured.
-   - Dashboard live cards: enrolled, participation, module completion, average session minutes, skill change, start/end check-in totals, engagement counts. Support opportunities and B.I.2.T.R. show "Not tracked yet" until their events exist. Impact Lab is live.
+   - B.I.2.T.R. in the API (`leadership`): rounds led, minutes facilitating, invitations, questions asked (picked vs written), share of youth who joined the ring. Suppressed when fewer than the minimum number of youth led a round.
+   - Dashboard live cards: enrolled, participation, module completion, average session minutes, skill change, start/end check-in totals, engagement counts. Support opportunities shows "Not tracked yet". Impact Lab and B.I.2.T.R. are live.
    - Not yet in the API: Impact Lab, B.I.2.T.R. and early-support figures (no events for them yet).
 4. Derived early-support flags and audit log.
 5. Cardio sensing and B.I.2.T.R. facilitation tracking, once the product decisions above are made.
