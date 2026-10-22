@@ -308,6 +308,12 @@
       mood.append(el("p", "note", `${esc(d.checkins.pairedSessions)} sessions have both a start and an end check-in.`));
 
       stats($("#engage"), [[pt.sessions, "sessions started"], [en.scenariosCompleted, "scenarios completed"], [en.gamesCompleted, "games completed"]]);
+      const PATHS = [["fight_forward", "Path 01 · Make the call"], ["impact_lab", "Path 02 · Impact Lab"], ["ring", "Path 03 · B.I.2.T.R."], ["coaching_corner", "Path 04 · Coaching Corner"]];
+      $("#engage").append(...PATHS.map(([id, label]) => {
+        const pg = d.pages[id];
+        return pg.suppressed ? el("li", "", `<b>—</b><span class="suppressed">${esc(label)}: hidden, under ${minGroup} youth</span>`)
+          : el("li", "", `<b>${esc(pg.percent)}%</b><span>of youth visited ${esc(label)}</span>`);
+      }));
       $("#support").replaceChildren(notTracked("Early-support indicators need more history and a review with a youth-development advisor first."));
       const c = d.cardio;
       if (c.suppressed) $("#cardio").replaceChildren(hiddenMsg());

@@ -209,8 +209,18 @@
     logEvent("checkin", { phase: entry.phase, feeling: entry.feeling, reason: entry.reason });
   }
 
+  // One page_view per page load for signed-in students, for the pages listed here only. Ids, not file names, so pages can be renamed.
+  const PAGES = {
+    "welcome.html": "welcome", "lobby.html": "lobby", "fight-forward.html": "fight_forward", "impact-lab.html": "impact_lab",
+    "bring-it-to-the-ring.html": "ring", "coaching-corner.html": "coaching_corner", "goodbye.html": "goodbye"
+  };
+  function logPageView() {
+    const page = PAGES[location.pathname.split("/").pop() || ""];
+    if (page && getUser()) logEvent("page_view", { page });
+  }
+
   window.FFAuth = { FEELINGS, logCheckin, logEvent, flush, getSession: currentSession, getUser, signIn, signOut, finishSignOut, requireUser, fillUser };
-  document.addEventListener("DOMContentLoaded", () => { fillUser(); currentSession(); });
+  document.addEventListener("DOMContentLoaded", () => { fillUser(); currentSession(); logPageView(); });
   // Remember when we last saw the student, so a closed tab still gets a sensible end time.
   addEventListener("pagehide", () => { touch(); flush(true); });
   addEventListener("online", () => flush());

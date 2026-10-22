@@ -21,7 +21,7 @@ Status reflects the code as of this writing. Everything is in `localStorage` tod
 | `session_start` / `session_end` | `auth.js` sign-in, sign-out | **Built** | `session_end` carries `reason` (`signout`, `timeout`, `abandoned`), `durationMs`, `endCheckin`. Closed tabs are closed at the last time seen (`lastSeen`, updated on `pagehide`), on the next sign-in or visit. |
 | `module_open` | `fight-forward.html` `openModule` | **Built** | Carries `moduleId`, `type`, `skill`, `attempt`. |
 | `module_complete` | `ctx.complete` → `ff.progress.v1` | **Built** | Has `attempt` and `durationMs`. |
-| `page_view` per path | each Path page | Missing | Lets us show Path 01-04 usage. |
+| `page_view` per path | each Path page | **Built** | One `page_view` per page load for signed-in students, from `auth.js` (list `PAGES`): `welcome`, `lobby`, `fight_forward`, `impact_lab`, `ring`, `coaching_corner`, `goodbye`. The dashboard shows the share of youth who visited each of Paths 01-04. A Coaching Corner view is a visit count only; it says nothing about what was asked, and it is hidden under the minimum group size like everything else. |
 
 Time spent = sum of `module_open` to `module_complete`, plus workout `secs`, plus session length.
 
@@ -114,7 +114,7 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
 
 ## Suggested build order
 
-1. ~~`sessionId`, `session_start/end`, `module_open`, attempt rows, end check-in~~ (done). Events are in `ff.events.v1:<id>` (capped at 5000). Still open from this group: `page_view`.
+1. ~~`sessionId`, `session_start/end`, `module_open`, attempt rows, end check-in~~ (done). Events are in `ff.events.v1:<id>` (capped at 5000).
 2. Event queue plus backend endpoint (**built as a dev reference**), roster with org/site/group.
    - Client: events go to the `ff.outbox.v1` queue and are POSTed in batches of 100 to the URL in `window.FF_EVENTS_URL` or localStorage `ff.events.url`. With no URL set, nothing is sent. Retries on failure, flushes on load, every 30s, when back online, and on page close.
    - Events sent: `session_start`, `session_end`, `checkin` (ids only), `module_open`, `module_complete`, `decision`. Each has a unique `eventId`.

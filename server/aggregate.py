@@ -146,6 +146,14 @@ def aggregate(db, scope, start, end, min_group):
     mood["pairedSessions"] = paired
     out["checkins"] = mood
 
+    # Path usage: how many youth visited each path page. Coaching Corner counts visits only; it says nothing about what was asked.
+    seen = {page: (views, youth) for page, views, youth in q(
+        "SELECT json_extract(payload, '$.page'), COUNT(*), COUNT(DISTINCT student_id) " + base + "AND type = 'page_view' GROUP BY 1")}
+    out["pages"] = {}
+    for page in ("fight_forward", "impact_lab", "ring", "coaching_corner"):
+        views, youth = seen.get(page, (0, 0))
+        out["pages"][page] = {"suppressed": True} if youth < min_group else {"views": views, "youth": youth, "percent": pct(youth, enrolled)}
+
     # Impact Lab: participation and effort only. Punch count and accuracy need a sensor and are not captured.
     youth, started = q("SELECT COUNT(DISTINCT student_id), COUNT(*) " + base + "AND type = 'workout_start'")[0]
     if youth < min_group:
