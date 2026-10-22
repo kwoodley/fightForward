@@ -8,34 +8,34 @@ Status reflects the code as of this writing. Everything is in `localStorage` tod
 | Field | Notes |
 |---|---|
 | `studentId` | `user.id` from `FFAuth` |
-| `org`, `site`, `group` | From the roster (`ff.roster.v1`); `auth.js` currently keeps `school` and `group` only. Add `org` and `site`. |
+| `org`, `site`, `group` | From the roster (`ff.roster.v1`); `auth.js` now keeps `org`, `site` and `group`. |
 | `type` | Event name from the tables below |
 | `at` | ISO timestamp |
-| `sessionId` | **New.** One id per visit, from sign-in to sign-out. Needed to pair start and end check-ins and compute time spent. |
+| `sessionId` | **Built.** One id per visit, from sign-in to sign-out (`auth.js`). Pairs start and end check-ins and gives time spent. A visit also ends after 30 minutes idle. |
 | `consent` | Whether guardian consent is on file. Server should refuse to store events without it where required. |
 
 ## Service 1: Engagement and participation
 
 | Event | Source | Status | Gap |
 |---|---|---|---|
-| `session_start` / `session_end` | `auth.js` sign-in, sign-out | Missing | Add both, with `sessionId`. Handle closed tabs with a `pagehide` end. |
-| `module_open` | `fight-forward.html` `openModule` | Missing | Log open so abandoned modules and missed sessions can be counted. |
-| `module_complete` | `ctx.complete` → `ff.progress.v1` | Stored | Add `durationMs`. |
+| `session_start` / `session_end` | `auth.js` sign-in, sign-out | **Built** | `session_end` carries `reason` (`signout`, `timeout`, `abandoned`), `durationMs`, `endCheckin`. Closed tabs are closed at the last time seen (`lastSeen`, updated on `pagehide`), on the next sign-in or visit. |
+| `module_open` | `fight-forward.html` `openModule` | **Built** | Carries `moduleId`, `type`, `skill`, `attempt`. |
+| `module_complete` | `ctx.complete` → `ff.progress.v1` | **Built** | Has `attempt` and `durationMs`. |
 | `page_view` per path | each Path page | Missing | Lets us show Path 01-04 usage. |
 
 Time spent = sum of `module_open` to `module_complete`, plus workout `secs`, plus session length.
 
 ## Service 2: Decision-making development
 
-Stored today in `ff.decisions.v2:<id>` by `ctx.record` (`modules.js`): `moduleId, type, pressure, support, choice, move, rating, confidence, msToDecide, month, week, at`.
+Stored in `ff.decisions.v2:<id>` by `ctx.record` (`modules.js`): `moduleId, type, skill, pressure, support, choice, move, rating, confidence, msToDecide, attempt, changedAfterDebrief, month, week, at`. Every finished attempt of any module (including games) is also a row in `ff.attempts.v1:<id>`.
 
 | Needed | Status | Gap |
 |---|---|---|
 | Option selected, time to decision | Stored (`choice`, `msToDecide`) | None |
-| Skill area (peer pressure, conflict, emotional control, responsible choices) | Partial | `pressure` exists; confirm it maps 1:1 to the four dashboard skills, or add a `skill` field to each module. |
-| Changed answer after coaching/reflection | Missing | Add `changedAfterDebrief` (picked a different option on retry) and `attempt` number. |
+| Skill area (peer pressure, conflict, emotional control, responsible choices) | **Built** | Each module has a `skill` (`peer`, `conflict`, `emotion`, `responsible`; see `SKILLS` in `content.js`). `pressure` stays as a separate context tag. The tagging is a first pass; have a youth-development advisor review it. |
+| Changed answer after coaching/reflection | **Built** | `attempt` and `changedAfterDebrief` (on attempt 2 and later, true if a different option was picked than last time). |
 | Improvement over time | Derivable | Compare `rating` by skill across `month`/`week`. Needs a baseline: tag the first scenario per skill as `phase: "pre"`. |
-| Repeat attempts | Missing | Same `moduleId` logged again overwrites progress; keep every attempt as its own row. |
+| Repeat attempts | **Built** | Every attempt is its own row. `ff.progress.v1` still holds only the latest. |
 
 Framing rule: report trends and growth. Never label a student "good" or "bad", and never produce one overall score.
 
@@ -45,10 +45,10 @@ Framing rule: report trends and growth. Never label a student "good" or "bad", a
 
 | Needed | Status | Gap |
 |---|---|---|
-| Start check-in | Stored | Add `sessionId`. |
-| End check-in | Missing (comment in `auth.js` says "later") | Add `phase: "end"` screen before sign-out. |
-| Change start to end | Derivable once `sessionId` exists | |
-| `reason` is free text from a fixed list | Stored | Store the reason id, not the label, so wording can change. |
+| Start check-in | **Built** | Has `sessionId`. |
+| End check-in | **Built** | `goodbye.html`, reached from every Log out link. Optional: "Skip and log out" records `endCheckin: false` on `session_end`. The "Not you?" link on the welcome page skips it. |
+| Change start to end | Derivable (match `sessionId`) | |
+| `reason` is from a fixed list | **Built** | Stored as an id (`FFAuth.FEELINGS` in `auth.js`). Older rows hold the label. |
 
 Privacy: dashboard shows aggregates only, with a minimum group size (mockup uses 10). Individual check-ins are visible only to explicitly permitted roles. "I'd rather not say" is counted but never probed. No diagnostic language anywhere.
 
@@ -83,7 +83,7 @@ Stored today in `ff.workouts.v1:<id>` as `{ id, secs, at }` when a workout finis
 |---|---|---|
 | Participation, duration | Stored | Add `workout_start` and `completed: false` for quit-early sessions. |
 | Workout kind and level | Derivable from `id` | |
-| Punch count, accuracy, speed | **Not capturable** | Workouts are timed guided moves with no sensor. Needs a camera/pose model, wearable, or bag sensor. Decide before promising these in the pitch. |
+| Punch count, accuracy, speed | **Decided: in the pitch** | Workouts are timed guided moves with no sensor today. Needs a camera/pose model, wearable, or bag sensor. Pick the sensing approach (and its privacy review, since camera input of minors) before building. |
 | Calories | Not capturable | Could be estimated from duration, kind and age, and labeled as an estimate. |
 | Endurance, improvement | Derivable (proxy) | Longer completed workouts at higher level over time. |
 
@@ -112,8 +112,12 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
 
 ## Suggested build order
 
-1. `sessionId`, `session_start/end`, `module_open`, attempt rows, end check-in (small client changes).
+1. ~~`sessionId`, `session_start/end`, `module_open`, attempt rows, end check-in~~ (done). Events are in `ff.events.v1:<id>` (capped at 5000). Still open from this group: `page_view`, `workout_start`.
 2. Event queue plus backend endpoint, roster with org/site/group.
 3. Aggregate API and wire `dashboard.html` to it (replace sample data).
 4. Derived early-support flags and audit log.
 5. Cardio sensing and B.I.2.T.R. facilitation tracking, once the product decisions above are made.
+
+## Later: parent cycle
+
+The owner wants to track a parent cycle later (a parent/guardian view and loop alongside the student). Not designed yet. Needs its own role, consent flow and what a guardian may see, and must respect the same rules: aggregates for organizations, no single score per child.

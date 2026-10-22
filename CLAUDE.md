@@ -4,7 +4,7 @@ Youth decision-making platform: a static site of plain HTML, CSS and JS. No buil
 Open `index.html` in a browser to run it (or serve the folder with `python3 -m http.server`).
 
 ## Pages and flow
-`index.html` (first-name login) → `welcome.html` (entrance gate, start-of-session check-in) → `lobby.html` (path cards) →
+`index.html` (first-name login) → `welcome.html` (entrance gate, start-of-session check-in) → `lobby.html` (path cards) → … → Log out → `goodbye.html` (end-of-session check-in) →
 - Path 01 `fight-forward.html`: practice decision-making scenarios and games
 - Path 02 `impact-lab.html`: guided cardio and boxing workouts
 - Path 03 `bring-it-to-the-ring.html` (B.I.2.T.R.): monthly youth discussion thread
@@ -21,7 +21,7 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 ## Conventions
 - Pages build UI with a local `el(tag, attrs, ...kids)` helper and `$ = s => document.querySelector(s)`.
 - Storage is `localStorage` wrapped in try/catch. Keys are versioned and per student: `ff.decisions.v2:<id>`, `ff.progress.v1:<id>`,
-  `ff.workouts.v1:<id>`, `ff.checkins.<id>`, `ff.coaching.v1:<id>`, `ff.ring.thread.v1:<id>:<month>`, `ff.safety.queue.v1`, `ff.roster.v1`.
+  `ff.workouts.v1:<id>`, `ff.checkins.<id>`, `ff.attempts.v1:<id>`, `ff.events.v1:<id>`, `ff.session.v1`, `ff.coaching.v1:<id>`, `ff.ring.thread.v1:<id>:<month>`, `ff.safety.queue.v1`, `ff.roster.v1`.
 - Dark theme with CSS variables in `site.css` (`--red`, `--ink`, ...). Fonts: Anton for headings, Inter for body.
 - Sound is synthesized with the Web Audio API in `welcome.html`; no audio files.
 - Keep mobile working: fluid sizes, no horizontal scroll, 44px touch targets.
@@ -34,8 +34,9 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - Safety messages (`ff.safety.queue.v1`) stay out of analytics.
 
 ## Where we left off
-- Added `dashboard.html` mockup and `docs/data-events.md`; both pushed to `main`.
-- Next likely step: client changes from the build-order list in `docs/data-events.md` (session id, session start/end, end-of-session check-in, per-attempt decision rows).
+- Built the first client data changes from `docs/data-events.md`: session id with start/end (`auth.js`), end-of-session check-in (`goodbye.html`), `module_open`/`module_complete` events, per-attempt rows, and a `skill` tag on every module. Not yet committed.
+- New storage keys: `ff.session.v1` (current visit), `ff.events.v1:<id>` (event log), `ff.attempts.v1:<id>`.
+- Next: event queue plus backend endpoint, roster with org/site/group, then wire `dashboard.html` to real data. Still open from the first group: `page_view` and `workout_start` events.
+- Decided: cardio sensing (punch count/accuracy) goes in the pitch; sensing approach and privacy review still to pick. A parent cycle is wanted later.
 - Tried a heartbeat sound synced to the welcome-page logo pulse, with a two-step gate for Safari. Reverted at the user's request; not in the code.
 - Idea list for sounds (not built): Impact Lab interval bells and countdown, check-in chip ticks, scenario lock-in thump, completion chimes, and one shared remembered mute setting.
-- Open questions: whether to promise punch count/accuracy (needs a sensor or camera), and whether each scenario maps to the four dashboard skills (only a `pressure` field exists today).

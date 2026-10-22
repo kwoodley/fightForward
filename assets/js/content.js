@@ -6,6 +6,7 @@
 //   video     { type:"video", scene:{ setting, cast, beats }, choices:[A,B,C] }   (optional videoSrc: "path.mp4" plays a real video instead)
 //   scenario  { type:"scenario", setup, choices:[A,B,C] }
 //   game      { type:"game", kind:"sort", buckets, cards }  or  { kind:"spot", prompt, items }
+// Every module has a `skill` (see SKILLS) for reporting. Scenarios and videos also have `pressure` and `support`.
 // A choice is { text, move, rating: "best" | "ok" | "rough", why }. The coach explains every choice at the end.
 (function () {
   const MOVES = {
@@ -20,6 +21,13 @@
     clock:     "Clock is ticking",
     authority: "Adult in charge",
     online:    "Online"
+  };
+  // The four skills the Youth Impact Dashboard reports on. Every module is tagged with one.
+  const SKILLS = {
+    peer:        "Peer pressure",
+    conflict:    "Conflict resolution",
+    emotion:     "Emotional control",
+    responsible: "Responsible choices"
   };
   const SUPPORT = {
     alone:  "On your own",
@@ -41,7 +49,7 @@
           n: 1, title: "Say it so they hear it",
           modules: [
             {
-              id: "jan-w1-video-practice", type: "video", title: "Called Out at Practice",
+              id: "jan-w1-video-practice", type: "video", title: "Called Out at Practice", skill: "emotion",
               teaser: "Coach blames you in front of the whole team for something that wasn’t your fault.",
               pressure: "authority", support: "peers",
               scene: {
@@ -69,7 +77,7 @@
               ]
             },
             {
-              id: "jan-w1-game-tone", type: "game", kind: "sort", title: "Tone Check",
+              id: "jan-w1-game-tone", type: "game", kind: "sort", title: "Tone Check", skill: "conflict",
               teaser: "Sort each message: calm and clear, heated, or shutting down?",
               intro: "Read each message and decide how it sounds. How you say something matters as much as what you say.",
               buckets: [
@@ -97,7 +105,7 @@
               ]
             },
             {
-              id: "jan-w1-scenario-project", type: "scenario", title: "The Group Project",
+              id: "jan-w1-scenario-project", type: "scenario", title: "The Group Project", skill: "conflict",
               teaser: "Your partner hasn’t done any of the work. It’s Wednesday and it’s due Friday.",
               pressure: "clock", support: "peers",
               setup: "Your science project is due Friday. Your partner, Alex, hasn’t done any of the work and keeps saying, “I’ll do it later.” It’s Wednesday.",
@@ -111,7 +119,7 @@
               ]
             },
             {
-              id: "jan-w1-video-left-on-read", type: "video", title: "Left on Read",
+              id: "jan-w1-video-left-on-read", type: "video", title: "Left on Read", skill: "emotion",
               teaser: "You sent your friend a text. He saw it and never answered. Then you see him laughing with other kids.",
               pressure: "heat", support: "alone",
               scene: {
@@ -141,7 +149,7 @@
               ]
             },
             {
-              id: "jan-w1-game-listening", type: "game", kind: "spot", title: "Listening Check",
+              id: "jan-w1-game-listening", type: "game", kind: "spot", title: "Listening Check", skill: "conflict",
               teaser: "Spot who is NOT really listening.",
               intro: "A friend is telling you about a bad day. Some of these moves show real listening. Some don’t.",
               prompt: "Tap every move that shows someone is NOT really listening. Then check your answers.",
@@ -165,7 +173,7 @@
               ]
             },
             {
-              id: "jan-w1-scenario-copy", type: "scenario", title: "Can I Copy?",
+              id: "jan-w1-scenario-copy", type: "scenario", title: "Can I Copy?", skill: "peer",
               teaser: "Your friend asks for your math homework. The bell is about to ring.",
               pressure: "peer", support: "peers",
               setup: "Your friend Sam walks up: “Can I copy your math homework before class? Please, I’ll owe you one.” The bell rings in two minutes.",
@@ -193,7 +201,7 @@
           n: 1, title: "Be an upstander",
           modules: [
             {
-              id: "feb-w1-video-chat", type: "video", title: "The Group Chat",
+              id: "feb-w1-video-chat", type: "video", title: "The Group Chat", skill: "peer",
               teaser: "The chat is making fun of a kid in your class, and now they’re waiting on you.",
               pressure: "peer", support: "alone",
               scene: {
@@ -218,7 +226,7 @@
               ]
             },
             {
-              id: "feb-w1-game-joke", type: "game", kind: "sort", title: "Joke or Not?",
+              id: "feb-w1-game-joke", type: "game", kind: "sort", title: "Joke or Not?", skill: "responsible",
               teaser: "Sort each situation: friendly joke, mean, or bullying?",
               intro: "Bullying is when someone hurts or targets a person on purpose, over and over, and it’s hard for that person to make it stop. Sort each one.",
               buckets: [
@@ -246,7 +254,7 @@
               ]
             },
             {
-              id: "feb-w1-scenario-lunch", type: "scenario", title: "The Lunch Table",
+              id: "feb-w1-scenario-lunch", type: "scenario", title: "The Lunch Table", skill: "peer",
               teaser: "A new kid is looking for a seat. Someone at your table says, “Don’t let him sit here.”",
               pressure: "peer", support: "peers",
               setup: "A new kid, Omar, is standing with his tray, looking for a seat. At your table someone says, “Don’t let him sit here. He’s weird.” A couple of people laugh.",
@@ -260,7 +268,7 @@
               ]
             },
             {
-              id: "feb-w1-video-hallway", type: "video", title: "Bumped in the Hallway",
+              id: "feb-w1-video-hallway", type: "video", title: "Bumped in the Hallway", skill: "emotion",
               teaser: "Someone slams into your shoulder and everyone turns to see what you’ll do.",
               pressure: "heat", support: "crowd",
               scene: {
@@ -289,7 +297,7 @@
               ]
             },
             {
-              id: "feb-w1-game-upstander", type: "game", kind: "spot", title: "Upstander Moves",
+              id: "feb-w1-game-upstander", type: "game", kind: "spot", title: "Upstander Moves", skill: "responsible",
               teaser: "Which moves actually help someone being bullied?",
               intro: "An upstander is someone who helps when they see bullying, in a safe way. Which of these are upstander moves?",
               prompt: "Tap every move that HELPS when someone is being bullied. Then check your answers.",
@@ -315,7 +323,7 @@
               ]
             },
             {
-              id: "feb-w1-scenario-video", type: "scenario", title: "The Video",
+              id: "feb-w1-scenario-video", type: "scenario", title: "The Video", skill: "responsible",
               teaser: "A video of a classmate tripping is going around. Someone sends it to you.",
               pressure: "online", support: "adult",
               setup: "A video is going around of a classmate, Priya, tripping and dropping her lunch tray. It has laughing emojis and 400 views. Someone sends it to you with the message, “LOL watch this.”",
@@ -337,5 +345,5 @@
     }
   ];
 
-  window.FF_CONTENT = { MONTHS, MOVES, PRESSURE, SUPPORT };
+  window.FF_CONTENT = { MONTHS, MOVES, PRESSURE, SKILLS, SUPPORT };
 })();

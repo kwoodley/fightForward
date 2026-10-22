@@ -256,7 +256,7 @@
     function finish(confidence) {
       const choice = mod.choices[picked];
       ctx.record({
-        moduleId: mod.id, type: mod.type, pressure: mod.pressure, support: mod.support,
+        moduleId: mod.id, type: mod.type, skill: mod.skill, pressure: mod.pressure, support: mod.support,
         choice: picked, move: choice.move, rating: choice.rating, confidence, msToDecide
       });
       ctx.complete(mod.id, { rating: choice.rating });

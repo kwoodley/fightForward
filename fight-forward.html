@@ -280,6 +280,7 @@
     // "how decision-making changes over time, under pressure, with support".
     const DKEY = "ff.decisions.v2:" + user.id;
     const PKEY = "ff.progress.v1:" + user.id;
+    const AKEY = "ff.attempts.v1:" + user.id;   // one row per finished attempt; progress keeps only the latest
     function load(key, fallback) {
       try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; }
     }
@@ -289,6 +290,7 @@
     // In-memory copies so everything still works this visit if storage is blocked.
     const decisions = load(DKEY, []);
     const progress = load(PKEY, {});
+    const attempts = load(AKEY, []);
 
     // ---------- State ----------
     let monthIdx = Math.max(0, MONTHS.findIndex(m => m.name === new Date().toLocaleString("en-US", { month: "long" }))), weekIdx = 0;
@@ -329,13 +331,23 @@
     }
 
     // ---------- Player ----------
+    // The module being played right now: which try it is, and when it was opened.
+    let current = null;
     const ctx = {
       record(entry) {
-        const row = { ...entry, month: month().id, week: week().n, at: new Date().toISOString() };
+        const prev = decisions.filter(d => d.moduleId === entry.moduleId).pop();
+        const row = { ...entry, attempt: current.attempt, month: month().id, week: week().n, at: new Date().toISOString() };
+        // Picked a different option than last time, after seeing Coach's breakdown.
+        if (prev) row.changedAfterDebrief = prev.choice !== entry.choice;
         decisions.push(row); save(DKEY, decisions);
         renderRecord();
       },
       complete(id, info) {
+        const durationMs = Math.round(performance.now() - current.openedAt);
+        attempts.push({ moduleId: id, type: current.mod.type, skill: current.mod.skill, attempt: current.attempt,
+          ...info, durationMs, month: month().id, week: week().n, at: new Date().toISOString() });
+        save(AKEY, attempts);
+        FFAuth.logEvent("module_complete", { moduleId: id, attempt: current.attempt, durationMs });
         progress[id] = { ...info, at: new Date().toISOString() }; save(PKEY, progress);
         renderModules();
         renderRecord();
@@ -349,6 +361,9 @@
     };
 
     function openModule(mod) {
+      const attempt = attempts.filter(a => a.moduleId === mod.id).length + 1;
+      current = { mod, attempt, openedAt: performance.now() };
+      FFAuth.logEvent("module_open", { moduleId: mod.id, type: mod.type, skill: mod.skill, attempt });
       const ring = $("#ring");
       const heading = el("h2", { tabindex: "-1" }, mod.title);
       const body = el("div", { class: "module-body" });
@@ -416,8 +431,8 @@
 
     function clearRecord() {
       if (!confirm("Clear everything you’ve done on this device?")) return;
-      try { localStorage.removeItem(DKEY); localStorage.removeItem(PKEY); } catch (e) { /* storage unavailable */ }
-      decisions.length = 0;
+      try { localStorage.removeItem(DKEY); localStorage.removeItem(PKEY); localStorage.removeItem(AKEY); } catch (e) { /* storage unavailable */ }
+      decisions.length = 0; attempts.length = 0;
       for (const k of Object.keys(progress)) delete progress[k];
       renderAll();
     }

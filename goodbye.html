@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Before you go · Fight Forward</title>
+  <meta name="description" content="End-of-session check-in for Fight Forward Academy.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <style>
+    body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+    main {
+      flex: 1; display: grid; place-items: center; text-align: center;
+      padding: clamp(28px, 6vw, 64px) var(--gutter);
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.3), transparent 70%),
+        linear-gradient(180deg, #0a0b12 0%, #141523 55%, #1d1216 100%);
+    }
+    .inner { max-width: 720px; width: 100%; }
+    h1 { font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
+      font-size: clamp(32px, 7vw, 60px); line-height: 1.04; margin: 0; text-wrap: balance; }
+    h1 .name { color: var(--red); overflow-wrap: anywhere; }
+    .lead { margin: 12px 0 0; color: var(--muted); }
+    .check { margin-top: 28px; background: rgba(22,22,26,.8); border: 1px solid var(--ink-3); border-top: 3px solid var(--red);
+      border-radius: var(--radius); padding: clamp(16px, 3vw, 24px); }
+    .check h2 { margin: 0 0 12px; font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase; font-size: 22px; letter-spacing: .04em; }
+    .opts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 0; padding: 0; list-style: none; }
+    .opt { font: inherit; font-size: 15px; color: var(--text); background: var(--ink); border: 1px solid var(--ink-3);
+      border-radius: 999px; padding: 10px 16px; cursor: pointer; min-height: 44px; }
+    .opt:hover { border-color: var(--red); }
+    .opt:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .opt[aria-pressed="true"] { background: var(--red); border-color: var(--red); }
+    #why { margin-top: 18px; }
+    .btn { margin-top: 28px; font-size: 18px; padding: 14px 30px; border: 0; cursor: pointer; }
+    .btn[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+    .skip-out { display: block; margin: 18px auto 0; color: var(--muted); font: inherit; font-size: 13px; background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 12px; min-height: 44px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="inner">
+      <h1>Nice work today, <span class="name" data-user-name>Champ</span>.</h1>
+      <p class="lead">One last check before you log out. It only takes a few seconds, and you can skip it.</p>
+
+      <section class="check" aria-labelledby="feel-q">
+        <h2 id="feel-q">How are you feeling now?</h2>
+        <ul class="opts" id="feel"></ul>
+        <div id="why" hidden>
+          <h2 id="why-q">Why?</h2>
+          <ul class="opts" id="why-opts"></ul>
+        </div>
+      </section>
+
+      <button class="btn" type="button" id="done" aria-disabled="true">Log out</button>
+      <button class="skip-out" type="button" id="skip">Skip and log out</button>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.
+  </footer>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    const user = FFAuth.requireUser();
+    const $ = s => document.querySelector(s);
+    let feeling = null, reason = null;
+
+    function chips(list, onPick) {
+      return list.map(item => {
+        const li = document.createElement("li"), b = document.createElement("button");
+        b.type = "button"; b.className = "opt"; b.setAttribute("aria-pressed", "false"); b.textContent = item.label;
+        b.addEventListener("click", () => {
+          li.parentNode.querySelectorAll(".opt").forEach(x => x.setAttribute("aria-pressed", "false"));
+          b.setAttribute("aria-pressed", "true"); onPick(item);
+        });
+        li.append(b); return li;
+      });
+    }
+    $("#feel").replaceChildren(...chips(FFAuth.FEELINGS, f => {
+      feeling = f; reason = null; $("#done").setAttribute("aria-disabled", "true");
+      $("#why-opts").replaceChildren(...chips(f.why, r => { reason = r; $("#done").removeAttribute("aria-disabled"); }));
+      $("#why").hidden = false;
+    }));
+
+    $("#done").addEventListener("click", () => {
+      if (!feeling || !reason) return;
+      FFAuth.logCheckin({ phase: "end", feeling: feeling.id, reason: reason.id });
+      FFAuth.finishSignOut({ endCheckin: true });
+    });
+    $("#skip").addEventListener("click", () => FFAuth.finishSignOut({ endCheckin: false }));
+  </script>
+</body>
+</html>

@@ -100,7 +100,7 @@
       <div class="stage" style="--i:4">
         <p class="welcome-to">Welcome to Fight Forward™</p>
         <p class="trio"><span>Practice decisions.</span><span>Explore consequences.</span><span>Fight Forward.</span></p>
-        <a class="switch" href="index.html?switch" data-signout>Not you? Log out</a>
+        <a class="switch" href="index.html?switch" data-signout="now">Not you? Log out</a>
       </div>
     </div>
   </main>
@@ -114,14 +114,8 @@
     const user = FFAuth.requireUser();
     const $ = s => document.querySelector(s);
 
-    // The same questions are asked again at the end of each session.
-    const FEELINGS = [
-      { id: "great", label: "😄 Great",  why: ["Something good happened", "I slept well", "I'm with friends", "I'm excited for today"] },
-      { id: "good",  label: "🙂 Good",   why: ["Nothing special, just a good day", "I'm relaxed", "Things at home are good", "School is going well"] },
-      { id: "okay",  label: "😐 Okay",   why: ["I'm tired", "Just an average day", "I'm not sure", "Something's on my mind"] },
-      { id: "down",  label: "😔 Down",   why: ["Something at home", "Something with friends", "Something at school", "I'm tired or didn't sleep", "I'd rather not say"] },
-      { id: "stress", label: "😤 Stressed or angry", why: ["A conflict with someone", "Too much going on", "Something at school", "Something at home", "I'd rather not say"] }
-    ];
+    // The same questions are asked again at the end of each session (goodbye.html).
+    const FEELINGS = FFAuth.FEELINGS;
     let feeling = null, reason = null;
 
     function chips(list, onPick) {
@@ -142,7 +136,7 @@
     }));
     $("#enter").addEventListener("click", e => {
       if (!feeling || !reason) { e.preventDefault(); return; }
-      FFAuth.logCheckin({ phase: "start", feeling: feeling.id, reason });
+      FFAuth.logCheckin({ phase: "start", feeling: feeling.id, reason: reason.id });
     });
 
     // ---------- Audio: synthesized (no files needed) + spoken greeting ----------
