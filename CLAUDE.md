@@ -42,7 +42,7 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - `dashboard.html` has a live mode ("Connect to live data": server address + admin token) next to the sample mode; the server hides small groups and their siblings (complementary suppression). The Support card says "Not tracked yet".
 - Impact Lab sends `workout_start`/`workout_end` events and the dashboard cardio card is live (no punch count or accuracy; needs a sensor).
 - Ring page has a "Lead this round" mode (`facilitate_*`, `question_introduced`, `invite_sent`, `ring_*` events; counts and sources only, never post text or safety flags). Dashboard B.I.2.T.R. card is live; redirects/disagreement tagging is not built.
-- Next: page views, staff sign-in with roles instead of the admin token, then derived early-support flags. Still open from the first group: `page_view` and `workout_start` events.
+- Next: page views, staff sign-in with roles instead of the admin token, then derived early-support flags. `page_view` is still not built.
 - Decided: cardio sensing (punch count/accuracy) goes in the pitch; sensing approach and privacy review still to pick. A parent cycle is wanted later.
 - Tried a heartbeat sound synced to the welcome-page logo pulse, with a two-step gate for Safari. Reverted at the user's request; not in the code.
 - Idea list for sounds (not built): Impact Lab interval bells and countdown, check-in chip ticks, scenario lock-in thump, completion chimes, and one shared remembered mute setting.

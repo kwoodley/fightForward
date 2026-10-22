@@ -114,7 +114,7 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
 
 ## Suggested build order
 
-1. ~~`sessionId`, `session_start/end`, `module_open`, attempt rows, end check-in~~ (done). Events are in `ff.events.v1:<id>` (capped at 5000). Still open from this group: `page_view`, `workout_start`.
+1. ~~`sessionId`, `session_start/end`, `module_open`, attempt rows, end check-in~~ (done). Events are in `ff.events.v1:<id>` (capped at 5000). Still open from this group: `page_view`.
 2. Event queue plus backend endpoint (**built as a dev reference**), roster with org/site/group.
    - Client: events go to the `ff.outbox.v1` queue and are POSTed in batches of 100 to the URL in `window.FF_EVENTS_URL` or localStorage `ff.events.url`. With no URL set, nothing is sent. Retries on failure, flushes on load, every 30s, when back online, and on page close.
    - Events sent: `session_start`, `session_end`, `checkin` (ids only), `module_open`, `module_complete`, `decision`. Each has a unique `eventId`.
