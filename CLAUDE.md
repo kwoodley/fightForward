@@ -17,6 +17,7 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - `assets/badges`, `assets/img` artwork
 - `server/server.py` dev events endpoint (run `python3 server/server.py`)
 - `docs/data-events.md` plan for the analytics events each page needs
+- `docs/deployment-plan.md` draft plan for a school pilot
 - `FFBrain.pages`: product concept doc (the data and reporting layer is "the brain" of the platform)
 
 ## Conventions
@@ -43,7 +44,8 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - Impact Lab sends `workout_start`/`workout_end` events and the dashboard cardio card is live (no punch count or accuracy; needs a sensor).
 - Ring page has a "Lead this round" mode (`facilitate_*`, `question_introduced`, `invite_sent`, `ring_*` events; counts and sources only, never post text or safety flags). Dashboard B.I.2.T.R. card is live; redirects/disagreement tagging is not built.
 - `page_view` events come from `auth.js` (`PAGES` list); the dashboard Engagement card shows the share of youth who visited each path.
-- Next: HTTPS and deployment (hosting, database, counsel review), then derived early-support flags (needs advisor input).
+- `docs/deployment-plan.md` is a draft deployment plan. Pilot blockers it names: safety and Coaching Corner messages only live in the student's browser (nobody receives them, though the pages say a safety adult is notified); student ids are made from first names; consent/compliance review. Awaiting the user's decisions on hosting, safety path, pilot size, ops owner and student sign-in method.
+- Next: those decisions, then the safety-adult inbox and student identity work; early-support flags need advisor input.
 - Decided: cardio sensing (punch count/accuracy) goes in the pitch; sensing approach and privacy review still to pick. A parent cycle is wanted later.
 - Tried a heartbeat sound synced to the welcome-page logo pulse, with a two-step gate for Safari. Reverted at the user's request; not in the code.
 - Idea list for sounds (not built): Impact Lab interval bells and countdown, check-in chip ticks, scenario lock-in thump, completion chimes, and one shared remembered mute setting.
