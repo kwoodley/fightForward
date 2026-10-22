@@ -105,7 +105,7 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
 ## Cross-cutting requirements
 
 - **Server first.** `localStorage` is per device and clearable. Nothing here works for an organization until events go to a backend (`POST /events`, batched, retried offline).
-- **Roster and roles.** Roles: student, mentor/coach, site lead, org admin, safety adult, Fight Forward staff. Access scoped by org → site → group → student.
+- **Roster and roles.** Roles: student, mentor/coach, site lead, org admin, safety adult, Fight Forward staff. Access scoped by org → site → group → student. **Staff sign-in is built in the dev server** (see "Staff sign-in" below); students still sign in by first name on the device.
 - **Consent and compliance.** Guardian consent where required, and design for FERPA and COPPA/state student-privacy laws. Get counsel to review before schools pilot.
 - **Minimum necessary.** Don't store message text, free-text reasons, or names in analytics tables. Use ids, and join to the roster only for authorized views.
 - **Retention.** Per-org retention period and a delete-student action that removes events.
@@ -120,11 +120,11 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
    - Events sent: `session_start`, `session_end`, `checkin` (ids only), `module_open`, `module_complete`, `decision`. Each has a unique `eventId`.
    - Server: `server/server.py` (standard library, SQLite). Try it: `python3 server/server.py`, then in the browser console `localStorage.setItem("ff.events.url", "http://localhost:8787/events")`. It ignores repeat `eventId`s and rejects unknown event types, so safety messages and free text cannot be sent by mistake.
    - Not done: per-site authentication, guardian-consent check, HTTPS, retention and delete-student, audit log, read APIs. The roster is still `localStorage`.
-3. Aggregate API and `dashboard.html` wiring (**both built against the dev server**). The dashboard opens in sample mode; "Connect to live data" takes the server address and admin token (kept for the tab only; real use needs staff sign-in with roles) and switches to live mode, with "Use sample data" to switch back.
+3. Aggregate API and `dashboard.html` wiring (**both built against the dev server**). The dashboard opens in sample mode; "Sign in for live data" takes the server address, username and password and switches to live mode, with "Sign out, use sample data" to switch back.
    - Roster: `PUT /roster` upserts `{studentId, org, site, group, grade, status, consent, enrolledAt}`. No names are stored. Set `FF_REQUIRE_CONSENT=1` to keep events only from students with consent on the roster (others are acknowledged but dropped).
    - `GET /api/aggregate?org=&site=&group=&from=&to=` returns group totals: enrolled, participation, engagement, per-skill share of "best" calls with change versus the previous period of equal length, and start/end check-in totals by feeling. Check-in reasons are never output. Only active roster students count; events from unrostered students are stored but not reported.
    - Small groups: a scope with fewer than `FF_MIN_GROUP` (default 10) enrolled is returned as `suppressed`, and any skill or check-in figure from fewer than that many youth is suppressed.
-   - Admin calls need `Authorization: Bearer $FF_ADMIN_TOKEN` (refused when no token is set) and are written to the `audit` table. `DELETE /students/<id>` removes a student's roster row and events.
+   - Provisioning calls (`PUT /roster`, `DELETE /students/<id>`) need the ops token `Authorization: Bearer $FF_ADMIN_TOKEN` (refused when no token is set). The ops token can no longer read analytics. Every call is written to the `audit` table with who made it. `DELETE /students/<id>` removes a student's roster row and events.
    - Complementary suppression: if a small group (or site) is hidden, its siblings are hidden too until the hidden total reaches the minimum, so subtracting from the parent total cannot expose the few. `GET /api/scopes` feeds the dashboard pickers and withholds counts for hidden groups. This covers enrolled counts; figures that depend on activity (for example youth with check-ins) have their own minimum but are not cross-checked between siblings.
    - Impact Lab in the API (`cardio`): workouts started, share finished, minutes moving, share of youth who did a workout, starts by kind. Suppressed under the minimum youth. Punch count and accuracy are still not captured.
    - B.I.2.T.R. in the API (`leadership`): rounds led, minutes facilitating, invitations, questions asked (picked vs written), share of youth who joined the ring. Suppressed when fewer than the minimum number of youth led a round.
@@ -136,3 +136,22 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
 ## Later: parent cycle
 
 The owner wants to track a parent cycle later (a parent/guardian view and loop alongside the student). Not designed yet. Needs its own role, consent flow and what a guardian may see, and must respect the same rules: aggregates for organizations, no single score per child.
+
+## Staff sign-in (dev server)
+
+Built in `server/auth.py` and `server/staff.py`; the dashboard signs in with it.
+
+| Role | Scope | Sees analytics |
+|---|---|---|
+| `ff_staff` (Fight Forward staff) | all organizations | yes |
+| `org_admin` | one org | yes |
+| `site_lead` | one site | yes |
+| `mentor` (coach) | one group | yes |
+| `safety_adult` | none | **no**. Can sign in, but safety messages are a separate path and never part of analytics. |
+
+- Accounts are created on the server: `python3 server/staff.py add --username maria --role site_lead --org "Eastside" --site "Rec Center"` (asks for a password; `list`, `passwd`, `disable`, `enable`, `unlock` also exist). There is no self-signup.
+- Passwords: at least 10 characters, stored as salted PBKDF2-SHA256. Session tokens are random, expire after 8 hours, and only their hash is stored. Disabling an account or changing its password ends its sessions.
+- Five wrong passwords lock the account for 15 minutes. A wrong password, an unknown username, a locked account and a disabled account all return the same message.
+- Scope is enforced on the server. A request outside the person's scope gets 403 (and is audited as `aggregate_denied`); a request that names less is filled in from their scope. `/api/scopes` lists only their branch and withholds totals above their level.
+- Audit rows record the staff username for sign-in, sign-out, failed sign-in, scope list views, aggregate views and denied requests.
+- Not done: HTTPS (required before any real use, since passwords and tokens cross the wire), password reset by email, two-factor sign-in, an audit-log viewer, the safety-adult inbox, and guardian accounts (the parent cycle).

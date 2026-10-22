@@ -38,11 +38,11 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - Built the first client data changes from `docs/data-events.md`: session id with start/end (`auth.js`), end-of-session check-in (`goodbye.html`), `module_open`/`module_complete` events, per-attempt rows, and a `skill` tag on every module.
 - New storage keys: `ff.session.v1` (current visit), `ff.events.v1:<id>` (event log), `ff.attempts.v1:<id>`.
 - Built an event queue (`ff.outbox.v1`, in `auth.js`) and a dev reference server, `server/server.py` (stdlib + SQLite, `POST /events`). Off until `ff.events.url` is set. See `docs/data-events.md` build order step 2 for what is still missing (auth, consent check, HTTPS, retention, audit log).
-- Dev server also has a roster (`PUT /roster`), `GET /api/aggregate` with small-group suppression, an audit table and delete-student; admin calls need `FF_ADMIN_TOKEN`.
-- `dashboard.html` has a live mode ("Connect to live data": server address + admin token) next to the sample mode; the server hides small groups and their siblings (complementary suppression). The Support card says "Not tracked yet".
+- Dev server also has a roster (`PUT /roster`), `GET /api/aggregate` with small-group suppression, an audit table and delete-student. Provisioning calls need the ops token `FF_ADMIN_TOKEN`; reading analytics needs a staff account (`server/staff.py`, roles `ff_staff`, `org_admin`, `site_lead`, `mentor`, `safety_adult`, enforced by scope on the server).
+- `dashboard.html` has a live mode ("Sign in for live data": server address + staff username and password) next to the sample mode; the server hides small groups and their siblings (complementary suppression). The Support card says "Not tracked yet".
 - Impact Lab sends `workout_start`/`workout_end` events and the dashboard cardio card is live (no punch count or accuracy; needs a sensor).
 - Ring page has a "Lead this round" mode (`facilitate_*`, `question_introduced`, `invite_sent`, `ring_*` events; counts and sources only, never post text or safety flags). Dashboard B.I.2.T.R. card is live; redirects/disagreement tagging is not built.
-- Next: page views, staff sign-in with roles instead of the admin token, then derived early-support flags. `page_view` is still not built.
+- Next: HTTPS and deployment, page views, then derived early-support flags (needs advisor input). `page_view` is still not built.
 - Decided: cardio sensing (punch count/accuracy) goes in the pitch; sensing approach and privacy review still to pick. A parent cycle is wanted later.
 - Tried a heartbeat sound synced to the welcome-page logo pulse, with a two-step gate for Safari. Reverted at the user's request; not in the code.
 - Idea list for sounds (not built): Impact Lab interval bells and countdown, check-in chip ticks, scenario lock-in thump, completion chimes, and one shared remembered mute setting.

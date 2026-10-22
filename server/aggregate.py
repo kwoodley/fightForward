@@ -47,8 +47,9 @@ def is_hidden(db, scope, min_group):
         return scope["site"] in hidden_children(sizes(db, {"org": scope.get("org")}, "site"), min_group)
     return False
 
-def scopes(db, min_group):
-    """Org > site > group tree for the dashboard's pickers. Counts of hidden groups are withheld."""
+def scopes(db, min_group, staff=None):
+    """Org > site > group tree for the dashboard's pickers. Counts of hidden groups are withheld.
+    With `staff`, only that person's org/site/group is listed, and totals above their level are withheld."""
     rows = db.execute("SELECT org, site, group_name, COUNT(*) FROM roster WHERE status = 'active' GROUP BY 1, 2, 3").fetchall()
     tree = {}
     for org, site, group, n in rows:
@@ -64,7 +65,20 @@ def scopes(db, min_group):
                               "groups": [{"name": g, "enrolled": None if g in hid_groups else n} for g, n in sorted(groups.items())]})
         total = sum(org_sites[org].values())
         out.append({"name": org, "enrolled": total if total >= min_group else None, "sites": sorted(site_list, key=lambda x: x["name"])})
-    return {"minGroup": min_group, "orgs": sorted(out, key=lambda x: x["name"])}
+    if staff:
+        out = [o for o in out if not staff["org"] or o["name"] == staff["org"]]
+        for o in out:
+            o["sites"] = [st for st in o["sites"] if not staff["site"] or st["name"] == staff["site"]]
+            for st in o["sites"]:
+                st["groups"] = [g for g in st["groups"] if not staff["group"] or g["name"] == staff["group"]]
+                if staff["group"]:
+                    st["enrolled"] = None
+            if staff["site"] or staff["group"]:
+                o["enrolled"] = None
+    result = {"minGroup": min_group, "orgs": sorted(out, key=lambda x: x["name"])}
+    if staff:
+        result["scope"] = {k: staff[k] for k in ("org", "site", "group")}
+    return result
 
 def aggregate(db, scope, start, end, min_group):
     """scope = {"org":..., "site":..., "group":...} (any may be empty). start/end are datetimes."""

@@ -74,14 +74,15 @@
     <span class="sample" id="banner">Mockup · sample data only</span>
 
     <details class="card connect" id="connect-box">
-      <summary>Connect to live data</summary>
+      <summary id="connect-summary">Sign in for live data</summary>
       <form id="connect-form">
         <label>Server address <input id="api-url" type="url" value="http://localhost:8787" required></label>
-        <label>Admin token <input id="api-token" type="password" autocomplete="off" required></label>
-        <button class="btn" type="submit">Connect</button>
-        <button class="btn btn-ghost" type="button" id="use-sample" hidden>Use sample data</button>
+        <label>Username <input id="api-user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+        <label>Password <input id="api-pass" type="password" autocomplete="current-password" required></label>
+        <button class="btn" type="submit">Sign in</button>
+        <button class="btn btn-ghost" type="button" id="use-sample" hidden>Sign out, use sample data</button>
         <p id="conn-status" aria-live="polite"></p>
-        <p class="hint">Development only: the token is kept for this browser tab and sent to the server you name. Real use needs staff sign-in with roles.</p>
+        <p class="hint">Staff accounts are created on the server by Fight Forward. You will only see the org, site or group your account covers. Your sign-in lasts 8 hours or until you close this tab.</p>
       </form>
     </details>
 
@@ -95,7 +96,7 @@
       <label>Period
         <select id="period"><option>This month</option><option>This quarter</option><option>This semester</option><option>This year</option></select>
       </label>
-      <span class="role" id="role">Signed in as: Program Director · sees aggregates for all sites</span>
+      <span class="role" id="role">Sample view · not signed in</span>
     </div>
 
     <section class="grid kpis" id="kpis" aria-label="Headline numbers"></section>
@@ -212,14 +213,22 @@
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const FEELING_LABELS = { great: "Great", good: "Good", okay: "Okay", down: "Down", stress: "Stressed or angry" };
     const SESSION_KEY = "ff.dashboard.api";
+    const ROLE_LABELS = { ff_staff: "Fight Forward staff", org_admin: "Organization admin", site_lead: "Site lead", mentor: "Mentor" };
     let mode = "sample", api = null, siteChoices = [], minGroup = MIN_GROUP, seq = 0;
     const name = n => n || "(none)";
 
-    async function fetchJson(path) {
+    class Expired extends Error {}
+    async function fetchJson(path, opts = {}) {
       let res;
-      try { res = await fetch(api.url + path, { headers: { Authorization: "Bearer " + api.token } }); }
-      catch (e) { throw new Error("Could not reach the server. Is it running, and is the address right?"); }
-      if (res.status === 401) throw new Error("The server did not accept that token.");
+      try {
+        res = await fetch(api.url + path, { method: opts.method || "GET", body: opts.body && JSON.stringify(opts.body),
+          headers: { ...(opts.body ? { "Content-Type": "application/json" } : {}), ...(api.token ? { Authorization: "Bearer " + api.token } : {}) } });
+      } catch (e) { throw new Error("Could not reach the server. Is it running, and is the address right?"); }
+      if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        throw (api.token ? new Expired("Your session ended. Please sign in again.") : new Error(data.error || "Sign in failed."));
+      }
+      if (res.status === 403) throw new Error("Your account does not cover that part of the program.");
       if (!res.ok) throw new Error("The server returned an error (" + res.status + ").");
       return res.json();
     }
@@ -231,10 +240,15 @@
       return { from: from.toISOString(), to: now.toISOString() };
     }
 
+    // Pickers only offer what the account covers. Each choice carries the full scope so the server sees exactly what is asked.
+    let ownGroup = "";
     function fillLiveSites(tree) {
-      siteChoices = [{ label: "All sites", org: "", site: "", groups: [] }];
+      const sc = tree.scope || { org: "", site: "", group: "" };
+      ownGroup = sc.group;
+      siteChoices = [];
+      if (!sc.org) siteChoices.push({ label: "All sites", org: "", site: "", groups: [] });
       for (const o of tree.orgs) {
-        siteChoices.push({ label: name(o.name), org: o.name, site: "", groups: [] });
+        if (!sc.site) siteChoices.push({ label: name(o.name), org: o.name, site: "", groups: [] });
         for (const st of o.sites) siteChoices.push({ label: `${name(o.name)} › ${name(st.name)}`, org: o.name, site: st.name, groups: st.groups });
       }
       $("#site").replaceChildren(...siteChoices.map((c, i) => new Option(c.label, i)));
@@ -242,7 +256,8 @@
     }
     function fillLiveGroups() {
       const c = siteChoices[$("#site").value];
-      $("#group").replaceChildren(new Option("All groups", ""), ...c.groups.map(g => new Option(name(g.name) + (g.enrolled == null ? " (small group)" : ""), g.name)));
+      const all = ownGroup ? [] : [new Option("All groups", "")];
+      $("#group").replaceChildren(...all, ...c.groups.map(g => new Option(name(g.name) + (g.enrolled == null && !ownGroup ? " (small group)" : ""), g.name)));
       render();
     }
 
@@ -324,6 +339,7 @@
         renderLiveData(d);
       } catch (e) {
         if (mine !== seq) return;
+        if (e instanceof Expired) return useSample(e.message);
         $("#banner").textContent = "Live data · not loaded";
         $("#kpis").replaceChildren(el("div", "card kpi", `<div class="l">${esc(e.message)}</div>`));
         ["#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"].forEach(p => $(p).replaceChildren());
@@ -335,38 +351,58 @@
     // ---------- Connecting ----------
     function status(text, isErr) { const n = $("#conn-status"); n.textContent = text; n.className = isErr ? "err" : ""; }
 
-    async function connect(url, token) {
+    function saveApi() { try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(api)); } catch (e) { /* storage unavailable */ } }
+    function who(user) {
+      const where = [user.org, user.site, user.group].filter(Boolean).join(" › ");
+      return `Signed in as ${user.name} · ${ROLE_LABELS[user.role] || user.role}${where ? " · " + where : " · all organizations"}`;
+    }
+    async function goLive(user) {
+      const tree = await fetchJson("/api/scopes");
+      mode = "live"; minGroup = tree.minGroup;
+      $("#use-sample").hidden = false; $("#role").textContent = who(user);
+      $("#connect-summary").textContent = "Signed in · " + user.name;
+      $("#foot").textContent = "Fight Forward Academy · Live group totals. Groups under " + minGroup + " youth are hidden.";
+      $("#skills-note").textContent = "Bar: share of practice calls that matched the strongest option. Change is against the previous period of the same length. A group trend, not a grade for any young person.";
+      fillLiveSites(tree);
+    }
+    async function signIn(url, username, password) {
       const previous = api;
-      api = { url: url.replace(/\/+$/, ""), token };
+      api = { url: url.replace(/\/+$/, ""), token: "" };
       try {
-        const tree = await fetchJson("/api/scopes");
-        mode = "live"; minGroup = tree.minGroup;
-        try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(api)); } catch (e) { /* storage unavailable */ }
-        $("#use-sample").hidden = false; $("#role").textContent = "Connected with the development admin token · aggregates only";
-        $("#foot").textContent = "Fight Forward Academy · Live group totals. Groups under " + minGroup + " youth are hidden.";
-        $("#skills-note").textContent = "Bar: share of practice calls that matched the strongest option. Change is against the previous period of the same length. A group trend, not a grade for any young person.";
-        status("Connected.");
-        fillLiveSites(tree);
+        const res = await fetchJson("/auth/login", { method: "POST", body: { username, password } });
+        api.token = res.token; saveApi();
+        await goLive(res.user);
+        status("Signed in.");
         return true;
       } catch (e) {
         api = previous; status(e.message, true); return false;
       }
     }
-    function useSample() {
+    async function resume(saved) {
+      api = saved;
+      try { const me = await fetchJson("/auth/me"); await goLive(me.user); }
+      catch (e) { useSample(e.message); }
+    }
+    function useSample(message) {
+      const old = api;
+      if (old && old.token) fetch(old.url + "/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + old.token } }).catch(() => {});
       mode = "sample"; api = null; seq++;
       try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* storage unavailable */ }
       $("#use-sample").hidden = true; $("#banner").textContent = "Mockup · sample data only";
-      $("#role").textContent = "Signed in as: Program Director · sees aggregates for all sites";
+      $("#role").textContent = "Sample view · not signed in"; $("#connect-summary").textContent = "Sign in for live data";
       $("#foot").textContent = "Fight Forward Academy · Mockup for planning. All figures are invented.";
       $("#skills-note").textContent = "Change since the start of the program. Shown as growth over time, not as grades.";
-      status(""); fillSampleSites();
+      status(typeof message === "string" ? message : "", !!message); fillSampleSites();
+      if (message) $("#connect-box").open = true;
     }
 
     $("#connect-form").addEventListener("submit", async e => {
-      e.preventDefault(); status("Connecting…");
-      if (await connect($("#api-url").value.trim(), $("#api-token").value)) { $("#api-token").value = ""; $("#connect-box").open = false; }
+      e.preventDefault(); status("Signing in…");
+      const ok = await signIn($("#api-url").value.trim(), $("#api-user").value.trim(), $("#api-pass").value);
+      $("#api-pass").value = "";
+      if (ok) $("#connect-box").open = false;
     });
-    $("#use-sample").addEventListener("click", useSample);
+    $("#use-sample").addEventListener("click", () => useSample());
     $("#site").addEventListener("change", () => (mode === "live" ? fillLiveGroups() : fillSampleGroups()));
     $("#group").addEventListener("change", render);
     $("#period").addEventListener("change", render);
@@ -374,7 +410,7 @@
     fillSampleSites();
     try {
       const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY));
-      if (saved && saved.url && saved.token) connect(saved.url, saved.token);
+      if (saved && saved.url && saved.token) resume(saved);
     } catch (e) { /* no saved connection */ }
   </script>
 </body>
