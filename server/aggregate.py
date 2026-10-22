@@ -131,4 +131,16 @@ def aggregate(db, scope, start, end, min_group):
                "AND type = 'checkin' GROUP BY session_id HAVING COUNT(DISTINCT json_extract(payload, '$.phase')) = 2)")[0][0]
     mood["pairedSessions"] = paired
     out["checkins"] = mood
+
+    # Impact Lab: participation and effort only. Punch count and accuracy need a sensor and are not captured.
+    youth, started = q("SELECT COUNT(DISTINCT student_id), COUNT(*) " + base + "AND type = 'workout_start'")[0]
+    if youth < min_group:
+        out["cardio"] = {"suppressed": True}
+    else:
+        ended, finished, secs = q("SELECT COUNT(*), SUM(json_extract(payload, '$.completed') = 1), SUM(json_extract(payload, '$.secs')) " +
+                                  base + "AND type = 'workout_end'")[0]
+        by_kind = dict(q("SELECT json_extract(payload, '$.kind'), COUNT(*) " + base + "AND type = 'workout_start' GROUP BY 1"))
+        out["cardio"] = {"youth": youth, "youthPercent": pct(youth, enrolled), "started": started, "finished": finished or 0,
+                         "finishedPercent": min(100, pct(finished or 0, started)), "minutesMoving": round((secs or 0) / 60),
+                         "startedByKind": by_kind}
     return out

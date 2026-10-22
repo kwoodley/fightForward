@@ -294,7 +294,13 @@
 
       stats($("#engage"), [[pt.sessions, "sessions started"], [en.scenariosCompleted, "scenarios completed"], [en.gamesCompleted, "games completed"]]);
       $("#support").replaceChildren(notTracked("Early-support indicators need more history and a review with a youth-development advisor first."));
-      $("#cardio").replaceChildren(notTracked("Impact Lab workouts do not send data yet."));
+      const c = d.cardio;
+      if (c.suppressed) $("#cardio").replaceChildren(hiddenMsg());
+      else {
+        stats($("#cardio"), [[c.started, "workouts started"], [c.finishedPercent + "%", "of started workouts finished"],
+          [c.minutesMoving, "minutes moving"], [c.youthPercent + "%", "of youth did a workout"]]);
+        $("#cardio").append(el("li", "", `<span class="suppressed">Punch count and accuracy are not captured yet. They need a sensor or camera.</span>`));
+      }
       $("#leaders").replaceChildren(notTracked("B.I.2.T.R. facilitation events are not built yet."));
     }
 

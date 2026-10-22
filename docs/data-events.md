@@ -81,7 +81,7 @@ Stored today in `ff.workouts.v1:<id>` as `{ id, secs, at }` when a workout finis
 
 | Needed | Status | Gap |
 |---|---|---|
-| Participation, duration | Stored | Add `workout_start` and `completed: false` for quit-early sessions. |
+| Participation, duration | **Built** | `workout_start` (`workoutId`, `kind`, `level`, `plannedSecs`) and exactly one `workout_end` per start: `completed`, `reason` (`finished`, `left`, `switched`, `page_closed`), `secs` of time actually moving (paused time excluded), `plannedSecs`, `stepsDone`, `stepsTotal`. `ff.workouts.v1` still holds only finished workouts. |
 | Workout kind and level | Derivable from `id` | |
 | Punch count, accuracy, speed | **Decided: in the pitch** | Workouts are timed guided moves with no sensor today. Needs a camera/pose model, wearable, or bag sensor. Pick the sensing approach (and its privacy review, since camera input of minors) before building. |
 | Calories | Not capturable | Could be estimated from duration, kind and age, and labeled as an estimate. |
@@ -124,7 +124,8 @@ Do not run sentiment analysis on posts to fill these in. Use explicit actions or
    - Small groups: a scope with fewer than `FF_MIN_GROUP` (default 10) enrolled is returned as `suppressed`, and any skill or check-in figure from fewer than that many youth is suppressed.
    - Admin calls need `Authorization: Bearer $FF_ADMIN_TOKEN` (refused when no token is set) and are written to the `audit` table. `DELETE /students/<id>` removes a student's roster row and events.
    - Complementary suppression: if a small group (or site) is hidden, its siblings are hidden too until the hidden total reaches the minimum, so subtracting from the parent total cannot expose the few. `GET /api/scopes` feeds the dashboard pickers and withholds counts for hidden groups. This covers enrolled counts; figures that depend on activity (for example youth with check-ins) have their own minimum but are not cross-checked between siblings.
-   - Dashboard live cards: enrolled, participation, module completion, average session minutes, skill change, start/end check-in totals, engagement counts. Support opportunities, Impact Lab cardio and B.I.2.T.R. show "Not tracked yet" until their events exist.
+   - Impact Lab in the API (`cardio`): workouts started, share finished, minutes moving, share of youth who did a workout, starts by kind. Suppressed under the minimum youth. Punch count and accuracy are still not captured.
+   - Dashboard live cards: enrolled, participation, module completion, average session minutes, skill change, start/end check-in totals, engagement counts. Support opportunities and B.I.2.T.R. show "Not tracked yet" until their events exist. Impact Lab is live.
    - Not yet in the API: Impact Lab, B.I.2.T.R. and early-support figures (no events for them yet).
 4. Derived early-support flags and audit log.
 5. Cardio sensing and B.I.2.T.R. facilitation tracking, once the product decisions above are made.

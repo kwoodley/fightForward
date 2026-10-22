@@ -177,15 +177,31 @@
       renderGrid(); renderStats();
     });
 
+    // ---------- Events ----------
+    // Every workout that starts gets one workout_end: finished, left, switched to another, or the page was closed.
+    // `secs` counts time actually moving (paused time is not included).
+    let active = null;
+    function endActive(reason, completed) {
+      if (!active) return;
+      const { w, snap } = active, now = snap();
+      active = null;
+      FFAuth.logEvent("workout_end", { workoutId: w.id, completed, reason, secs: now.secs, plannedSecs: total(w),
+        stepsDone: completed ? w.steps.length : now.stepsDone, stepsTotal: w.steps.length });
+    }
+    addEventListener("pagehide", () => { endActive("page_closed", false); FFAuth.flush(true); });
+
     // ---------- Player ----------
     let timer = null;
     function stop() { clearInterval(timer); timer = null; }
-    function close() { stop(); const p = $("#player"); p.hidden = true; p.replaceChildren(); $("#workouts").scrollIntoView({ behavior: "smooth" }); }
+    function close() { endActive("left", false); stop(); const p = $("#player"); p.hidden = true; p.replaceChildren(); $("#workouts").scrollIntoView({ behavior: "smooth" }); }
 
     function start(w) {
+      endActive("switched", false);
       stop();
       const p = $("#player");
       let i = 0, left = w.steps[0].secs, paused = false, elapsed = 0;
+      active = { w, snap: () => ({ secs: elapsed, stepsDone: i }) };
+      FFAuth.logEvent("workout_start", { workoutId: w.id, kind: w.kind, level: w.level, plannedSecs: total(w) });
       const h2 = el("h2", { tabindex: "-1" }, w.title);
       const phase = el("p", { class: "phase" }), move = el("div", { class: "move" }), clock = el("div", { class: "clock", role: "timer" }),
             cue = el("p", { class: "cue" }), fill = el("i"), count = el("p", { class: "count" });
@@ -206,6 +222,7 @@
       }
       function finish() {
         stop();
+        endActive("finished", true);
         log.push({ id: w.id, secs: elapsed, at: new Date().toISOString() }); save(); renderGrid(); renderStats();
         view.replaceChildren(el("p", { class: "phase" }, "Workout complete"),
           el("div", { class: "move" }, "Nice work, " + user.name),
