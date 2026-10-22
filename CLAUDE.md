@@ -18,6 +18,7 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - `server/server.py` dev events endpoint (run `python3 server/server.py`)
 - `docs/data-events.md` plan for the analytics events each page needs
 - `docs/deployment-plan.md` draft plan for a school pilot
+- `docs/test-plan.md` step-by-step end-to-end test; `server/demo_data.py` loads synthetic test data, `server/events_report.py` inspects stored events
 - `FFBrain.pages`: product concept doc (the data and reporting layer is "the brain" of the platform)
 
 ## Conventions
@@ -34,6 +35,16 @@ Open `index.html` in a browser to run it (or serve the folder with `python3 -m h
 - Early support flags go to an authorized adult, who decides what to do. No predicting who will "get in trouble".
 - Privacy by design: role-based access, guardian consent, minimum data, retention rules, audit logs, small-group suppression.
 - Safety messages (`ff.safety.queue.v1`) stay out of analytics.
+
+## Open items (noted 2026-10-22; user said "not yet" to starting the pilot-blocker work)
+Pilot blockers (see `docs/deployment-plan.md`):
+1. Safety path delivers nothing: `ff.safety.queue.v1` and `ff.coaching.v1` live only in the student's browser, yet Ring and Coaching Corner text says a safety adult is notified. Build a safety-adult inbox, notification and procedure, or soften the wording.
+2. Student identity: ids come from first names (collisions, impersonation, names in analytics). Needs roster-issued opaque ids, join code + PIN, and event auth taking scope from the roster.
+3. Compliance: counsel review (FERPA, COPPA, state laws), guardian consent, privacy policy, district agreements, `FF_REQUIRE_CONSENT=1`.
+Other work: HTTPS and hosting; API hardening (rate limits, WAL, origin lock, framework port); `assets/js/config.js` for the API URL; self-host fonts; backups and restore test; retention job; security review; audit-log viewer; staff onboarding; pilot runbook.
+Not started by choice: early-support flags (needs youth-development advisor input), redirect/disagreement tagging (needs observer role + shared threads), punch count/accuracy (needs a sensor and privacy review), guardian accounts (parent cycle).
+Decisions still needed from the user: hosting (A VM / B PaaS / C big cloud; leaning B), safety path (build vs soften), pilot size/sites/states, who runs operations, student sign-in method (code + PIN vs school SSO).
+Current ask: an end-to-end test plan (`docs/test-plan.md`).
 
 ## Where we left off
 - Built the first client data changes from `docs/data-events.md`: session id with start/end (`auth.js`), end-of-session check-in (`goodbye.html`), `module_open`/`module_complete` events, per-attempt rows, and a `skill` tag on every module.

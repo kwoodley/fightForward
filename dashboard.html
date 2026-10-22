@@ -381,6 +381,11 @@
         status("Signed in.");
         return true;
       } catch (e) {
+        // A sign-in that worked but could not load data (for example a role without analytics): end that session again.
+        if (api.token) {
+          fetch(api.url + "/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + api.token } }).catch(() => {});
+          try { sessionStorage.removeItem(SESSION_KEY); } catch (err) { /* storage unavailable */ }
+        }
         api = previous; status(e.message, true); return false;
       }
     }

@@ -3,3 +3,5 @@
 server/events.db
 server/events.db-*
 __pycache__/
+server/test.db
+server/test.db-*
