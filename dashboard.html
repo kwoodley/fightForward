@@ -45,7 +45,20 @@
     .list b { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 26px; min-width: 44px; }
     .privacy { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
     .tag { font-size: 12px; border: 1px solid var(--ink-3); border-radius: 999px; padding: 4px 10px; color: var(--silver); }
-    .suppressed { color: var(--muted); font-style: italic; }
+    .suppressed { color: var(--muted); font-style: italic; margin: 0; }
+    .sub { color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin: 14px 0 8px; }
+    .sub:first-child { margin-top: 0; }
+    .down { color: var(--silver); font-weight: 700; }
+
+    .connect { margin-bottom: 18px; padding: 0; }
+    .connect summary { cursor: pointer; padding: 12px 18px; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+    .connect form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; padding: 0 18px 16px; }
+    .connect label { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .connect input { font: inherit; font-size: 15px; color: var(--text); background: var(--ink); border: 1px solid var(--ink-3); border-radius: 10px; padding: 10px 12px; min-width: 220px; }
+    .connect input:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .connect .hint { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; }
+    #conn-status { flex-basis: 100%; margin: 0; font-size: 13px; color: var(--silver); }
+    #conn-status.err { color: #ff8a8a; }
   </style>
 </head>
 <body>
@@ -58,7 +71,19 @@
     <p class="eyebrow">Organization dashboard</p>
     <h1>Fight Forward<sup>™</sup> | Youth Impact Dashboard</h1>
     <p class="lede">Participation, progress, and where extra support may help. Patterns and trends, never a score for any one young person.</p>
-    <span class="sample">Mockup · sample data only</span>
+    <span class="sample" id="banner">Mockup · sample data only</span>
+
+    <details class="card connect" id="connect-box">
+      <summary>Connect to live data</summary>
+      <form id="connect-form">
+        <label>Server address <input id="api-url" type="url" value="http://localhost:8787" required></label>
+        <label>Admin token <input id="api-token" type="password" autocomplete="off" required></label>
+        <button class="btn" type="submit">Connect</button>
+        <button class="btn btn-ghost" type="button" id="use-sample" hidden>Use sample data</button>
+        <p id="conn-status" aria-live="polite"></p>
+        <p class="hint">Development only: the token is kept for this browser tab and sent to the server you name. Real use needs staff sign-in with roles.</p>
+      </form>
+    </details>
 
     <div class="scope">
       <label>Organization / site
@@ -70,7 +95,7 @@
       <label>Period
         <select id="period"><option>This month</option><option>This quarter</option><option>This semester</option><option>This year</option></select>
       </label>
-      <span class="role">Signed in as: Program Director · sees aggregates for all sites</span>
+      <span class="role" id="role">Signed in as: Program Director · sees aggregates for all sites</span>
     </div>
 
     <section class="grid kpis" id="kpis" aria-label="Headline numbers"></section>
@@ -79,7 +104,7 @@
       <div class="card accent">
         <h2>Decision-making development</h2>
         <div class="bars" id="skills"></div>
-        <p class="note">Change since the start of the program. Shown as growth over time, not as grades.</p>
+        <p class="note" id="skills-note">Change since the start of the program. Shown as growth over time, not as grades.</p>
       </div>
 
       <div class="card accent">
@@ -120,7 +145,7 @@
     </div>
   </main>
 
-  <footer>Fight Forward Academy · Mockup for planning. All figures are invented.</footer>
+  <footer id="foot">Fight Forward Academy · Mockup for planning. All figures are invented.</footer>
 
   <script src="assets/js/auth.js"></script>
   <script>
@@ -165,7 +190,8 @@
     }
     function stats(target, rows) { target.replaceChildren(...rows.map(([n, l]) => el("li", "", `<b>${n}</b><span>${l}</span>`))); }
 
-    function render() {
+    // ---------- Sample mode ----------
+    function renderSample() {
       const d = SITES[$("#site").value], g = $("#group").value, size = GROUP_SIZE[g];
       const hidden = size != null && size < MIN_GROUP;
       $("#kpis").replaceChildren(...[[size ?? d.n, "youth enrolled"], [d.part + "%", "participation"], [d.comp + "%", "session completion"], [d.lab + "%", "Impact Lab completion"]]
@@ -176,12 +202,168 @@
       stats($("#engage"), d.engage); stats($("#support"), d.support); stats($("#cardio"), d.cardio); stats($("#leaders"), d.leaders);
       if (hidden) document.querySelectorAll("#mood, #support").forEach(n => n.replaceChildren(el("p", "suppressed", `Hidden: groups under ${MIN_GROUP} youth are not shown.`)));
     }
+    function fillSampleSites() {
+      $("#site").replaceChildren(...Object.keys(SITES).map(s => new Option(s)));
+      fillSampleGroups();
+    }
+    function fillSampleGroups() { $("#group").replaceChildren(...SITES[$("#site").value].groups.map(s => new Option(s))); render(); }
 
-    $("#site").replaceChildren(...Object.keys(SITES).map(s => new Option(s)));
-    function fillGroups() { $("#group").replaceChildren(...SITES[$("#site").value].groups.map(s => new Option(s))); render(); }
-    $("#site").addEventListener("change", fillGroups);
+    // ---------- Live mode (server: /api/scopes and /api/aggregate) ----------
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const FEELING_LABELS = { great: "Great", good: "Good", okay: "Okay", down: "Down", stress: "Stressed or angry" };
+    const SESSION_KEY = "ff.dashboard.api";
+    let mode = "sample", api = null, siteChoices = [], minGroup = MIN_GROUP, seq = 0;
+    const name = n => n || "(none)";
+
+    async function fetchJson(path) {
+      let res;
+      try { res = await fetch(api.url + path, { headers: { Authorization: "Bearer " + api.token } }); }
+      catch (e) { throw new Error("Could not reach the server. Is it running, and is the address right?"); }
+      if (res.status === 401) throw new Error("The server did not accept that token.");
+      if (!res.ok) throw new Error("The server returned an error (" + res.status + ").");
+      return res.json();
+    }
+
+    function periodRange() {
+      const now = new Date(), y = now.getFullYear(), m = now.getMonth(), p = $("#period").value;
+      const from = p === "This month" ? new Date(y, m, 1) : p === "This quarter" ? new Date(y, m - m % 3, 1)
+        : p === "This semester" ? new Date(y, m >= 7 ? 7 : 0, 1) : new Date(y, 0, 1);
+      return { from: from.toISOString(), to: now.toISOString() };
+    }
+
+    function fillLiveSites(tree) {
+      siteChoices = [{ label: "All sites", org: "", site: "", groups: [] }];
+      for (const o of tree.orgs) {
+        siteChoices.push({ label: name(o.name), org: o.name, site: "", groups: [] });
+        for (const st of o.sites) siteChoices.push({ label: `${name(o.name)} › ${name(st.name)}`, org: o.name, site: st.name, groups: st.groups });
+      }
+      $("#site").replaceChildren(...siteChoices.map((c, i) => new Option(c.label, i)));
+      fillLiveGroups();
+    }
+    function fillLiveGroups() {
+      const c = siteChoices[$("#site").value];
+      $("#group").replaceChildren(new Option("All groups", ""), ...c.groups.map(g => new Option(name(g.name) + (g.enrolled == null ? " (small group)" : ""), g.name)));
+      render();
+    }
+
+    const hiddenMsg = () => el("p", "suppressed", `Hidden: groups under ${minGroup} youth are not shown.`);
+    const notTracked = why => el("p", "suppressed", "Not tracked yet. " + why);
+    function kpi(n, l) { return el("div", "card kpi", `<div class="n">${esc(n)}</div><div class="l">${esc(l)}</div>`); }
+    const dash = v => (v == null ? "—" : v);
+
+    function liveBars(target, rows) {
+      target.replaceChildren(...rows.map(r => {
+        const row = el("div", "bar-row");
+        if (r.hidden) { row.append(el("div", "top", `<span>${esc(r.label)}</span><span class="suppressed">Hidden</span>`)); return row; }
+        row.append(el("div", "top", `<span>${esc(r.label)}</span><span class="${r.cls || ""}">${esc(r.text)}</span>`));
+        const t = el("div", "track"), f = el("div", "fill"); f.style.width = Math.min(100, Math.max(0, r.width || 0)) + "%";
+        t.append(f); row.append(t); return row;
+      }));
+    }
+
+    function renderLiveData(d) {
+      const panels = ["#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"];
+      if (d.suppressed) {
+        $("#kpis").replaceChildren(el("div", "card kpi", `<div class="l">Hidden: groups under ${minGroup} youth are not shown.</div>`));
+        panels.forEach(p => $(p).replaceChildren(hiddenMsg()));
+        return;
+      }
+      const pt = d.participation, en = d.engagement;
+      $("#kpis").replaceChildren(
+        kpi(d.enrolled, "youth enrolled"),
+        kpi(pt.percent == null ? "—" : pt.percent + "%", "participation (active this period)"),
+        kpi(en.completionPercent == null ? "—" : en.completionPercent + "%", "modules finished once opened"),
+        kpi(dash(pt.avgSessionMinutes), "average minutes per session"));
+
+      liveBars($("#skills"), d.skills.map(s => {
+        if (s.suppressed) return { label: s.label, hidden: true };
+        const ch = s.changePoints;
+        const text = ch == null ? "Not enough history yet" : (ch > 0 ? "↑ " : ch < 0 ? "↓ " : "") + Math.abs(ch) + " pts vs last period";
+        return { label: s.label, text, cls: ch > 0 ? "up" : ch < 0 ? "down" : "", width: s.bestPercent };
+      }));
+
+      const mood = $("#mood"); mood.replaceChildren();
+      for (const [phase, title] of [["start", "At the start of sessions"], ["end", "At the end of sessions"]]) {
+        const m = d.checkins[phase];
+        mood.append(el("p", "sub", title));
+        const box = el("div", "bars"); mood.append(box);
+        if (m.suppressed) { box.append(hiddenMsg()); continue; }
+        liveBars(box, Object.entries(FEELING_LABELS).map(([id, label]) => ({ label, text: (m.percent[id] ?? 0) + "%", width: m.percent[id] || 0 })));
+      }
+      mood.append(el("p", "note", `${esc(d.checkins.pairedSessions)} sessions have both a start and an end check-in.`));
+
+      stats($("#engage"), [[pt.sessions, "sessions started"], [en.scenariosCompleted, "scenarios completed"], [en.gamesCompleted, "games completed"]]);
+      $("#support").replaceChildren(notTracked("Early-support indicators need more history and a review with a youth-development advisor first."));
+      $("#cardio").replaceChildren(notTracked("Impact Lab workouts do not send data yet."));
+      $("#leaders").replaceChildren(notTracked("B.I.2.T.R. facilitation events are not built yet."));
+    }
+
+    async function renderLive() {
+      const mine = ++seq, c = siteChoices[$("#site").value], g = $("#group").value, { from, to } = periodRange();
+      const qs = new URLSearchParams({ from, to });
+      if (c.org) qs.set("org", c.org);
+      if (c.site) qs.set("site", c.site);
+      if (g) qs.set("group", g);
+      $("#banner").textContent = "Live data · loading…";
+      try {
+        const d = await fetchJson("/api/aggregate?" + qs);
+        if (mine !== seq) return;
+        $("#banner").textContent = "Live data · " + $("#period").value.toLowerCase();
+        renderLiveData(d);
+      } catch (e) {
+        if (mine !== seq) return;
+        $("#banner").textContent = "Live data · not loaded";
+        $("#kpis").replaceChildren(el("div", "card kpi", `<div class="l">${esc(e.message)}</div>`));
+        ["#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"].forEach(p => $(p).replaceChildren());
+      }
+    }
+
+    function render() { mode === "live" ? renderLive() : renderSample(); }
+
+    // ---------- Connecting ----------
+    function status(text, isErr) { const n = $("#conn-status"); n.textContent = text; n.className = isErr ? "err" : ""; }
+
+    async function connect(url, token) {
+      const previous = api;
+      api = { url: url.replace(/\/+$/, ""), token };
+      try {
+        const tree = await fetchJson("/api/scopes");
+        mode = "live"; minGroup = tree.minGroup;
+        try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(api)); } catch (e) { /* storage unavailable */ }
+        $("#use-sample").hidden = false; $("#role").textContent = "Connected with the development admin token · aggregates only";
+        $("#foot").textContent = "Fight Forward Academy · Live group totals. Groups under " + minGroup + " youth are hidden.";
+        $("#skills-note").textContent = "Bar: share of practice calls that matched the strongest option. Change is against the previous period of the same length. A group trend, not a grade for any young person.";
+        status("Connected.");
+        fillLiveSites(tree);
+        return true;
+      } catch (e) {
+        api = previous; status(e.message, true); return false;
+      }
+    }
+    function useSample() {
+      mode = "sample"; api = null; seq++;
+      try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* storage unavailable */ }
+      $("#use-sample").hidden = true; $("#banner").textContent = "Mockup · sample data only";
+      $("#role").textContent = "Signed in as: Program Director · sees aggregates for all sites";
+      $("#foot").textContent = "Fight Forward Academy · Mockup for planning. All figures are invented.";
+      $("#skills-note").textContent = "Change since the start of the program. Shown as growth over time, not as grades.";
+      status(""); fillSampleSites();
+    }
+
+    $("#connect-form").addEventListener("submit", async e => {
+      e.preventDefault(); status("Connecting…");
+      if (await connect($("#api-url").value.trim(), $("#api-token").value)) { $("#api-token").value = ""; $("#connect-box").open = false; }
+    });
+    $("#use-sample").addEventListener("click", useSample);
+    $("#site").addEventListener("change", () => (mode === "live" ? fillLiveGroups() : fillSampleGroups()));
     $("#group").addEventListener("change", render);
-    fillGroups();
+    $("#period").addEventListener("change", render);
+
+    fillSampleSites();
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+      if (saved && saved.url && saved.token) connect(saved.url, saved.token);
+    } catch (e) { /* no saved connection */ }
   </script>
 </body>
 </html>

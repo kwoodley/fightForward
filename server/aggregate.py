@@ -3,6 +3,8 @@
 Rules (from the product concept doc):
   - Only students on the roster with status "active" are counted, scoped by org, site and group.
   - Any figure built from fewer than MIN_GROUP students is suppressed, and a whole scope smaller than that is hidden.
+  - Complementary suppression: if a small child (a group within a site, or a site within an org) is hidden, the siblings are
+    hidden too until the hidden total reaches MIN_GROUP, so the parent minus its visible children cannot expose the few.
   - Skill growth is a trend against the previous period of the same length, not a grade for anyone.
   - Check-ins are shown as feeling totals only. Reasons are never output.
 """
@@ -20,6 +22,50 @@ def parse(value):
 def pct(part, whole):
     return round(100 * part / whole) if whole else None
 
+def sizes(db, parent, column):
+    """Enrolled count per child (column = 'site' or 'group_name') under the parent filters."""
+    where, args = ["status = 'active'"], []
+    for col, val in parent.items():
+        if val:
+            where.append("%s = ?" % col); args.append(val)
+    return dict(db.execute("SELECT %s, COUNT(*) FROM roster WHERE %s GROUP BY 1" % (column, " AND ".join(where)), args).fetchall())
+
+def hidden_children(counts, min_group):
+    hidden = {name for name, n in counts.items() if n < min_group}
+    rest = sorted((n, name) for name, n in counts.items() if name not in hidden)
+    total = sum(counts[name] for name in hidden)
+    while hidden and total < min_group and rest:
+        n, name = rest.pop(0)
+        hidden.add(name); total += n
+    return hidden
+
+def is_hidden(db, scope, min_group):
+    if scope.get("group"):
+        counts = sizes(db, {"org": scope.get("org"), "site": scope.get("site")}, "group_name")
+        return scope["group"] in hidden_children(counts, min_group)
+    if scope.get("site"):
+        return scope["site"] in hidden_children(sizes(db, {"org": scope.get("org")}, "site"), min_group)
+    return False
+
+def scopes(db, min_group):
+    """Org > site > group tree for the dashboard's pickers. Counts of hidden groups are withheld."""
+    rows = db.execute("SELECT org, site, group_name, COUNT(*) FROM roster WHERE status = 'active' GROUP BY 1, 2, 3").fetchall()
+    tree = {}
+    for org, site, group, n in rows:
+        tree.setdefault(org, {}).setdefault(site, {})[group] = n
+    out = []
+    org_sites = {o: {st: sum(g.values()) for st, g in sts.items()} for o, sts in tree.items()}
+    for org, sts in tree.items():
+        hid_sites = hidden_children(org_sites[org], min_group)
+        site_list = []
+        for site, groups in sts.items():
+            hid_groups = hidden_children(groups, min_group)
+            site_list.append({"name": site, "enrolled": None if site in hid_sites else org_sites[org][site],
+                              "groups": [{"name": g, "enrolled": None if g in hid_groups else n} for g, n in sorted(groups.items())]})
+        total = sum(org_sites[org].values())
+        out.append({"name": org, "enrolled": total if total >= min_group else None, "sites": sorted(site_list, key=lambda x: x["name"])})
+    return {"minGroup": min_group, "orgs": sorted(out, key=lambda x: x["name"])}
+
 def aggregate(db, scope, start, end, min_group):
     """scope = {"org":..., "site":..., "group":...} (any may be empty). start/end are datetimes."""
     where, args = ["r.status = 'active'"], []
@@ -29,7 +75,7 @@ def aggregate(db, scope, start, end, min_group):
     roster = "SELECT r.student_id FROM roster r WHERE " + " AND ".join(where)
     enrolled = db.execute("SELECT COUNT(*) FROM (%s)" % roster, args).fetchone()[0]
     out = {"scope": scope, "period": {"from": stamp(start), "to": stamp(end)}, "minGroup": min_group}
-    if enrolled < min_group:
+    if enrolled < min_group or is_hidden(db, scope, min_group):
         out["suppressed"] = True
         return out
 

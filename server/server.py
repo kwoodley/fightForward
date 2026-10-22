@@ -10,6 +10,7 @@ GET  /health  -> 200 { "ok": true }
 
 Admin endpoints need  Authorization: Bearer $FF_ADMIN_TOKEN  (with no token set they are all refused):
 PUT    /roster          { "students": [ {studentId, org, site, group, grade, status, consent, enrolledAt}, ... ] }  upsert
+GET    /api/scopes      org > site > group tree with enrolled counts (hidden groups have null)
 GET    /api/aggregate   ?org=&site=&group=&from=&to=  group totals only, small groups suppressed (default: last 30 days)
 DELETE /students/<id>   removes the student's roster row and every event
 Every admin call is written to the audit table.
@@ -150,6 +151,15 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path == "/health":
             return self._send(200, {"ok": True})
+        if url.path == "/api/scopes":
+            if not self._admin():
+                return
+            db = connect()
+            try:
+                audit(db, "scopes_view", {})
+                return self._send(200, aggregate.scopes(db, MIN_GROUP))
+            finally:
+                db.close()
         if url.path != "/api/aggregate":
             return self._send(404, {"error": "not found"})
         if not self._admin():
