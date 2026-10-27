@@ -4,7 +4,7 @@ Youth decision-making platform: a static site of plain HTML, CSS and JS. No buil
 Open `index.html` in a browser to run it (or serve the folder with `python3 -m http.server`).
 
 ## Pages and flow
-`index.html` (first-name login) → `welcome.html` (entrance gate, start-of-session check-in) → `lobby.html` (path cards) → … → Log out → `goodbye.html` (end-of-session check-in) →
+`index.html` (first-name login) → `welcome.html` (entrance gate: tap, 2s pulsing logo with intro sound, then start-of-session check-in) → `lobby.html` (path cards) → … → Log out → `goodbye.html` (end-of-session check-in) →
 - Path 01 `fight-forward.html`: practice decision-making scenarios and games
 - Path 02 `impact-lab.html`: guided cardio and boxing workouts
 - Path 03 `bring-it-to-the-ring.html` (B.I.2.T.R.): monthly youth discussion thread

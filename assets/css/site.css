@@ -141,7 +141,7 @@ body.themed::before { content: ""; position: fixed; inset: 0; z-index: -1;
 .bg-hero { position: relative; height: 21vw; min-height: 84px; background: var(--bg) center top / 100% auto no-repeat; }
 .bg-hero::after { content: ""; position: absolute; inset: auto 0 0; height: 40%;
   background: linear-gradient(180deg, transparent, rgba(10,11,18,.82)); }
-body.bg-path01 { --bg: url("../img/path01-bg.jpg"); }
+body.bg-path01 { --bg: url("../img/path01-immersive.jpg"); }
 body.bg-path02 { --bg: url("../img/path02-bg.png"); }
 body.bg-path03 { --bg: url("../img/path03-bg.png"); }
 body.bg-path04 { --bg: url("../img/path04-bg.png"); }

@@ -26,11 +26,11 @@
     }
     .head { grid-area: head; text-align: left; }
     form { grid-area: form; } .fine { grid-area: fine; text-align: left; }
-    .logo { grid-area: logo; align-self: start; width: clamp(200px, 30vw, 320px); height: auto; margin: -8px auto 0; display: block; mix-blend-mode: screen; }
+    .logo { grid-area: logo; align-self: start; width: clamp(240px, 36vw, 400px); height: auto; margin: -8px auto 0; display: block; mix-blend-mode: screen; }
     .card .eyebrow { grid-area: eyebrow; margin: 14px 0 0; line-height: 1.5; align-self: start; }
     @media (max-width: 700px) {
       .layout { grid-template-columns: 1fr; grid-template-areas: "logo" "eyebrow" "head" "form" "fine"; }
-      .logo { width: clamp(160px, 50vw, 220px); margin: 0 auto 12px; }
+      .logo { width: clamp(200px, 64vw, 280px); margin: 0 auto 12px; }
       .card .eyebrow { margin-bottom: 24px; }
     }
     h1 {
@@ -70,7 +70,7 @@
       <div class="layout">
         <div class="head">
           <h1>Fight Forward<sup>™</sup></h1>
-          <p class="lede">Interactive Youth Decision-Making Platform</p>
+          <p class="lede">Immersive Decision-Simulation Platform</p>
         </div>
         <form id="login" novalidate>
           <label>
@@ -81,8 +81,8 @@
           <button class="btn" type="submit">Log in</button>
         </form>
         <p class="fine">First name only. Please don’t type your last name or other private info.</p>
-        <img class="logo" src="assets/badges/ff-final.png" alt="Fight Forward badge" width="1374" height="1145">
-        <p class="eyebrow">Train the mind · Move the body · Build the future</p>
+        <img class="logo" src="assets/badges/ff-logo-v2.png" alt="Fight Forward badge" width="1374" height="1145">
+        <p class="eyebrow">Practice the decision. Change the outcome.</p>
       </div>
     </div>
   </main>

@@ -55,8 +55,12 @@
       font-size: clamp(20px, 4.6vw, 32px); line-height: 1.2; letter-spacing: .05em; color: var(--text); }
     #gate .motto em { font-style: normal; color: var(--red); }
     #gate .tap { font-family: "Anton", Impact, sans-serif; letter-spacing: .3em; text-transform: uppercase; font-size: 16px; color: var(--silver); animation: blink 2.4s ease-in-out infinite; }
+    /* After the tap the logo pulses with the intro sound for 2s, then the gate lifts */
+    #gate.playing { cursor: default; }
+    #gate.playing img { animation-duration: 1s; }
+    #gate.playing .tap { visibility: hidden; }
     #gate.go { opacity: 0; transform: scale(1.4); pointer-events: none; }
-    @keyframes pulse { 50% { transform: scale(1.16); filter: drop-shadow(0 0 40px rgba(217,43,47,.95)); } }
+    @keyframes pulse { 50% { transform: scale(1.16); filter: brightness(1.3) saturate(1.2); } }
     @keyframes blink { 50% { opacity: .35; } }
 
     .stage { opacity: 0; transform: translateY(24px) scale(.97); }
@@ -72,7 +76,7 @@
 </head>
 <body>
   <button id="gate" type="button" aria-label="Tap to enter Fight Forward">
-    <img src="assets/badges/ff-final.png" alt="" width="1374" height="1145">
+    <img src="assets/badges/ff-logo-v2.png" alt="" width="1374" height="1145">
     <p class="motto">If you train your mind, <em>you own your future!</em></p>
     <span class="tap">Tap to enter</span>
   </button>
@@ -147,44 +151,47 @@
       return b;
     }
     const sfx = {
-      tone(f, t, d, type = "sawtooth", v = 0.12) {
+      tone(f, t, d, type = "sawtooth", v = 0.12, out = master) {
         if (!ctx || !soundOn) return;
         const o = ctx.createOscillator(), g = ctx.createGain(), at = ctx.currentTime + t;
         o.type = type; o.frequency.setValueAtTime(f, at);
         g.gain.setValueAtTime(0.0001, at);
         g.gain.exponentialRampToValueAtTime(v, at + 0.03);
         g.gain.exponentialRampToValueAtTime(0.0001, at + d);
-        o.connect(g).connect(master); o.start(at); o.stop(at + d + 0.05);
+        o.connect(g).connect(out); o.start(at); o.stop(at + d + 0.05);
       },
       // Riser into a heavy hit: noise sweep + rising saw, then sub boom, crack and a power chord.
       intro() {
         if (!ctx || !soundOn) return;
         const t0 = ctx.currentTime, hit = t0 + 1.25;
+        // Everything in the intro goes through one bus that is silent by the time the logo lifts (2s)
+        const bus = ctx.createGain(); bus.connect(master);
+        bus.gain.setValueAtTime(1, t0 + 1.7); bus.gain.linearRampToValueAtTime(0.0001, t0 + 1.95);
         const n = ctx.createBufferSource(); n.buffer = noiseBuffer(2);
         const bp = ctx.createBiquadFilter(), ng = ctx.createGain();
         bp.type = "bandpass"; bp.Q.value = 1.2;
         bp.frequency.setValueAtTime(200, t0); bp.frequency.exponentialRampToValueAtTime(5000, hit);
         ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(0.5, hit - 0.05); ng.gain.exponentialRampToValueAtTime(0.0001, hit + 0.15);
-        n.connect(bp).connect(ng).connect(master); n.start(t0); n.stop(hit + 0.2);
+        n.connect(bp).connect(ng).connect(bus); n.start(t0); n.stop(hit + 0.2);
 
         const r = ctx.createOscillator(), rg = ctx.createGain();
         r.type = "sawtooth"; r.frequency.setValueAtTime(55, t0); r.frequency.exponentialRampToValueAtTime(880, hit);
         rg.gain.setValueAtTime(0.0001, t0); rg.gain.exponentialRampToValueAtTime(0.16, hit - 0.05); rg.gain.exponentialRampToValueAtTime(0.0001, hit + 0.1);
-        r.connect(rg).connect(master); r.start(t0); r.stop(hit + 0.15);
+        r.connect(rg).connect(bus); r.start(t0); r.stop(hit + 0.15);
 
         const k = ctx.createOscillator(), kg = ctx.createGain();
         k.type = "sine"; k.frequency.setValueAtTime(140, hit); k.frequency.exponentialRampToValueAtTime(38, hit + 0.7);
         kg.gain.setValueAtTime(1, hit); kg.gain.exponentialRampToValueAtTime(0.0001, hit + 0.9);
-        k.connect(kg).connect(master); k.start(hit); k.stop(hit + 1);
+        k.connect(kg).connect(bus); k.start(hit); k.stop(hit + 1);
 
         const c = ctx.createBufferSource(); c.buffer = noiseBuffer(1);
         const hp = ctx.createBiquadFilter(), cg = ctx.createGain();
         hp.type = "highpass"; hp.frequency.value = 1500;
         cg.gain.setValueAtTime(0.5, hit); cg.gain.exponentialRampToValueAtTime(0.0001, hit + 0.45);
-        c.connect(hp).connect(cg).connect(master); c.start(hit); c.stop(hit + 0.5);
+        c.connect(hp).connect(cg).connect(bus); c.start(hit); c.stop(hit + 0.5);
 
-        [110, 165, 220, 330].forEach(f => this.tone(f, 1.25, 1.8, "sawtooth", 0.09));
-        this.tone(55, 1.25, 1.6, "square", 0.1);
+        [110, 165, 220, 330].forEach(f => this.tone(f, 1.25, 0.7, "sawtooth", 0.09, bus));
+        this.tone(55, 1.25, 0.7, "square", 0.1, bus);
       },
       tick() { this.tone(660, 0, 0.12, "triangle", 0.1); }
     };
@@ -243,14 +250,17 @@
         master.connect(comp).connect(ctx.destination);
       } catch (e) { ctx = null; }
       sfx.intro();
-      $("#gate").classList.add("go"); document.body.classList.add("live");
-      setTimeout(() => $("#gate").remove(), 900);
-      setTimeout(() => say([
-        [`Welcome back ${user ? user.name : "champ"}.`, 350, 0.95],
-        ["Are you ready to Fight Forward?", 1300, 0.95],
-        ["How are you feeling today?", 0, 0.95]
-      ]), 1900);
-      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) sparks();
+      $("#gate").classList.add("playing");
+      setTimeout(() => {
+        $("#gate").classList.add("go"); document.body.classList.add("live");
+        setTimeout(() => $("#gate").remove(), 900);
+        setTimeout(() => say([
+          [`Welcome back ${user ? user.name : "champ"}.`, 350, 0.95],
+          ["Are you ready to Fight Forward?", 1300, 0.95],
+          ["How are you feeling today?", 0, 0.95]
+        ]), 1000);
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) sparks();
+      }, 2000);
     }, { once: true });
   </script>
 </body>
