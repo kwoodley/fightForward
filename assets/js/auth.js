@@ -211,7 +211,7 @@
 
   // One page_view per page load for signed-in students, for the pages listed here only. Ids, not file names, so pages can be renamed.
   const PAGES = {
-    "welcome.html": "welcome", "lobby.html": "lobby", "fight-forward.html": "fight_forward", "impact-lab.html": "impact_lab",
+    "index.html": "welcome", "lobby.html": "lobby", "fight-forward.html": "fight_forward", "impact-lab.html": "impact_lab",
     "bring-it-to-the-ring.html": "ring", "coaching-corner.html": "coaching_corner", "goodbye.html": "goodbye"
   };
   function logPageView() {

@@ -10,15 +10,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/site.css">
   <style>
+    footer .staff { display: inline-block; margin-top: 6px; padding: 10px 6px; color: var(--muted); text-decoration: underline; }
+    footer .staff:hover { color: var(--text); }
     body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
-    main {
+    #loginView, #welcome {
       flex: 1; display: grid; place-items: center;
       padding: clamp(24px, 6vw, 56px) var(--gutter);
       background:
         radial-gradient(ellipse 80% 60% at 50% 100%, rgba(217, 43, 47, 0.28), transparent 70%),
         linear-gradient(180deg, #0a0b12 0%, #141523 55%, #1d1216 100%);
     }
-    .card { width: 100%; max-width: 860px; text-align: center; }
+    .card { width: 100%; max-width: 860px; margin: 0 auto; text-align: center; }
     .layout {
       display: grid; grid-template-columns: 1fr minmax(240px, 320px); column-gap: clamp(24px, 5vw, 56px);
       grid-template-areas: "head logo" "form logo" "fine eyebrow";
@@ -33,17 +35,16 @@
       .logo { width: clamp(200px, 64vw, 280px); margin: 0 auto 12px; }
       .card .eyebrow { margin-bottom: 24px; }
     }
-    h1 {
+    #loginView h1 {
       font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
       font-size: clamp(30px, 6vw, 44px); line-height: 1.05; margin: 0 0 6px;
     }
-    h1 sup { font-size: 0.4em; vertical-align: super; }
+    #loginView h1 sup { font-size: 0.4em; vertical-align: super; }
     .card .eyebrow {
       display: block; text-align: center; white-space: nowrap;
       font-size: clamp(8px, 2.3vw, 10.5px); letter-spacing: 0.14em; padding-left: 0.14em;
     }
     .lede { color: var(--silver); margin: 0 0 26px; }
-    .fine { margin: 14px 0 0; }
 
     form {
       text-align: left; display: grid; gap: 16px;
@@ -59,13 +60,68 @@
     input:focus-visible, select:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
     .hint { color: var(--muted); font-size: 12px; font-weight: 400; }
     .error { color: #ff8f92; font-size: 14px; margin: 0; min-height: 1.4em; }
-    form { align-self: start; }
-    .btn { justify-content: center; font-size: 16px; padding: 13px 18px; }
+    #loginView .btn { justify-content: center; font-size: 16px; padding: 13px 18px; }
     .fine { color: var(--muted); font-size: 12px; margin: 14px 0 0; }
+    #welcome { text-align: center; position: relative; overflow: hidden; display: none; }
+    body.live #welcome { display: grid; }
+    body.signed-in #loginView { display: none; }
+    #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .inner { max-width: 720px; position: relative; z-index: 1; }
+    #welcome h1 {
+      font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
+      font-size: clamp(36px, 8vw, 76px); line-height: 1.04; margin: 0; text-wrap: balance;
+    }
+    #welcome h1 .name { color: var(--red); overflow-wrap: anywhere; text-shadow: 0 0 28px rgba(217,43,47,.7); }
+    h2.ready { font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase;
+      font-size: clamp(22px, 4.5vw, 36px); margin: 10px 0 0; letter-spacing: .04em; color: var(--silver); }
+    .trio { margin: 26px 0 0; font-family: "Anton", Impact, sans-serif; text-transform: uppercase;
+      font-size: clamp(16px, 2.6vw, 22px); letter-spacing: .08em; line-height: 1.5; }
+    .trio span { display: block; } .trio span:last-child { color: var(--red); }
+    .welcome-to { margin: 22px 0 0; font-weight: 700; letter-spacing: .2em; font-size: 12px; color: var(--muted); text-transform: uppercase; }
+
+    .check { margin-top: 28px; background: rgba(22,22,26,.8); border: 1px solid var(--ink-3); border-top: 3px solid var(--red);
+      border-radius: var(--radius); padding: clamp(16px, 3vw, 24px); backdrop-filter: blur(6px); }
+    .check h3 { margin: 0 0 12px; font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase; font-size: 22px; letter-spacing: .04em; }
+    .opts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 0; padding: 0; list-style: none; }
+    .opt { font: inherit; font-size: 15px; color: var(--text); background: var(--ink); border: 1px solid var(--ink-3);
+      border-radius: 999px; padding: 10px 16px; cursor: pointer; min-height: 44px; }
+    .opt:hover { border-color: var(--red); }
+    .opt:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+    .opt[aria-pressed="true"] { background: var(--red); border-color: var(--red); }
+    #why { margin-top: 18px; }
+    .loading { margin: 22px 0 0; font-family: "Anton", Impact, sans-serif; text-transform: uppercase; letter-spacing: .3em; font-size: 16px; color: var(--silver); animation: blink 1.2s ease-in-out infinite; }
+    .loading[hidden] { display: none; }
+    .opts.done .opt:not([aria-pressed="true"]) { opacity: .45; }
+    .switch { display: block; margin-top: 18px; color: var(--muted); font-size: 13px; }
+
+    /* Entrance: the breathing logo appears with the intro sound as soon as the student is logged in */
+    #gate { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; align-content: center; gap: clamp(16px, 3.5vw, 28px); text-align: center; overflow: hidden;
+      background: radial-gradient(circle at 50% 45%, #2a0f12 0%, #050506 70%); color: var(--text);
+      transition: opacity .8s ease, transform .8s ease; }
+    #gate img { mix-blend-mode: screen; width: clamp(240px, 56vw, 420px); height: auto; animation: pulse 1s ease-in-out infinite; }
+    #gate .motto { margin: 0; max-width: 20em; padding: 0 var(--gutter); font-family: "Anton", Impact, sans-serif; text-transform: uppercase; text-wrap: balance;
+      font-size: clamp(20px, 4.6vw, 32px); line-height: 1.2; letter-spacing: .05em; color: var(--text); }
+    #gate .motto em { font-style: normal; color: var(--red); }
+    #gate[hidden] { display: none; }
+    /* The logo breathes with the intro sound for 2s, then the gate lifts */
+    #gate.go { opacity: 0; transform: scale(1.4); pointer-events: none; }
+    @keyframes pulse { 50% { transform: scale(1.16); filter: brightness(1.3) saturate(1.2); } }
+    @keyframes blink { 50% { opacity: .35; } }
+
+    .stage { opacity: 0; transform: translateY(24px) scale(.97); }
+    body.live .stage { animation: rise .8s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--i) * .45s + .3s); }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    body.live #welcome h1 .name { animation: glow 2.4s ease-in-out infinite; }
+    @keyframes glow { 50% { text-shadow: 0 0 52px rgba(255,70,70,1); } }
+
+    #sound[hidden] { display: none; }
+    #sound { position: fixed; top: 12px; right: 12px; z-index: 30; font: inherit; font-size: 13px; color: var(--silver);
+      background: rgba(22,22,26,.8); border: 1px solid var(--ink-3); border-radius: 999px; padding: 8px 14px; cursor: pointer; min-height: 40px; }
+    @media (prefers-reduced-motion: reduce) { .stage { opacity: 1; transform: none; animation: none !important; } }
   </style>
 </head>
 <body>
-  <main>
+  <main id="loginView">
     <div class="card">
       <div class="layout">
         <div class="head">
@@ -87,22 +143,215 @@
     </div>
   </main>
 
+  <div id="gate" role="status" aria-label="Fight Forward" hidden>
+    <img src="assets/badges/ff-logo-v2.png" alt="" width="1374" height="1145">
+    <p class="motto">If you train your mind, <em>you own your future!</em></p>
+  </div>
+  <button id="sound" type="button" aria-pressed="true" hidden>🔊 Sound on</button>
+
+  <main id="welcome">
+    <canvas id="fx" aria-hidden="true"></canvas>
+    <div class="inner">
+      <h1 class="stage" style="--i:0">Welcome back, <span class="name" data-user-name>Champ</span>.</h1>
+      <h2 class="ready stage" style="--i:1">Ready to Fight Forward?</h2>
+
+      <section class="check stage" style="--i:2" aria-labelledby="feel-q">
+        <h3 id="feel-q">How are you feeling today?</h3>
+        <ul class="opts" id="feel"></ul>
+        <div id="why" hidden>
+          <h3 id="why-q">Why?</h3>
+          <ul class="opts" id="why-opts"></ul>
+        </div>
+      </section>
+      <p class="loading" id="loading" role="status" hidden>Loading your academy…</p>
+
+      <div class="stage" style="--i:3">
+        <p class="welcome-to">Welcome to Fight Forward™</p>
+        <p class="trio"><span>Practice decisions.</span><span>Explore consequences.</span><span>Fight Forward.</span></p>
+        <a class="switch" href="index.html?switch" data-signout="now">Not you? Log out</a>
+      </div>
+    </div>
+  </main>
+
   <footer>
     © 2026 Fight Forward Academy · Train the Mind. Move the Body. Build the Future.
+    <br><a class="staff" href="dashboard.html">Staff: Youth Impact Dashboard</a>
   </footer>
 
   <script src="assets/js/auth.js"></script>
   <script>
-    // Already logged in on this device: go straight to the welcome page.
-    if (FFAuth.getUser() && !location.search.includes("switch")) location.replace("welcome.html");
+    const $ = s => document.querySelector(s);
+    let user = null;
 
-    document.getElementById("login").addEventListener("submit", e => {
+    // The same questions are asked again at the end of each session (goodbye.html).
+    const FEELINGS = FFAuth.FEELINGS;
+    let feeling = null, reason = null, leaving = false;
+
+    function chips(list, onPick) {
+      return list.map(item => {
+        const li = document.createElement("li"), b = document.createElement("button");
+        b.type = "button"; b.className = "opt"; b.setAttribute("aria-pressed", "false"); b.textContent = item.label || item;
+        b.addEventListener("click", () => {
+          if (leaving) return;
+          li.parentNode.querySelectorAll(".opt").forEach(x => x.setAttribute("aria-pressed", "false"));
+          b.setAttribute("aria-pressed", "true"); onPick(item); sfx.tick();
+        });
+        li.append(b); return li;
+      });
+    }
+    $("#feel").replaceChildren(...chips(FEELINGS, f => {
+      feeling = f; reason = null;
+      $("#why-opts").replaceChildren(...chips(f.why, r => {
+        reason = r; leaving = true;
+        $("#why-opts").classList.add("done");
+        FFAuth.logCheckin({ phase: "start", feeling: feeling.id, reason: reason.id });
+        $("#loading").hidden = false;
+        setTimeout(() => { location.href = "lobby.html"; }, 1100);
+      }));
+      $("#why").hidden = false;
+    }));
+
+    // ---------- Audio: synthesized (no files needed) + spoken greeting ----------
+    let ctx = null, master = null, soundOn = true;
+    function noiseBuffer(sec) {
+      const b = ctx.createBuffer(1, ctx.sampleRate * sec, ctx.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return b;
+    }
+    const sfx = {
+      tone(f, t, d, type = "sawtooth", v = 0.12, out = master) {
+        if (!ctx || !soundOn) return;
+        const o = ctx.createOscillator(), g = ctx.createGain(), at = ctx.currentTime + t;
+        o.type = type; o.frequency.setValueAtTime(f, at);
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(v, at + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + d);
+        o.connect(g).connect(out); o.start(at); o.stop(at + d + 0.05);
+      },
+      // Riser into a heavy hit: noise sweep + rising saw, then sub boom, crack and a power chord.
+      intro() {
+        if (!ctx || !soundOn) return;
+        const t0 = ctx.currentTime, hit = t0 + 1.25;
+        // Everything in the intro goes through one bus that is silent by the time the logo lifts (2s)
+        const bus = ctx.createGain(); bus.connect(master);
+        bus.gain.setValueAtTime(1, t0 + 1.7); bus.gain.linearRampToValueAtTime(0.0001, t0 + 1.95);
+        const n = ctx.createBufferSource(); n.buffer = noiseBuffer(2);
+        const bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+        bp.type = "bandpass"; bp.Q.value = 1.2;
+        bp.frequency.setValueAtTime(200, t0); bp.frequency.exponentialRampToValueAtTime(5000, hit);
+        ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(0.5, hit - 0.05); ng.gain.exponentialRampToValueAtTime(0.0001, hit + 0.15);
+        n.connect(bp).connect(ng).connect(bus); n.start(t0); n.stop(hit + 0.2);
+
+        const r = ctx.createOscillator(), rg = ctx.createGain();
+        r.type = "sawtooth"; r.frequency.setValueAtTime(55, t0); r.frequency.exponentialRampToValueAtTime(880, hit);
+        rg.gain.setValueAtTime(0.0001, t0); rg.gain.exponentialRampToValueAtTime(0.16, hit - 0.05); rg.gain.exponentialRampToValueAtTime(0.0001, hit + 0.1);
+        r.connect(rg).connect(bus); r.start(t0); r.stop(hit + 0.15);
+
+        const k = ctx.createOscillator(), kg = ctx.createGain();
+        k.type = "sine"; k.frequency.setValueAtTime(140, hit); k.frequency.exponentialRampToValueAtTime(38, hit + 0.7);
+        kg.gain.setValueAtTime(1, hit); kg.gain.exponentialRampToValueAtTime(0.0001, hit + 0.9);
+        k.connect(kg).connect(bus); k.start(hit); k.stop(hit + 1);
+
+        const c = ctx.createBufferSource(); c.buffer = noiseBuffer(1);
+        const hp = ctx.createBiquadFilter(), cg = ctx.createGain();
+        hp.type = "highpass"; hp.frequency.value = 1500;
+        cg.gain.setValueAtTime(0.5, hit); cg.gain.exponentialRampToValueAtTime(0.0001, hit + 0.45);
+        c.connect(hp).connect(cg).connect(bus); c.start(hit); c.stop(hit + 0.5);
+
+        [110, 165, 220, 330].forEach(f => this.tone(f, 1.25, 0.7, "sawtooth", 0.09, bus));
+        this.tone(55, 1.25, 0.7, "square", 0.1, bus);
+      },
+      tick() { this.tone(660, 0, 0.12, "triangle", 0.1); }
+    };
+
+    // Pick the most natural-sounding voice the device has (premium/neural voices first).
+    function pickVoice() {
+      const vs = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(v => /^en/i.test(v.lang));
+      const prefs = [/premium|enhanced|natural|neural/i, /samantha|ava|allison|evan|nathan|tom|aaron|nicky/i, /google us english/i, /en[-_]US/i];
+      for (const re of prefs) { const v = vs.find(v => re.test(v.name) || re.test(v.lang)); if (v) return v; }
+      return vs[0] || null;
+    }
+    if ("speechSynthesis" in window) speechSynthesis.addEventListener("voiceschanged", pickVoice);
+
+    // Spoken in natural phrases with real pauses, not one flat sentence.
+    function say(parts) {
+      if (!soundOn || !("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      const voice = pickVoice();
+      let i = 0;
+      (function next() {
+        if (i >= parts.length || !soundOn) return;
+        const [text, pause = 250, rate = 1] = parts[i++];
+        const u = new SpeechSynthesisUtterance(text);
+        if (voice) { u.voice = voice; u.lang = voice.lang; }
+        u.rate = rate; u.pitch = 1;
+        u.onend = u.onerror = () => setTimeout(next, pause);
+        speechSynthesis.speak(u);
+      })();
+    }
+    $("#sound").addEventListener("click", e => {
+      soundOn = !soundOn; e.currentTarget.setAttribute("aria-pressed", soundOn);
+      e.currentTarget.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+      if (!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+    });
+
+    // ---------- Sparks ----------
+    function sparks() {
+      const c = $("#fx"), g = c.getContext("2d"); let w, h;
+      const size = () => { w = c.width = c.offsetWidth; h = c.height = c.offsetHeight; }; size(); addEventListener("resize", size);
+      const ps = Array.from({ length: 60 }, () => ({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 2 + .5, v: Math.random() * .8 + .3 }));
+      (function frame() {
+        g.clearRect(0, 0, w, h);
+        for (const p of ps) {
+          p.y -= p.v; if (p.y < -5) { p.y = h + 5; p.x = Math.random() * w; }
+          g.fillStyle = `rgba(255,${80 + p.r * 40 | 0},60,${0.25 + p.r / 5})`; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.3); g.fill();
+        }
+        requestAnimationFrame(frame);
+      })();
+    }
+
+
+    // Logo and intro sound start together; 2s later the logo lifts and the greeting is spoken.
+    function startEntrance() {
+      user = FFAuth.getUser();
+      document.body.classList.add("signed-in");
+      document.querySelectorAll("[data-user-name]").forEach(n => { n.textContent = user.name; });
+      try {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const comp = ctx.createDynamicsCompressor(); master = ctx.createGain(); master.gain.value = 0.9;
+        master.connect(comp).connect(ctx.destination);
+        // A returning visit has no click behind it, so the browser may hold the audio back until the first touch or key press.
+        if (ctx.state === "suspended") {
+          ctx.resume();
+          const wake = () => ctx.resume();
+          addEventListener("pointerdown", wake, { once: true }); addEventListener("keydown", wake, { once: true });
+        }
+      } catch (e) { ctx = null; }
+      $("#gate").hidden = false; $("#sound").hidden = false;
+      sfx.intro();
+      setTimeout(() => {
+        $("#gate").classList.add("go"); document.body.classList.add("live");
+        setTimeout(() => $("#gate").remove(), 900);
+        say([
+          [`Welcome back ${user.name}.`, 350, 0.95],
+          ["Are you ready to Fight Forward?", 1300, 0.95],
+          ["How are you feeling today?", 0, 0.95]
+        ]);
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) sparks();
+      }, 2000);
+    }
+
+    // Already logged in on this device: straight to the breathing logo. The login page only shows when signed out.
+    if (FFAuth.getUser() && !location.search.includes("switch")) startEntrance();
+
+    $("#login").addEventListener("submit", e => {
       e.preventDefault();
-      const name = document.getElementById("name").value;
-      const error = document.getElementById("error");
-      if (!name.trim()) { error.textContent = "Type your first name to log in."; document.getElementById("name").focus(); return; }
+      const name = $("#name").value;
+      const error = $("#error");
+      if (!name.trim()) { error.textContent = "Type your first name to log in."; $("#name").focus(); return; }
       FFAuth.signIn(name);
-      location.href = "welcome.html";
+      FFAuth.logEvent("page_view", { page: "welcome" });
+      startEntrance();   // same click, so the browser lets the sound play right away
     });
   </script>
 </body>
