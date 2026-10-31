@@ -103,7 +103,7 @@
       font-size: clamp(20px, 4.6vw, 32px); line-height: 1.2; letter-spacing: .05em; color: var(--text); }
     #gate .motto em { font-style: normal; color: var(--red); }
     #gate[hidden] { display: none; }
-    /* The logo breathes with the intro sound for 2s, then the gate lifts */
+    /* The logo breathes with the intro sound for 5s, then the gate lifts */
     #gate.go { opacity: 0; transform: scale(1.4); pointer-events: none; }
     @keyframes pulse { 50% { transform: scale(1.16); filter: brightness(1.3) saturate(1.2); } }
     @keyframes blink { 50% { opacity: .35; } }
@@ -231,11 +231,11 @@
       // Riser into a heavy hit: noise sweep + rising saw, then sub boom, crack and a power chord.
       intro() {
         if (!ctx || !soundOn) return;
-        const t0 = ctx.currentTime, hit = t0 + 1.25;
-        // Everything in the intro goes through one bus that is silent by the time the logo lifts (2s)
+        const t0 = ctx.currentTime, hit = t0 + 3.9;
+        // Everything in the intro goes through one bus that is silent by the time the logo lifts (5s)
         const bus = ctx.createGain(); bus.connect(master);
-        bus.gain.setValueAtTime(1, t0 + 1.7); bus.gain.linearRampToValueAtTime(0.0001, t0 + 1.95);
-        const n = ctx.createBufferSource(); n.buffer = noiseBuffer(2);
+        bus.gain.setValueAtTime(1, t0 + 4.6); bus.gain.linearRampToValueAtTime(0.0001, t0 + 4.95);
+        const n = ctx.createBufferSource(); n.buffer = noiseBuffer(5);
         const bp = ctx.createBiquadFilter(), ng = ctx.createGain();
         bp.type = "bandpass"; bp.Q.value = 1.2;
         bp.frequency.setValueAtTime(200, t0); bp.frequency.exponentialRampToValueAtTime(5000, hit);
@@ -258,8 +258,8 @@
         cg.gain.setValueAtTime(0.5, hit); cg.gain.exponentialRampToValueAtTime(0.0001, hit + 0.45);
         c.connect(hp).connect(cg).connect(bus); c.start(hit); c.stop(hit + 0.5);
 
-        [110, 165, 220, 330].forEach(f => this.tone(f, 1.25, 0.7, "sawtooth", 0.09, bus));
-        this.tone(55, 1.25, 0.7, "square", 0.1, bus);
+        [110, 165, 220, 330].forEach(f => this.tone(f, 3.9, 0.9, "sawtooth", 0.09, bus));
+        this.tone(55, 3.9, 0.9, "square", 0.1, bus);
       },
       tick() { this.tone(660, 0, 0.12, "triangle", 0.1); }
     };
@@ -311,7 +311,7 @@
     }
 
 
-    // Logo and intro sound start together; 2s later the logo lifts and the greeting is spoken.
+    // Logo and intro sound start together; 5s later the logo lifts and the greeting is spoken.
     function startEntrance() {
       user = FFAuth.getUser();
       document.body.classList.add("signed-in");
@@ -338,7 +338,7 @@
           ["How are you feeling today?", 0, 0.95]
         ]);
         if (!matchMedia("(prefers-reduced-motion: reduce)").matches) sparks();
-      }, 2000);
+      }, 5000);
     }
 
     // Already logged in on this device: straight to the breathing logo. The login page only shows when signed out.
