@@ -221,6 +221,9 @@
   function decision(mod, host, ctx) {
     const startedAt = performance.now();
     let picked = null, msToDecide = 0;
+    // Reconsider step: after the first pick the student sees what could happen and may keep it or change it once.
+    let firstPick = null, firstMs = 0, msToReconsider = null, askedAt = 0;
+    const RANK = { rough: 1, ok: 2, best: 3 };
 
     const choiceButtons = mod.choices.map((c, i) =>
       el("button", { class: "choice", type: "button", "aria-pressed": "false", onclick: () => pick(i) },
@@ -237,27 +240,62 @@
       el("div", { class: "scale-ends", "aria-hidden": "true" }, el("span", {}, "Not sure"), el("span", {}, "Totally sure"))
     );
     const debrief = el("div", { class: "step", hidden: "" });
+    const consequence = el("div", { class: "step", hidden: "", "aria-live": "polite" });
 
     host.append(
       el("p", { class: "prompt" }, "What do you do?"),
       el("ul", { class: "choices" }, ...choiceButtons.map(b => el("li", {}, b))),
-      sureStep, debrief
+      consequence, sureStep, debrief
     );
 
+    function lockIn() {
+      consequence.hidden = true;
+      sureStep.hidden = false;
+      sureStep.querySelector("button").focus({ preventScroll: true });
+    }
     function pick(i) {
       if (picked !== null) return;
       picked = i;
-      msToDecide = Math.round(performance.now() - startedAt);
       choiceButtons.forEach((b, j) => { b.disabled = true; b.setAttribute("aria-pressed", String(i === j)); });
-      sureStep.hidden = false;
-      sureStep.querySelector("button").focus({ preventScroll: true });
+      if (firstPick !== null) {            // second pick, after reconsidering: go on to confidence
+        msToReconsider = Math.round(performance.now() - askedAt);
+        return lockIn();
+      }
+      firstPick = i;
+      firstMs = msToDecide = Math.round(performance.now() - startedAt);
+      // No rating shown here: only a neutral line about what could happen, so the student can think it over.
+      // A choice without an `outcome` skips this step rather than showing the Coach's explanation early.
+      if (!mod.choices[i].outcome) { msToReconsider = null; return lockIn(); }
+      consequence.replaceChildren(
+        el("p", { class: "prompt" }, "Here’s what could happen if you go with that"),
+        el("p", { class: "why-text" }, mod.choices[i].outcome),
+        el("p", { class: "prompt" }, "Do you want to keep your choice or change it?"),
+        el("div", { class: "actions" },
+          el("button", { class: "btn", type: "button", onclick: () => { askedAt = performance.now(); msToReconsider = Math.round(askedAt - startedAt - firstMs); lockIn(); } }, "Keep my choice"),
+          el("button", { class: "btn btn-ghost", type: "button", onclick: change }, "Change my choice"))
+      );
+      consequence.hidden = false;
+      consequence.querySelector("button").focus({ preventScroll: true });
+    }
+    function change() {
+      askedAt = performance.now();
+      const first = picked;
+      picked = null;
+      consequence.hidden = true;
+      choiceButtons.forEach((b, j) => { b.disabled = j === first; b.setAttribute("aria-pressed", "false"); });
+      choiceButtons.find(b => !b.disabled).focus({ preventScroll: true });
     }
 
     function finish(confidence) {
       const choice = mod.choices[picked];
       ctx.record({
         moduleId: mod.id, type: mod.type, skill: mod.skill, pressure: mod.pressure, support: mod.support,
-        choice: picked, move: choice.move, rating: choice.rating, confidence, msToDecide
+        choice: picked, move: choice.move, rating: choice.rating, confidence, msToDecide,
+        // Reconsidering after seeing the consequence. Direction is by the options' ratings, shown to staff only as a group trend.
+        firstChoice: firstPick, changedAfterConsequence: picked !== firstPick, msToReconsider,
+        changeDirection: picked === firstPick ? "same"
+          : RANK[choice.rating] > RANK[mod.choices[firstPick].rating] ? "stronger"
+          : RANK[choice.rating] < RANK[mod.choices[firstPick].rating] ? "weaker" : "level"
       });
       ctx.complete(mod.id, { rating: choice.rating });
       sureStep.hidden = true;

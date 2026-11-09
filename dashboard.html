@@ -108,6 +108,8 @@
       <div class="card accent">
         <h2>Decision-making development</h2>
         <div class="bars" id="skills"></div>
+        <p class="sub">Reconsidering after seeing what could happen</p>
+        <ul class="list" id="reconsider"></ul>
         <p class="note" id="skills-note">Change since the start of the program. Shown as growth over time, not as grades.</p>
       </div>
 
@@ -195,16 +197,26 @@
     function stats(target, rows) { target.replaceChildren(...rows.map(([n, l]) => el("li", "", `<b>${n}</b><span>${l}</span>`))); }
 
     // ---------- Sample mode ----------
+    // Sample figures are for one month. Counts grow with the period and growth-since-start deepens; percentages stay put.
+    const PERIOD_SAMPLE = { "This month": [1, 0.5], "This quarter": [3, 0.75], "This semester": [5, 1], "This year": [9, 1.3] };
     function renderSample() {
       const d = SITES[$("#site").value], g = $("#group").value, size = GROUP_SIZE[g];
       const hidden = size != null && size < MIN_GROUP;
+      const p = $("#period").value, [k, gk] = PERIOD_SAMPLE[p] || [1, 1], lower = p.toLowerCase();
+      const scaleN = n => typeof n === "number" ? Math.round(n * k) : (Number(String(n).replace(/,/g, "")) * k).toLocaleString("en-US");
+      const when = t => t.replace("this month", lower);
+      const scaled = (rows, only) => rows.map(([n, l], i) => [!only || only(i, l) ? scaleN(n) : n, when(l)]);
+      $("#banner").textContent = "Mockup · sample data only · " + lower;
       $("#kpis").replaceChildren(...[[size ?? d.n, "youth enrolled"], [d.part + "%", "participation"], [d.comp + "%", "session completion"], [d.lab + "%", "Impact Lab completion"]]
         .map(([n, l]) => el("div", "card kpi", `<div class="n">${n}</div><div class="l">${l}</div>`)));
       // A single group is shown with the same sample figures as its site; the point of the mockup is the drill-down shape.
-      bars($("#skills"), d.skills, v => "↑ " + v + "%", "up");
+      bars($("#skills"), d.skills.map(([l, v]) => [l, Math.round(v * gk)]), v => "↑ " + v + "%", "up");
       bars($("#mood"), d.mood, v => v + "%");
-      stats($("#engage"), d.engage); stats($("#support"), d.support); stats($("#cardio"), d.cardio); stats($("#leaders"), d.leaders);
-      if (hidden) document.querySelectorAll("#mood, #support").forEach(n => n.replaceChildren(el("p", "suppressed", `Hidden: groups under ${MIN_GROUP} youth are not shown.`)));
+      stats($("#reconsider"), [["21%", "of choices were changed after seeing what could happen"], ["62%", "of those changes moved to a stronger option"],
+        ["24%", "moved to an option at a similar level"], ["14%", "moved to a weaker option"]]);
+      stats($("#engage"), scaled(d.engage)); stats($("#support"), scaled(d.support, () => false));
+      stats($("#cardio"), scaled(d.cardio, (i) => i === 0)); stats($("#leaders"), scaled(d.leaders));
+      if (hidden) document.querySelectorAll("#mood, #support, #reconsider").forEach(n => n.replaceChildren(el("p", "suppressed", `Hidden: groups under ${MIN_GROUP} youth are not shown.`)));
     }
     function fillSampleSites() {
       $("#site").replaceChildren(...Object.keys(SITES).map(s => new Option(s)));
@@ -280,7 +292,7 @@
     }
 
     function renderLiveData(d) {
-      const panels = ["#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"];
+      const panels = ["#reconsider", "#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"];
       if (d.suppressed) {
         $("#kpis").replaceChildren(el("div", "card kpi", `<div class="l">Hidden: groups under ${minGroup} youth are not shown.</div>`));
         panels.forEach(p => $(p).replaceChildren(hiddenMsg()));
@@ -299,6 +311,14 @@
         const text = ch == null ? "Not enough history yet" : (ch > 0 ? "↑ " : ch < 0 ? "↓ " : "") + Math.abs(ch) + " pts vs last period";
         return { label: s.label, text, cls: ch > 0 ? "up" : ch < 0 ? "down" : "", width: s.bestPercent };
       }));
+
+      const rc = d.reconsider;
+      if (rc.suppressed) $("#reconsider").replaceChildren(hiddenMsg());
+      else if (!rc.decisions) $("#reconsider").replaceChildren(el("p", "suppressed", "No choices with a consequence step in this period yet."));
+      else stats($("#reconsider"), [[rc.changedPercent + "%", "of choices were changed after seeing what could happen"],
+        [dash(rc.strongerPercent) + (rc.strongerPercent == null ? "" : "%"), "of those changes moved to a stronger option"],
+        [dash(rc.levelPercent) + (rc.levelPercent == null ? "" : "%"), "moved to an option at a similar level"],
+        [dash(rc.weakerPercent) + (rc.weakerPercent == null ? "" : "%"), "moved to a weaker option"]]);
 
       const mood = $("#mood"); mood.replaceChildren();
       for (const [phase, title] of [["start", "At the start of sessions"], ["end", "At the end of sessions"]]) {
@@ -351,7 +371,7 @@
         if (e instanceof Expired) return useSample(e.message);
         $("#banner").textContent = "Live data · not loaded";
         $("#kpis").replaceChildren(el("div", "card kpi", `<div class="l">${esc(e.message)}</div>`));
-        ["#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"].forEach(p => $(p).replaceChildren());
+        ["#reconsider", "#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"].forEach(p => $(p).replaceChildren());
       }
     }
 

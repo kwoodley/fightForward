@@ -7,7 +7,8 @@
 //   scenario  { type:"scenario", setup, choices:[A,B,C] }
 //   game      { type:"game", kind:"sort", buckets, cards }  or  { kind:"spot", prompt, items }
 // Every module has a `skill` (see SKILLS) for reporting. Scenarios and videos also have `pressure` and `support`.
-// A choice is { text, move, rating: "best" | "ok" | "rough", why }. The coach explains every choice at the end.
+// A choice is { text, move, rating: "best" | "ok" | "rough", why, outcome }. The coach explains every choice at the end.
+// `outcome` is a short, neutral line about what could happen next. It is shown before the student can change their pick, so it must not hint which option is strongest (no "good", "smart", "safe" or "wrong").
 (function () {
   const MOVES = {
     react:  { label: "React",            note: "Going with the first impulse, or going along with it." },
@@ -69,11 +70,14 @@
               },
               choices: [
                 { text: "Argue back, loud, right there in front of the team.", move: "react", rating: "rough",
-                  why: "Yelling back turns it into a fight, and then nobody hears your side. Even if you’re right, Coach only hears disrespect." },
+                  why: "Yelling back turns it into a fight, and then nobody hears your side. Even if you’re right, Coach only hears disrespect.",
+                  outcome: "Coach may answer louder, and the team can see it. The argument could grow, and Coach might add to what happens next." },
                 { text: "Take the lap. After practice, ask Coach for a minute and calmly explain what happened.", move: "speak", rating: "best",
-                  why: "Waiting until you’ve cooled off and asking for a private minute gives Coach a real chance to listen. Calm words get heard." },
+                  why: "Waiting until you’ve cooled off and asking for a private minute gives Coach a real chance to listen. Calm words get heard.",
+                  outcome: "You run the lap, then ask Coach for a minute once practice is over. Coach might listen, or might say it is not a good time." },
                 { text: "Take the lap and say nothing. Stay mad for the rest of practice.", move: "step", rating: "ok",
-                  why: "Not blowing up is smart. But if you never say anything, Coach never finds out the truth, and the anger stays stuck inside you." }
+                  why: "Not blowing up is smart. But if you never say anything, Coach never finds out the truth, and the anger stays stuck inside you.",
+                  outcome: "You run the lap and keep quiet. Coach may never hear your side, and you might still feel upset during practice." }
               ]
             },
             {
@@ -111,11 +115,14 @@
               setup: "Your science project is due Friday. Your partner, Alex, hasn’t done any of the work and keeps saying, “I’ll do it later.” It’s Wednesday.",
               choices: [
                 { text: "Do all of it yourself so it gets done.", move: "step", rating: "ok",
-                  why: "You’ll get it finished, but you’ll end up tired and upset, and Alex learns that someone else will always cover. It’s not fair to you." },
+                  why: "You’ll get it finished, but you’ll end up tired and upset, and Alex learns that someone else will always cover. It’s not fair to you.",
+                  outcome: "The project likely gets finished by Friday. It may take most of your evenings, and Alex might not do any of it." },
                 { text: "Complain about Alex to everyone else in class.", move: "react", rating: "rough",
-                  why: "Talking about Alex behind their back doesn’t fix the project. It starts drama, and Alex will probably hear about it." },
+                  why: "Talking about Alex behind their back doesn’t fix the project. It starts drama, and Alex will probably hear about it.",
+                  outcome: "Other people in class hear your side. Word may get back to Alex, and the project is still not done." },
                 { text: "Talk to Alex: “I’m stressed because it’s due Friday. Can you do the slides while I do the poster?”", move: "speak", rating: "best",
-                  why: "You said how you feel, said what you need, and gave a clear plan. If Alex still doesn’t help, then it’s time to tell your teacher." }
+                  why: "You said how you feel, said what you need, and gave a clear plan. If Alex still doesn’t help, then it’s time to tell your teacher.",
+                  outcome: "Alex hears what you need and by when. Alex might agree, push back, or say “later” again." }
               ]
             },
             {
@@ -141,11 +148,14 @@
               },
               choices: [
                 { text: "Message him privately: “Hey, I sent you a text and didn’t hear back. Is everything okay?”", move: "speak", rating: "best",
-                  why: "You asked instead of guessing. He may have just forgotten or had a rough day. Asking calmly, in private, keeps the friendship safe." },
+                  why: "You asked instead of guessing. He may have just forgotten or had a rough day. Asking calmly, in private, keeps the friendship safe.",
+                  outcome: "He might reply with a reason, reply later, or not reply. Either way, he knows you noticed." },
                 { text: "Act like it doesn’t bother you and don’t say anything.", move: "step", rating: "ok",
-                  why: "You avoided a fight, but the hurt feeling doesn’t go away. When you never say it, you might start treating him differently without him knowing why." },
+                  why: "You avoided a fight, but the hurt feeling doesn’t go away. When you never say it, you might start treating him differently without him knowing why.",
+                  outcome: "There is no argument today. You may still feel bothered, and he does not know it." },
                 { text: "Tell your other friends that he’s being fake.", move: "react", rating: "rough",
-                  why: "You’re guessing why he didn’t answer, and now it’s turned into gossip. Gossip grows fast and he never got a chance to explain." }
+                  why: "You’re guessing why he didn’t answer, and now it’s turned into gossip. Gossip grows fast and he never got a chance to explain.",
+                  outcome: "Your friends hear your view and may agree or disagree. He might hear about it from someone else before you two talk." }
               ]
             },
             {
@@ -179,11 +189,14 @@
               setup: "Your friend Sam walks up: “Can I copy your math homework before class? Please, I’ll owe you one.” The bell rings in two minutes.",
               choices: [
                 { text: "Hand it over. He’s your friend.", move: "react", rating: "rough",
-                  why: "It feels nice in the moment, but copying can get you both in trouble, and Sam doesn’t learn the math. Real friends help, not just hand over answers." },
+                  why: "It feels nice in the moment, but copying can get you both in trouble, and Sam doesn’t learn the math. Real friends help, not just hand over answers.",
+                  outcome: "Sam finishes his homework before class. The teacher might notice matching answers, and Sam may ask again next time." },
                 { text: "Say: “I can’t give you my answers, but I’ll help you with the one you’re stuck on.”", move: "speak", rating: "best",
-                  why: "You said no clearly and kindly, and offered something real. That’s how you say no without losing a friend." },
+                  why: "You said no clearly and kindly, and offered something real. That’s how you say no without losing a friend.",
+                  outcome: "Sam might take the help, be annoyed, or ask someone else. With two minutes left, he may not finish." },
                 { text: "Pretend you didn’t hear him and walk away.", move: "step", rating: "ok",
-                  why: "Avoiding the question gets you out of it, but Sam is left confused and may feel ignored. A short, honest “no” is better." }
+                  why: "Avoiding the question gets you out of it, but Sam is left confused and may feel ignored. A short, honest “no” is better.",
+                  outcome: "You avoid the conversation for now. Sam might ask again, or think you ignored him." }
               ]
             }
           ]
@@ -218,11 +231,14 @@
               },
               choices: [
                 { text: "Mute the chat and say nothing.", move: "step", rating: "ok",
-                  why: "You didn’t join in, which counts. But Eli is still getting picked on, and nobody pushed back." },
+                  why: "You didn’t join in, which counts. But Eli is still getting picked on, and nobody pushed back.",
+                  outcome: "The chat stops buzzing for you. Messages about Eli may keep going, and nobody in the chat knows what you think." },
                 { text: "Post a joke so they leave you alone.", move: "react", rating: "rough",
-                  why: "A joke in writing can be screenshotted and shared. You become part of the bullying, and Eli may see it." },
+                  why: "A joke in writing can be screenshotted and shared. You become part of the bullying, and Eli may see it.",
+                  outcome: "Some people in the chat may laugh. The message stays where Eli and others can see it, and anyone can screenshot it." },
                 { text: "Type “Not cool. Leave him alone,” and save screenshots to show a trusted adult.", move: "speak", rating: "best",
-                  why: "You stood up in a calm way, and you saved proof. Telling an adult gets real help for Eli, and others in the chat may feel braver once someone speaks first." }
+                  why: "You stood up in a calm way, and you saved proof. Telling an adult gets real help for Eli, and others in the chat may feel braver once someone speaks first.",
+                  outcome: "People in the chat see your message. Some may agree and some may argue with you. A trusted adult sees what was posted." }
               ]
             },
             {
@@ -260,11 +276,14 @@
               setup: "A new kid, Omar, is standing with his tray, looking for a seat. At your table someone says, “Don’t let him sit here. He’s weird.” A couple of people laugh.",
               choices: [
                 { text: "Look away so you don’t get involved.", move: "step", rating: "rough",
-                  why: "Looking away tells everyone it’s okay, and Omar feels even more alone. Staying quiet helps the bullying keep going." },
+                  why: "Looking away tells everyone it’s okay, and Omar feels even more alone. Staying quiet helps the bullying keep going.",
+                  outcome: "Omar keeps looking for a seat. Your table carries on, and nobody at it hears from you." },
                 { text: "Wave Omar over: “Hey, there’s room here.”", move: "speak", rating: "best",
-                  why: "One kind move changes the whole moment. It’s simple, it’s safe, and the table has to decide whether to be mean to your face." },
+                  why: "One kind move changes the whole moment. It’s simple, it’s safe, and the table has to decide whether to be mean to your face.",
+                  outcome: "Omar might sit with you. Someone at the table may object or tease, and others may be fine with it." },
                 { text: "Whisper to a friend, “That’s kind of mean,” but don’t say anything out loud.", move: "step", rating: "ok",
-                  why: "You know it’s wrong, and that’s a start. But Omar can’t hear a whisper. Next time, say it so he can." }
+                  why: "You know it’s wrong, and that’s a start. But Omar can’t hear a whisper. Next time, say it so he can.",
+                  outcome: "One friend hears you. Omar and the rest of the table do not, and Omar still needs a seat." }
               ]
             },
             {
@@ -289,11 +308,14 @@
               },
               choices: [
                 { text: "Pick up your books, walk away, then tell a teacher or counselor because he does this a lot.", move: "corner", rating: "best",
-                  why: "You stayed in control, and you told someone who can stop it. Because it’s a pattern, an adult needs to know. Telling is not snitching. It’s keeping people safe." },
+                  why: "You stayed in control, and you told someone who can stop it. Because it’s a pattern, an adult needs to know. Telling is not snitching. It’s keeping people safe.",
+                  outcome: "An adult hears what happened and may talk to him. He might find out that you told." },
                 { text: "Run after him and shove him back.", move: "react", rating: "rough",
-                  why: "A fight gets you in trouble, and the video will be online by lunch. Shoving back is exactly what he wants." },
+                  why: "A fight gets you in trouble, and the video will be online by lunch. Shoving back is exactly what he wants.",
+                  outcome: "He and others see you react. A teacher may see the shove, and both of you could be sent to the office." },
                 { text: "Pick up your books and keep walking. Say nothing to anyone.", move: "step", rating: "ok",
-                  why: "Walking away is safe, and it keeps you out of a fight. But if he keeps doing it to you and others, nothing changes until an adult knows." }
+                  why: "Walking away is safe, and it keeps you out of a fight. But if he keeps doing it to you and others, nothing changes until an adult knows.",
+                  outcome: "You get to class without a scene. No adult knows, and he might do it again." }
               ]
             },
             {
@@ -329,11 +351,14 @@
               setup: "A video is going around of a classmate, Priya, tripping and dropping her lunch tray. It has laughing emojis and 400 views. Someone sends it to you with the message, “LOL watch this.”",
               choices: [
                 { text: "Share it. It’s funny and everyone else is.", move: "react", rating: "rough",
-                  why: "Each share makes the embarrassment bigger for Priya. Once it’s online, you can’t take it back." },
+                  why: "Each share makes the embarrassment bigger for Priya. Once it’s online, you can’t take it back.",
+                  outcome: "More people see the video, and Priya may see the reactions. You cannot control where it goes next." },
                 { text: "Watch it, but don’t share it.", move: "step", rating: "ok",
-                  why: "Not sharing is better than sharing, but the video keeps spreading and Priya still has no help." },
+                  why: "Not sharing is better than sharing, but the video keeps spreading and Priya still has no help.",
+                  outcome: "You do not add to the views. The video stays up and keeps circulating, and no adult knows about it." },
                 { text: "Don’t share it. Tell a trusted adult, and if you feel okay, check on Priya.", move: "corner", rating: "best",
-                  why: "You stopped it from spreading, and you got help. A message from you may be the nicest thing Priya sees all week." }
+                  why: "You stopped it from spreading, and you got help. A message from you may be the nicest thing Priya sees all week.",
+                  outcome: "An adult learns about the video and may ask for it to be taken down. Priya might reply to you, or might not." }
               ]
             }
           ]

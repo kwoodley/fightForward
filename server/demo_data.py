@@ -55,7 +55,8 @@ def main():
             for n in range(2):
                 mid = "demo-module-%d" % rng.randint(1, 6)
                 ev(sid, day, 50 - n * 5, "module_open", sess, moduleId=mid, moduleType="scenario", skill=skill, attempt=1)
-                ev(sid, day, 49 - n * 5, "decision", sess, moduleId=mid, moduleType="scenario", skill=skill, rating=rng.choices(RATINGS, [3 + (21 - day) / 7, 3, 2])[0], attempt=1)
+                ev(sid, day, 49 - n * 5, "decision", sess, moduleId=mid, moduleType="scenario", skill=skill, rating=rng.choices(RATINGS, [3 + (21 - day) / 7, 3, 2])[0], attempt=1,
+                   changedAfterConsequence=(ch := rng.random() < 0.25), changeDirection=rng.choice(["stronger", "stronger", "level", "weaker"]) if ch else "same")
                 ev(sid, day, 48 - n * 5, "module_complete", sess, moduleId=mid, moduleType="scenario", skill=skill, attempt=1, durationMs=60000)
             if rng.random() < 0.6:
                 done = rng.random() < 0.75

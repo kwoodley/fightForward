@@ -27,7 +27,7 @@ Time spent = sum of `module_open` to `module_complete`, plus workout `secs`, plu
 
 ## Service 2: Decision-making development
 
-Stored in `ff.decisions.v2:<id>` by `ctx.record` (`modules.js`): `moduleId, type, skill, pressure, support, choice, move, rating, confidence, msToDecide, attempt, changedAfterDebrief, month, week, at`. Every finished attempt of any module (including games) is also a row in `ff.attempts.v1:<id>`.
+Stored in `ff.decisions.v2:<id>` by `ctx.record` (`modules.js`): `moduleId, type, skill, pressure, support, choice, move, rating, confidence, msToDecide, attempt, changedAfterDebrief, firstChoice, changedAfterConsequence, changeDirection (stronger|level|weaker|same), msToReconsider, month, week, at`. After the first pick the student sees the choice's neutral `outcome` line from `content.js` (no rating shown; a choice without one skips the step) and may keep or change the pick once; `changedAfterConsequence` records that. The API reports it as `reconsider` (group share and direction, suppressed under the minimum group size). Every finished attempt of any module (including games) is also a row in `ff.attempts.v1:<id>`.
 
 | Needed | Status | Gap |
 |---|---|---|

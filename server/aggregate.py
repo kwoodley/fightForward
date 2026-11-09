@@ -129,6 +129,20 @@ def aggregate(db, scope, start, end, min_group):
         skills.append(row)
     out["skills"] = skills
 
+    # Reconsidering after seeing a consequence: how often youth changed their pick, and which way. A group trend only.
+    n, changed, students = q(
+        "SELECT COUNT(*), SUM(json_extract(payload, '$.changedAfterConsequence') = 1), COUNT(DISTINCT student_id) " + base +
+        "AND type = 'decision' AND json_extract(payload, '$.changedAfterConsequence') IS NOT NULL")[0]
+    if students < min_group:
+        out["reconsider"] = {"suppressed": True}
+    else:
+        dirs = dict(q("SELECT json_extract(payload, '$.changeDirection'), COUNT(*) " + base +
+                      "AND type = 'decision' AND json_extract(payload, '$.changedAfterConsequence') = 1 GROUP BY 1"))
+        changed = changed or 0
+        out["reconsider"] = {"decisions": n, "youth": students, "changedPercent": pct(changed, n),
+                             "strongerPercent": pct(dirs.get("stronger", 0), changed), "levelPercent": pct(dirs.get("level", 0), changed),
+                             "weakerPercent": pct(dirs.get("weaker", 0), changed)}
+
     # Check-ins: totals by feeling, start and end of session. Reasons are not reported.
     mood = {}
     for phase in ("start", "end"):
