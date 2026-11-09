@@ -94,10 +94,10 @@ Use the student name **Tester** (the site turns it into the id `tester`). Do the
 | # | Do | Expect |
 |---|---|---|
 | 2.1 | Click the **Fight Forward** card, wait out the intro or click to skip it | Page "Make the call". The week 1 session shows six modules |
-| 2.2 | Open **The Group Project** (a scenario) and pick choice A | The choices lock and "How sure are you about that call?" appears |
-| 2.3 | Click a number 1 to 5 | Coach's breakdown appears for every choice; your pick is marked; the module shows "Done" in the list |
+| 2.2 | Open **The Group Project** (a scenario) and pick choice A | The choices lock and a "Here's what could happen" line appears (no Strong/Rough label) with **Keep my choice** and **Change my choice** |
+| 2.3 | Click **Keep my choice** (or **Change my choice** and pick another; the first pick stays disabled), then "How sure are you about that call?" appears. Click a number 1 to 5 | Coach's breakdown appears for every choice; your pick is marked; the module shows "Done" in the list |
 | 2.4 | Click **Run it back** and pick a **different** choice, then a confidence | A second breakdown appears |
-| 2.5 | Open **Called Out at Practice** (a video scene). Click **Skip to choices**, pick a choice, click **Skip** for confidence | Breakdown appears |
+| 2.5 | Open **Called Out at Practice** (a video scene). Click **Skip to choices**, pick a choice, click **Keep my choice**, click **Skip** for confidence | Breakdown appears |
 | 2.6 | Open **Tone Check** (a sorting game) and answer every card | Card-by-card feedback, then a score with Coach's breakdown |
 | 2.7 | Open **Listening Check** (a tap-to-select game), tap a few, click **Check my answers** | Score and breakdown |
 | 2.8 | Scroll to "Your fight record" | A summary appears. It shows moves and counts only: no single score, no "good/bad" label for you |
@@ -152,7 +152,7 @@ Expected event order for 6.4:
 ```
 session_start
 page_view welcome          checkin (start)           page_view lobby
-page_view fight_forward    module_open + decision + module_complete   (The Group Project, attempt=1)
+page_view fight_forward    module_open + decision + module_complete   (The Group Project, attempt=1; the decision has firstChoice, changedAfterConsequence and changeDirection)
 module_open + decision + module_complete   (attempt=2, changedAfterDebrief=True)
 module_open ... module_complete            (video; then each game: module_open and module_complete only, no decision)
 page_view impact_lab       workout_start + workout_end (completed=True reason=finished)
