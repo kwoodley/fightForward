@@ -5,6 +5,7 @@ Roles (scope = the org, site and group a person is limited to):
   org_admin     organization admin        org
   site_lead     site lead                 org + site
   mentor        mentor / coach            org + site + group
+  teacher       classroom teacher         org + site + group (the class); same access as a mentor, recorded as a teacher source
   safety_adult  authorized safety adult   may sign in, but sees no analytics (safety messages are a separate path)
 
 Passwords are stored as salted PBKDF2-SHA256. Session tokens are random and only their hash is stored.
@@ -16,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 
 ROLES = {
     "ff_staff": (), "org_admin": ("org",), "site_lead": ("org", "site"),
-    "mentor": ("org", "site", "group"), "safety_adult": (),
+    "mentor": ("org", "site", "group"), "teacher": ("org", "site", "group"), "safety_adult": (),
 }
 VIEW_ROLES = set(ROLES) - {"safety_adult"}
 SESSION_HOURS = 8

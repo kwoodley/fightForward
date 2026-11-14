@@ -20,7 +20,7 @@ Student sign-in (logins are issued with server/students.py; see studentauth.py):
 POST   /student/login   { "code", "pin" } -> { token, expiresAt, user: {id, name, org, site, group, grade} }   (401 for any failure)
 POST   /student/logout
 GET    /student/me      the signed-in student's own profile
-GET    /student/observations   what mentors recorded for this student: skill, level, help, date (never the note or the mentor)
+GET    /student/observations   what mentors and teachers recorded for this student: skill, level, help, date, source (never the note or the person)
 POST /events with  Authorization: Bearer <student token>  takes studentId, org, site and group from the roster, not the browser
 (an event naming a different student is refused with 403). FF_REQUIRE_STUDENT_AUTH=1 refuses events with no valid student token.
 
@@ -223,13 +223,13 @@ class Handler(BaseHTTPRequestHandler):
             db.close()
 
     def _mentor(self, db):
-        """The signed-in mentor, or None after sending the refusal. Only mentors see or write observations."""
+        """The signed-in mentor or teacher, or None after sending the refusal. Only they see or write observations, and only for their group."""
         who = self._staff(db, view=False)
         if not who:
             return None
-        if who["role"] != "mentor" or not (who["org"] or who["site"] or who["group"]) or not who["group"]:
+        if who["role"] not in observations.ROLES or not who["group"]:
             audit(db, "observation_denied", {"role": who["role"]}, who["username"])
-            self._send(403, {"error": "only mentors with a group can record observations"})
+            self._send(403, {"error": "only mentors and teachers with a group can record observations"})
             return None
         return who
 
@@ -263,8 +263,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(401, {"error": "sign in required"})
             if url.path == "/student/me":
                 return self._send(200, {"user": {k: student[k] for k in ("id", "org", "site", "group")}})
-            rows = db.execute("SELECT competency, level, assistance, challenge, at FROM observations WHERE student_id = ? ORDER BY at DESC LIMIT 50", (student["id"],))
-            self._send(200, {"observations": [dict(zip(("competency", "level", "assistance", "challenge", "at"), r)) for r in rows]})
+            rows = db.execute("SELECT competency, level, assistance, challenge, at, source FROM observations WHERE student_id = ? ORDER BY at DESC LIMIT 50", (student["id"],))
+            self._send(200, {"observations": [dict(zip(("competency", "level", "assistance", "challenge", "at", "source"), r)) for r in rows]})
         finally:
             db.close()
 
@@ -277,6 +277,9 @@ class Handler(BaseHTTPRequestHandler):
             if url.path == "/api/mentor/students":
                 audit(db, "mentor_students_view", {}, who["username"])
                 return self._send(200, {"students": observations.students(db, who)})
+            if url.path == "/api/group/overview":
+                audit(db, "group_overview_view", {"group": who["group"]}, who["username"])
+                return self._send(200, {"students": observations.overview(db, who)})
             student = parse_qs(url.query).get("studentId", [""])[0]
             rows = observations.listing(db, who, student)
             if rows is None:
@@ -312,7 +315,7 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path == "/health":
             return self._send(200, {"ok": True})
-        if url.path in ("/api/mentor/students", "/api/observations"):
+        if url.path in ("/api/mentor/students", "/api/group/overview", "/api/observations"):
             return self._mentor_get(url)
         if url.path in ("/student/me", "/student/observations"):
             return self._student_get(url)

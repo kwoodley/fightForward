@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Mentor observations · Fight Forward Academy</title>
+  <title>Mentor and teacher tools · Fight Forward Academy</title>
   <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,11 +32,11 @@
 <body>
   <header class="topbar">
     <a class="brand" href="lobby.html"><span class="brand-mark" aria-hidden="true">FF</span> Fight Forward</a>
-    <div class="user"><span class="user-name">Mentor view</span></div>
+    <div class="user"><span class="user-name">Mentor and teacher view</span></div>
   </header>
   <main>
     <p class="eyebrow">Path 03 · Leadership Lab</p>
-    <h1>Mentor observations</h1>
+    <h1>Mentor and teacher tools</h1>
     <p class="section-sub">Record what you saw a student do. One skill, one level, at one point in time. It is not a grade or a label, and it is not used to pick or rank leaders. “Not observed” is not a low score.</p>
 
     <form class="card" id="signin">
@@ -45,11 +45,16 @@
       <label for="user">Username</label><input id="user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
       <label for="pass">Password</label><input id="pass" type="password" autocomplete="current-password" required>
       <div class="row"><button class="btn" type="submit">Sign in</button></div>
-      <p class="hint">Mentor accounts are created by Fight Forward and cover one group. You only see students in that group who have guardian consent on file.</p>
+      <p class="hint">Mentor and teacher accounts are created by Fight Forward and cover one group. You only see students in that group who have guardian consent on file.</p>
     </form>
 
     <div id="work" hidden>
       <div class="row" style="margin:0 0 12px"><span id="who" class="hint"></span><button class="btn btn-ghost" type="button" id="out">Sign out</button></div>
+      <div class="card" id="overview-card"><b>Your group</b>
+        <p class="hint" id="ov-sum"></p>
+        <ul class="obs" id="ov-list"></ul>
+        <p class="hint">Counts and dates only. No scores, levels or labels. Use it to see who has not had a chance yet, so everyone gets an opportunity to lead.</p>
+      </div>
       <form class="card" id="form">
         <label for="student">Student</label><select id="student" required></select>
         <label for="comp">Skill you observed</label><select id="comp" required></select>
@@ -114,10 +119,13 @@
       } catch (e) { msg(e.message, true); }
     }
     async function start() {
-      const { students } = await call("/api/mentor/students");
+      const { students } = await call("/api/group/overview");
       $("#signin").hidden = true; $("#work").hidden = false;
       $("#who").textContent = "Signed in as " + api.user;
-      $("#student").replaceChildren(...students.map(s => new Option(s, s)));
+      $("#student").replaceChildren(...students.map(s => new Option(s.name ? `${s.name} (${s.id})` : s.id, s.id)));
+      const none = students.filter(s => !s.checkins);
+      $("#ov-sum").textContent = students.length ? `${students.length} students with consent on file. ${students.length - none.length} have done a leadership check-in, ${students.filter(s => s.plan).length} have a growth plan, ${students.filter(s => s.observations).length} have an observation from an adult.` : "";
+      $("#ov-list").replaceChildren(...students.map(s => el("li", {}, el("b", {}, s.name || s.id), el("span", { class: "hint" }, ` · check-ins ${s.checkins} · challenges ${s.challenges} · plan ${s.plan ? "yes" : "not yet"} · adult observations ${s.observations} · last active ${s.lastSeen || "never"}`))));
       $("#comp").replaceChildren(...Object.entries(COMPS).map(([v, t]) => new Option(t, v)));
       $("#chal").replaceChildren(...Object.entries(CHALS).map(([v, t]) => new Option(t, v)));
       if (!students.length) msg("No students with consent on file in your group yet.", true);
@@ -131,7 +139,7 @@
       api = { url: $("#url").value.replace(/\/+$/, ""), token: "", user: "" };
       try {
         const res = await call("/auth/login", { method: "POST", body: { username: $("#user").value, password: $("#pass").value } });
-        if (res.user.role !== "mentor") { api.token = res.token; await call("/auth/logout", { method: "POST", body: {} }); throw new Error("This page is for mentor accounts."); }
+        if (!["mentor", "teacher"].includes(res.user.role)) { api.token = res.token; await call("/auth/logout", { method: "POST", body: {} }); throw new Error("This page is for mentor and teacher accounts."); }
         api.token = res.token; api.user = res.user.username; $("#pass").value = "";
         try { sessionStorage.setItem(KEY, JSON.stringify(api)); } catch (er) { /* ignore */ }
         await start();

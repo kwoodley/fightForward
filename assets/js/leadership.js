@@ -275,11 +275,11 @@
     if (!(window.FFAuth && FFAuth.getToken && FFAuth.getToken())) return null;
     const paint = () => {
       const rows = (mentorRows || []).filter(o => o.level > 0);
-      box.replaceChildren(el("h3", { class: "sub" }, "What a mentor saw"),
+      box.replaceChildren(el("h3", { class: "sub" }, "What an adult saw"),
         rows.length ? el("ul", { class: "jlist" }, rows.slice(0, 8).map(o => el("li", {}, el("span", { class: "jname" }, (COMPS[o.competency] || {}).name || o.competency),
-          meter(o.level, 0), el("span", { class: "hint" }, `${levelName(o.level)} · ${(SUPPORT.find(x => x[0] === o.assistance) || [])[1] || ""} · ${dateStr(o.at)}`))))
-          : el("p", { class: "hint" }, mentorRows ? "A mentor has not added anything yet. Ask a mentor to watch you try a challenge." : "Loading…"),
-        el("p", { class: "hint" }, "A mentor’s view is one more point of view, not a grade. It can differ from yours."));
+          meter(o.level, 0), el("span", { class: "hint" }, `${o.source === "teacher" ? "A teacher" : "A mentor"} saw ${levelName(o.level)} · ${(SUPPORT.find(x => x[0] === o.assistance) || [])[1] || ""} · ${dateStr(o.at)}`))))
+          : el("p", { class: "hint" }, mentorRows ? "A mentor or teacher has not added anything yet. Ask one to watch you try a challenge." : "Loading…"),
+        el("p", { class: "hint" }, "An adult’s view is one more point of view, not a grade. It can differ from yours."));
     };
     paint();
     if (!mentorRows) FFAuth.serverFetch("/student/observations").then(r => { mentorRows = r ? r.observations : []; paint(); });

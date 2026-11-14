@@ -148,6 +148,7 @@ Built in `server/auth.py` and `server/staff.py`; the dashboard signs in with it.
 | `org_admin` | one org | yes |
 | `site_lead` | one site | yes |
 | `mentor` (coach) | one group | yes |
+| `teacher` | one group (the class) | yes. Same access as a mentor, plus a group overview; observations are recorded with source `teacher` |
 | `safety_adult` | none | **no**. Can sign in, but safety messages are a separate path and never part of analytics. |
 
 - Accounts are created on the server: `python3 server/staff.py add --username maria --role site_lead --org "Eastside" --site "Rec Center"` (asks for a password; `list`, `passwd`, `disable`, `enable`, `unlock` also exist). There is no self-signup.
@@ -177,3 +178,11 @@ Built in `server/studentauth.py`, `server/students.py` (issuing tool) and `asset
 - The site uses join code + PIN whenever an events server is configured (`ff.events.url`). With none configured, the first-name sign-in still works on one device (demo mode, GitHub Pages only).
 - `DELETE /students/<id>` also removes the login and sessions.
 - Not built: school SSO (decision pending), self-service PIN reset, printing cards, guardian-visible cards, HTTPS (PINs cross the wire in plain text on the dev server), per-student device binding, and a server-side event limit per token.
+
+## Teacher accounts
+
+Role `teacher` (scope org, site and group, like a mentor): `python3 server/staff.py add --username ... --role teacher --org ... --site ... --group ...`. A teacher without a group is refused.
+- Analytics: same scoped access as a mentor, with small-group suppression.
+- `mentor.html` (now "Mentor and teacher tools") works for both roles. `GET /api/group/overview` lists the group's consented, active students with the greeting first name (if issued), leadership check-ins, challenges done, whether they have a growth plan, number of adult observations and last active date. Counts and dates only: no levels, scores or labels. Use: see who has not had a chance to lead yet.
+- Observations store a `source` (`mentor` or `teacher`). Students see "A teacher saw" or "A mentor saw", never the note or the person.
+- Not built: teacher activity assignment, class-level competency averages for classes under the minimum group size (they are suppressed), co-teacher access to several groups, a teacher-specific rubric, and grade-level or school-wide views (site leads and above already see those through the dashboard).

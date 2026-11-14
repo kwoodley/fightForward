@@ -67,7 +67,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="lobby.html"><span class="brand-mark">FF</span> Fight Forward</a>
-    <div class="user"><span class="user-name">Staff view</span><a class="signout" href="mentor.html">Mentor observations</a></div>
+    <div class="user"><span class="user-name">Staff view</span><a class="signout" href="mentor.html">Mentor and teacher tools</a></div>
   </header>
 
   <main>
@@ -238,7 +238,7 @@
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const FEELING_LABELS = { great: "Great", good: "Good", okay: "Okay", down: "Down", stress: "Stressed or angry" };
     const SESSION_KEY = "ff.dashboard.api";
-    const ROLE_LABELS = { ff_staff: "Fight Forward staff", org_admin: "Organization admin", site_lead: "Site lead", mentor: "Mentor" };
+    const ROLE_LABELS = { ff_staff: "Fight Forward staff", org_admin: "Organization admin", site_lead: "Site lead", mentor: "Mentor", teacher: "Teacher" };
     let mode = "sample", api = null, siteChoices = [], minGroup = MIN_GROUP, seq = 0;
     const name = n => n || "(none)";
 

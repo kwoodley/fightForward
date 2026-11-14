@@ -42,7 +42,7 @@ python3 server/demo_data.py --ops-token ops-test-token
 
 Expect: `Loaded synthetic data for 29 demo students (demo01-demo29)`. This also puts your test student `tester` on the roster in Group A. Demo students are for the dashboard checks in part 5; they are not real.
 
-**0.5 Create four staff accounts** in the same third terminal (the password is for testing only; the `FF_DB` line makes this tool use the test database):
+**0.5 Create five staff accounts** in the same third terminal (the password is for testing only; the `FF_DB` line makes this tool use the test database):
 
 ```
 export FF_DB=server/test.db
@@ -51,10 +51,11 @@ python3 server/staff.py add --username fiona --role ff_staff
 python3 server/staff.py add --username sam   --role site_lead --org "Test Org" --site "Test Site"
 python3 server/staff.py add --username mo    --role mentor    --org "Test Org" --site "Test Site" --group "Group A"
 python3 server/staff.py add --username sasha --role safety_adult
+python3 server/staff.py add --username tina --role teacher --org "Test Org" --site "Test Site" --group "Group A"
 python3 server/staff.py list
 ```
 
-Expect: `Done.` four times, then the list with four accounts.
+Expect: `Done.` five times, then the list with five accounts.
 
 **0.6 Point the student site at the server.** Open <http://localhost:8000/>. Open the browser developer tools (Chrome: View > Developer > Developer Tools), Console tab, and run:
 
@@ -279,12 +280,24 @@ curl -s -H "Authorization: Bearer ops-test-token" localhost:8787/api/aggregate
 | 4g.3 | Group B or C (small group) | The card says "Hidden: groups under 10 youth are not shown" |
 | 4g.4 | Look for any name, per-student figure or written text | None. Only group percentages and counts |
 
+**Teacher accounts** (`tina`, role `teacher`, Group A; same page, `mentor.html`):
+
+| # | Check | Expect |
+|---|---|---|
+| 4t.1 | `python3 server/staff.py add --username tom --role teacher --org "Test Org" --site "Test Site"` (no group) | Refused: "teacher needs org, site, group" |
+| 4t.2 | Sign in as `tina` on `mentor.html` | Works. A **Your group** card lists Group A students with consent (first names if issued with `--names`) with counts and dates only: check-ins, challenges, plan yes/not yet, adult observations, last active. **No scores, levels or labels.** The summary line counts who has done a check-in |
+| 4t.3 | Record an observation for a student as `tina`, then as `mo` for the same student | Both save. In the student's list each shows its own username; `sqlite3 server/test.db 'select observer, source from observations'` shows `teacher` for Tina's and `mentor` for Mo's |
+| 4t.4 | Sign in as that student with a join code (part 9), Leadership Lab > My journey | "What an adult saw" lists "A teacher saw ..." and "A mentor saw ...", with skill, level, help and date. No note, no name |
+| 4t.5 | Sign in as `tina` on the dashboard | Only Test Org › Test Site and Group A are offered (same as a mentor). The live cards work and small groups are hidden. The signed-in line says "Teacher" |
+| 4t.6 | As `tina`, ask for a Group B student's observations or Group C aggregates with curl | 403 in both cases |
+| 4t.7 | `python3 server/events_report.py --audit` | `group_overview_view`, `observation_add` and `mentor_students_view` rows with `tina` as the actor |
+
 **Mentor observations** (`mentor.html`, linked from "Mentor observations" in the dashboard header). Sign out between accounts:
 
 | # | Check | Expect |
 |---|---|---|
-| 4m.1 | Open the dashboard header | A "Mentor observations" link opens `mentor.html` |
-| 4m.2 | On `mentor.html`, sign in as `sam` (site lead) or `fiona` | Refused: "This page is for mentor accounts." (You are not left signed in) |
+| 4m.1 | Open the dashboard header | A "Mentor and teacher tools" link opens `mentor.html` |
+| 4m.2 | On `mentor.html`, sign in as `sam` (site lead) or `fiona` | Refused: "This page is for mentor and teacher accounts." (You are not left signed in) |
 | 4m.3 | Sign in as `mo` (mentor, Group A) | The student list shows only Group A students that have consent: `tester` and `demo` students, none from Group B or C |
 | 4m.4 | Pick `demo01`, **Teamwork**, **Not observed**, and save | Saved. No help question is asked for "Not observed". It appears in the list as "Not observed", not as a low level |
 | 4m.5 | Pick a level with no help answer and save | A message asks how much help the student had |
@@ -292,7 +305,7 @@ curl -s -H "Authorization: Bearer ops-test-token" localhost:8787/api/aggregate
 | 4m.7 | Delete your own observation | Gone after confirming. Observations by other mentors have no delete button |
 | 4m.8 | In a terminal with a mentor token: `curl -s -X POST localhost:8787/api/observations -H "Authorization: Bearer TOKEN" -d '{"studentId":"demo20","competency":"teamwork","level":3,"assistance":"alone"}'` where `demo20` is in Group B | HTTP 403 "not in your group or has no consent on file" |
 | 4m.9 | The same call with a made-up competency, or a level of 9 | HTTP 400 with a clear reason |
-| 4m.10 | `curl -s -H "Authorization: Bearer TOKEN" localhost:8787/api/observations?studentId=demo01` using `sam`'s token | HTTP 403 "only mentors with a group can record observations" |
+| 4m.10 | `curl -s -H "Authorization: Bearer TOKEN" localhost:8787/api/observations?studentId=demo01` using `sam`'s token | HTTP 403 "only mentors and teachers with a group can record observations" |
 | 4m.11 | Set a student's roster `consent` to false (re-run `PUT /roster` for them), reload as `mo` | That student is gone from the list and their observations return 403 |
 | 4m.12 | `python3 server/events_report.py --audit` | Rows `observation_add`, `observation_view`, `observation_delete`, `mentor_students_view` and `observation_denied`, each with the mentor's username |
 | 4m.13 | Dashboard as `fiona`, Leadership card, after at least 10 different youth have an observation | An extra line shows the share of youth with a mentor observation. With fewer than 10 youth it is not shown. It never shows a note or a level for a student |
@@ -398,7 +411,7 @@ Expect a table of three ids (`s` plus 12 characters), join codes like `K7M2-9QXA
 | 9.14 | **Expiry.** In the Console set the `expiresAt` inside `ff.student.token.v1` to a past date and open the lobby | You are sent to the login page. Events queued in `ff.outbox.v1` are kept, not dropped, and are sent after signing in again |
 | 9.15 | **Require sign-in.** Restart the server with `FF_REQUIRE_STUDENT_AUTH=1`. Send an event with no token | HTTP 401 "student sign-in required". Signed-in students still work. Restart without it afterward |
 | 9.16 | **Consent still applies.** Issue a student without `--consent`, restart with `FF_REQUIRE_CONSENT=1`, and sign in | Sign-in works but the events are acknowledged and not stored (as in part 3) |
-| 9.17 | **Mentor sees the student.** Sign in as `mo` on `mentor.html` (Group A) and record a level-3 observation for Ana's id. Then sign in as Ana and open Leadership Lab > My journey | A "What a mentor saw" box shows the skill, level, help and date. It does **not** show the note or the mentor's name |
+| 9.17 | **Mentor sees the student.** Sign in as `mo` on `mentor.html` (Group A) and record a level-3 observation for Ana's id. Then sign in as Ana and open Leadership Lab > My journey | A "What an adult saw" box shows who saw it (a mentor or a teacher), the skill, level, help and date. It does **not** show the note or the mentor's name |
 | 9.18 | `python3 server/events_report.py --audit` | `student_sign_in` rows carry the opaque id, `student_sign_in_failed` rows carry nothing identifying, and `students_issued` shows counts only. No PINs or names appear anywhere |
 | 9.19 | **Delete.** `curl -X DELETE -H "Authorization: Bearer ops-test-token" localhost:8787/students/<Ana's id>` | Her events, observations, login and sessions are gone. Her code no longer works |
 
