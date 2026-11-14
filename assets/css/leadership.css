@@ -1,0 +1,31 @@
+/* Leadership Lab (Path 03). Uses the shared variables in site.css. */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.tabs .pill, #lab-root .chips .pill { min-height: 44px; }
+#lab-root .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+#lab-root label { display: block; margin: 12px 0 2px; }
+#lab-root .sub { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 20px; text-transform: uppercase; letter-spacing: .03em; margin: 16px 0 8px; }
+#lab-root .card .sub:first-child { margin-top: 0; }
+#lab-root fieldset.comp { border: 1px solid var(--ink-3); border-radius: 12px; background: var(--ink); padding: 12px 14px; margin: 0 0 12px; min-width: 0; }
+#lab-root fieldset.comp legend { padding: 0 6px; font-weight: 700; }
+#lab-root fieldset.comp p { margin: 0 0 8px; }
+#lab-root .levels { margin: 0 0 12px; color: var(--silver); font-size: 14px; }
+#lab-root .levels summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+#lab-root .levels ul { margin: 0; padding-left: 20px; }
+#lab-root .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+#lab-root .btn[disabled] { opacity: .45; cursor: not-allowed; }
+#lab-root .toast { min-height: 1.4em; margin: 0 0 8px; color: var(--silver); }
+#lab-root .clist { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
+#lab-root .citem { background: var(--ink); border: 1px solid var(--ink-3); border-radius: 12px; padding: 12px 14px; }
+#lab-root .citem p { margin: 4px 0; }
+#lab-root .cgrid { grid-template-columns: repeat(3, 1fr); margin-bottom: 16px; }
+#lab-root .jcard { margin: 0 0 12px; }
+#lab-root .jlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+#lab-root .jlist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; }
+#lab-root .jname { font-weight: 600; }
+#lab-root .jlist .hint { grid-column: 1 / -1; }
+.meter { display: inline-flex; gap: 3px; }
+.meter .seg { width: 22px; height: 10px; border-radius: 3px; background: var(--ink-3); }
+.meter .seg.on { background: var(--red); }
+.meter .seg.was { background: #5a2a2c; }
+@media (max-width: 900px) { #lab-root .cgrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { #lab-root .cgrid { grid-template-columns: 1fr; } }

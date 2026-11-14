@@ -142,6 +142,13 @@
     </section>
 
     <div class="card" style="margin-top:14px">
+      <h2>Youth leadership growth</h2>
+      <ul class="list" id="lgrowth"></ul>
+      <div class="bars" id="lcomps"></div>
+      <p class="note">Self-reported by youth, shown only as group totals. “Not yet tried” means a student has not had the chance, not a low score. Never used to rank or label individual students.</p>
+    </div>
+
+    <div class="card" style="margin-top:14px">
       <h2>Built-in privacy</h2>
       <p class="lede" style="margin:0">Groups smaller than 10 youth are hidden so no one can be picked out of the numbers.</p>
       <div class="privacy">
@@ -216,7 +223,10 @@
         ["24%", "moved to an option at a similar level"], ["14%", "moved to a weaker option"]]);
       stats($("#engage"), scaled(d.engage)); stats($("#support"), scaled(d.support, () => false));
       stats($("#cardio"), scaled(d.cardio, (i) => i === 0)); stats($("#leaders"), scaled(d.leaders));
-      if (hidden) document.querySelectorAll("#mood, #support, #reconsider").forEach(n => n.replaceChildren(el("p", "suppressed", `Hidden: groups under ${MIN_GROUP} youth are not shown.`)));
+      stats($("#lgrowth"), [["78%", "of youth completed a leadership check-in"], ["64%", "of re-checked youth grew in at least one skill"],
+        [scaleN(41), "leadership challenges looked back on"], ["52%", "of youth have a growth plan"]]);
+      bars($("#lcomps"), [["Teamwork & cooperation", 71], ["Communication & listening", 64], ["Initiative & positive influence", 48], ["Conflict resolution & problem solving", 39]], v => v + "% Demonstrating or Inspiring");
+      if (hidden) document.querySelectorAll("#mood, #support, #reconsider, #lgrowth, #lcomps").forEach(n => n.replaceChildren(el("p", "suppressed", `Hidden: groups under ${MIN_GROUP} youth are not shown.`)));
     }
     function fillSampleSites() {
       $("#site").replaceChildren(...Object.keys(SITES).map(s => new Option(s)));
@@ -292,7 +302,7 @@
     }
 
     function renderLiveData(d) {
-      const panels = ["#reconsider", "#skills", "#mood", "#engage", "#support", "#cardio", "#leaders"];
+      const panels = ["#reconsider", "#skills", "#mood", "#engage", "#support", "#cardio", "#leaders", "#lgrowth"];
       if (d.suppressed) {
         $("#kpis").replaceChildren(el("div", "card kpi", `<div class="l">Hidden: groups under ${minGroup} youth are not shown.</div>`));
         panels.forEach(p => $(p).replaceChildren(hiddenMsg()));
@@ -352,6 +362,16 @@
           [l.invitations, "invitations for others to share"], [l.questionsWritten + l.questionsPicked, `questions asked (${l.questionsWritten} written by youth)`]]);
         $("#leaders").append(el("li", "", `<span class="suppressed">Redirects and respectful disagreement need observer tagging. Not tracked yet.</span>`));
       }
+      renderLeadershipGrowth(d.leadershipGrowth);
+    }
+
+    function renderLeadershipGrowth(g) {
+      if (!g || g.suppressed) { $("#lgrowth").replaceChildren(hiddenMsg()); $("#lcomps").replaceChildren(); return; }
+      const pc = v => v == null ? "—" : v + "%";
+      stats($("#lgrowth"), [[g.checkedPercent + "%", "of youth completed a leadership check-in"], [pc(g.grewPercent), "of re-checked youth grew in at least one skill"],
+        [g.challengesDone == null ? "—" : g.challengesDone, "leadership challenges looked back on"], [pc(g.planPercent), "of youth have a growth plan"]]);
+      liveBars($("#lcomps"), g.competencies.map(c => c.suppressed ? { label: c.label, hidden: true } :
+        { label: c.label, text: c.strongPercent == null ? `${c.notYetPercent}% not yet tried` : `${c.strongPercent}% Demonstrating or Inspiring · ${c.notYetPercent}% not yet tried`, width: c.strongPercent || 0 }));
     }
 
     async function renderLive() {

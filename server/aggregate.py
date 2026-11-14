@@ -8,6 +8,7 @@ Rules (from the product concept doc):
   - Skill growth is a trend against the previous period of the same length, not a grade for anyone.
   - Check-ins are shown as feeling totals only. Reasons are never output.
 """
+import json
 from datetime import datetime, timedelta, timezone
 
 SKILLS = {"peer": "Peer pressure", "conflict": "Conflict resolution", "emotion": "Emotional control", "responsible": "Responsible choices"}
@@ -79,6 +80,12 @@ def scopes(db, min_group, staff=None):
     if staff:
         result["scope"] = {k: staff[k] for k in ("org", "site", "group")}
     return result
+
+LEADERSHIP = {"self_awareness": "Self-awareness & confidence", "responsibility": "Responsibility & accountability", "self_discipline": "Self-discipline & goals",
+              "communication": "Communication & listening", "empathy": "Empathy & emotional intelligence", "inclusion": "Respect, inclusion & collaboration",
+              "teamwork": "Teamwork & cooperation", "conflict": "Conflict resolution & problem solving", "initiative": "Initiative & positive influence",
+              "decisions": "Critical thinking & decisions", "creativity": "Creativity & innovation", "adaptability": "Adaptability & resilience",
+              "integrity": "Integrity & ethics", "service": "Service & community", "vision": "Vision, purpose & empowering others"}
 
 def aggregate(db, scope, start, end, min_group):
     """scope = {"org":..., "site":..., "group":...} (any may be empty). start/end are datetimes."""
@@ -193,4 +200,39 @@ def aggregate(db, scope, start, end, min_group):
                              "minutesFacilitating": round((secs or 0) / 60), "invitations": invites,
                              "questionsPicked": sources.get("picked", 0), "questionsWritten": sources.get("written", 0),
                              "joinedPercent": pct(joined, enrolled) if joined >= min_group else None}
+    # Leadership Lab: self-reported group trends only. Per-competency figures need the minimum number of youth;
+    # "not yet tried" is reported as a share of youth (an access signal), never as a low score. No per-child score or label.
+    rows = q("SELECT student_id, at, payload " + base + "AND type = 'leadership_check' ORDER BY at")
+    checks = {}
+    for sid_, _, payload in rows:
+        try:
+            sc = json.loads(payload).get("scores") or {}
+        except ValueError:
+            continue
+        checks.setdefault(sid_, []).append(sc)
+    plan_youth = q("SELECT COUNT(DISTINCT student_id) " + base + "AND type = 'growth_plan_set'")[0][0]
+    ch_youth, ch_done = q("SELECT COUNT(DISTINCT student_id), COUNT(*) " + base + "AND type = 'challenge_done'")[0]
+    if len(checks) < min_group:
+        out["leadershipGrowth"] = {"suppressed": True}
+    else:
+        comps = []
+        for cid in LEADERSHIP:
+            lv = [c[-1].get(cid) for c in checks.values() if c[-1].get(cid) is not None]
+            tried = [v for v in lv if v > 0]
+            row = {"id": cid, "label": LEADERSHIP[cid]}
+            if len(lv) < min_group:
+                row["suppressed"] = True
+            else:
+                row.update(youth=len(lv), notYetPercent=pct(len(lv) - len(tried), len(lv)),
+                           strongPercent=pct(sum(1 for v in tried if v >= 3), len(tried)) if len(tried) >= min_group else None)
+            comps.append(row)
+        pairs = [(c[0], c[-1]) for c in checks.values() if len(c) > 1]
+        grew = None
+        if len(pairs) >= min_group:
+            grew = pct(sum(1 for a, b in pairs if any(b.get(k, 0) > a.get(k, 0) > 0 for k in b)), len(pairs))
+        out["leadershipGrowth"] = {
+            "youthChecked": len(checks), "checkedPercent": pct(len(checks), enrolled), "recheckYouth": len(pairs), "grewPercent": grew,
+            "challengesDone": ch_done if ch_youth >= min_group else None,
+            "challengeYouthPercent": pct(ch_youth, enrolled) if ch_youth >= min_group else None,
+            "planPercent": pct(plan_youth, enrolled) if plan_youth >= min_group else None, "competencies": comps}
     return out

@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/paths.css">
+  <link rel="stylesheet" href="assets/css/leadership.css">
   <style>
 
     /* ---------- Walk to the ring ---------- */
@@ -102,6 +103,12 @@
       <p class="walk-cta"><button class="btn" type="button" id="enter">Step into the ring</button></p>
     </section>
 
+    <section class="block" id="lab" aria-labelledby="lab-title">
+      <h2 class="section-title" id="lab-title">Leadership Lab</h2>
+      <p class="section-sub">Discover your strengths. Develop them. Show them. Grow. Every student can lead, loud or quiet.</p>
+      <div class="card" id="lab-root"></div>
+    </section>
+
     <section class="block room" id="room" hidden aria-labelledby="room-title">
       <div class="room-top">
         <h2 id="room-title" tabindex="-1">Ring talk: <span id="room-topic">Topic</span></h2>
@@ -142,6 +149,7 @@
   <script src="assets/js/intro.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/content.js"></script>
+  <script src="assets/js/leadership.js"></script>
   <script>
     const user = FFAuth.requireUser();
     const $ = s => document.querySelector(s);
@@ -295,12 +303,12 @@
 
     // ---------- Flow ----------
     function enter() {
-      $("#walk").hidden = true; $("#room").hidden = false;
+      $("#walk").hidden = true; $("#lab").hidden = true; $("#room").hidden = false;
       if (!inRing) { inRing = Date.now(); FFAuth.logEvent("ring_enter", { topic }); }
       $("#room-title").focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: "smooth" });
     }
     $("#enter").addEventListener("click", enter);
-    $("#leave").addEventListener("click", () => { leaveRing("left_ring"); $("#room").hidden = true; $("#walk").hidden = false; $("#care").hidden = true; window.scrollTo({ top: 0 }); });
+    $("#leave").addEventListener("click", () => { leaveRing("left_ring"); $("#room").hidden = true; $("#walk").hidden = false; $("#lab").hidden = false; $("#care").hidden = true; window.scrollTo({ top: 0 }); });
 
     renderStarters(); renderLead(); render();
   </script>

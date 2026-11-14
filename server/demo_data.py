@@ -68,6 +68,15 @@ def main():
                 ev(sid, day, 18, "question_introduced", sess, topic="Communication", source=rng.choice(["picked", "written"]))
                 ev(sid, day, 17, "invite_sent", sess, topic="Communication")
                 ev(sid, day, 15, "facilitate_end", sess, topic="Communication", secs=240, questions=1, invitations=1, reason="stopped")
+            if rng.random() < 0.3:
+                comps = ["self_awareness", "responsibility", "self_discipline", "communication", "empathy", "inclusion", "teamwork", "conflict",
+                         "initiative", "decisions", "creativity", "adaptability", "integrity", "service", "vision"]
+                ev(sid, day, 14, "leadership_check", sess, source="self", rated=12, notYet=3,
+                   scores={c: rng.choice([0, 1, 2, 2, 3, 3, 4]) for c in comps})
+                if rng.random() < 0.5:
+                    ev(sid, day, 13, "challenge_done", sess, challenge="welcome", skills=["empathy"], support="some", confidenceBefore=2, confidenceAfter=3, followUp=False)
+                if rng.random() < 0.4:
+                    ev(sid, day, 12, "growth_plan_set", sess, grow=["conflict"], strength="empathy", days=[30, 60, 90])
             ev(sid, day, 5, "checkin", sess, phase="end", feeling=rng.choice(FEELINGS[:3]), reason="y")
             ev(sid, day, 4, "session_end", sess, reason="signout", durationMs=3300000, endCheckin=True)
     for i in range(0, len(events), 400):

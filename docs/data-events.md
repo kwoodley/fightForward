@@ -97,6 +97,7 @@ Stored today in `ff.ring.thread.v1:<id>:<month>` as `{ name, text, q, at }` (`br
 | Questions introduced | **Built** | `question_introduced` with `source` `picked` or `written`, only while leading. The text of a written question stays on the device. |
 | Invitations to others | **Built** | "I invited someone to share" button (a tap when the student asks a quieter person in the room) logs `invite_sent`. No names. |
 | Redirects, respectful disagreement, conflict practice | Missing | Needs facilitator or peer tagging (a one-tap rubric), not text analysis. Needs an observer role and a server-side thread first; today the thread lives on one device. |
+| Leadership Lab (Ring page) | **Built (client, allowlist, `leadershipGrowth` aggregate, dashboard card)** | Source: planning docs "Bring It to the Ring 2 and 3". `leadership_check` (`scores` by competency id, 0 = not yet tried, 1 to 4; `rated`, `notYet`, `source: "self"`), `challenge_plan`, `challenge_done` (`support`, confidence before/after, `followUp`), `growth_plan_set`, `growth_goal_done`. Reflections, goals and plans stay in `ff.leadership.v1:<id>`; never sent. |
 
 Events carry counts and sources, never post text, and a post flagged by the safety screen sends exactly the same `ring_post` as any other post. Safety messages stay in `ff.safety.queue.v1`.
 
@@ -155,3 +156,10 @@ Built in `server/auth.py` and `server/staff.py`; the dashboard signs in with it.
 - Scope is enforced on the server. A request outside the person's scope gets 403 (and is audited as `aggregate_denied`); a request that names less is filled in from their scope. `/api/scopes` lists only their branch and withholds totals above their level.
 - Audit rows record the staff username for sign-in, sign-out, failed sign-in, scope list views, aggregate views and denied requests.
 - Not done: HTTPS (required before any real use, since passwords and tokens cross the wire), password reset by email, two-factor sign-in, an audit-log viewer, the safety-adult inbox, and guardian accounts (the parent cycle).
+
+## Leadership Lab: what the planning docs asked for and what was left out
+
+Built (student self-view only): 15 competencies in 5 domains, four-level scale plus "not yet tried" (kept separate from low), Leadership Challenges with before/after/follow-up, growth plan (30/60/90 days, always includes a strength to use), journey view with baseline vs now.
+Deliberately changed to fit the product rules: no overall leadership score and no six "profile types" (a single score or label per child), no weighted mix of sources, nothing used for ranking or choosing leaders. Safety text is never used to score.
+Dashboard: `aggregate.py` returns `leadershipGrowth` and `dashboard.html` shows it: share of youth with a check-in, share of re-checked youth who rose in at least one skill, challenges done, share with a plan, and per competency the share at Demonstrating/Inspiring plus the share not yet tried (an access signal, not a low score). Every figure is suppressed under the minimum group size.
+Not built: teacher/mentor observation and peer feedback (needs the observer role and consent), rubric validation, district-level reports, leadership portfolio, and the Leadership Opportunity Index (needs mentor data).
