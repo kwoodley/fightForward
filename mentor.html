@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mentor observations · Fight Forward Academy</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/paths.css">
+  <style>
+    main { max-width: 760px; margin: 0 auto; padding: clamp(20px, 4vw, 40px) var(--gutter) 60px; }
+    h1 { font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase; font-size: clamp(30px, 6vw, 48px); line-height: 1.05; margin: 4px 0 8px; }
+    .card { margin: 0 0 16px; }
+    label { display: block; margin: 12px 0 4px; font-size: 13px; color: var(--muted); }
+    select, input { width: 100%; min-height: 44px; font: inherit; font-size: 16px; color: var(--text); background: var(--ink); border: 1px solid var(--ink-3); border-radius: 12px; padding: 10px 12px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips .pill { min-height: 44px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+    .status { min-height: 1.4em; font-size: 14px; color: var(--silver); }
+    .status.err { color: #ff8a8a; }
+    .obs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .obs li { background: var(--ink); border: 1px solid var(--ink-3); border-radius: 12px; padding: 10px 14px; }
+    .obs p { margin: 4px 0 0; }
+    .obs button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; text-decoration: underline; cursor: pointer; min-height: 44px; padding: 0; }
+  </style>
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon-32.png" type="image/png" sizes="32x32">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="lobby.html"><span class="brand-mark" aria-hidden="true">FF</span> Fight Forward</a>
+    <div class="user"><span class="user-name">Mentor view</span></div>
+  </header>
+  <main>
+    <p class="eyebrow">Path 03 · Leadership Lab</p>
+    <h1>Mentor observations</h1>
+    <p class="section-sub">Record what you saw a student do. One skill, one level, at one point in time. It is not a grade or a label, and it is not used to pick or rank leaders. “Not observed” is not a low score.</p>
+
+    <form class="card" id="signin">
+      <b>Sign in</b>
+      <label for="url">Server address</label><input id="url" type="url" value="http://localhost:8787" required>
+      <label for="user">Username</label><input id="user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      <label for="pass">Password</label><input id="pass" type="password" autocomplete="current-password" required>
+      <div class="row"><button class="btn" type="submit">Sign in</button></div>
+      <p class="hint">Mentor accounts are created by Fight Forward and cover one group. You only see students in that group who have guardian consent on file.</p>
+    </form>
+
+    <div id="work" hidden>
+      <div class="row" style="margin:0 0 12px"><span id="who" class="hint"></span><button class="btn btn-ghost" type="button" id="out">Sign out</button></div>
+      <form class="card" id="form">
+        <label for="student">Student</label><select id="student" required></select>
+        <label for="comp">Skill you observed</label><select id="comp" required></select>
+        <label for="chal">During</label><select id="chal"></select>
+        <label id="lvl-l">What level did you see?</label>
+        <div class="chips" id="lvl" role="group" aria-labelledby="lvl-l"></div>
+        <div id="assist-box">
+          <label id="as-l">How much help did the student have?</label>
+          <div class="chips" id="assist" role="group" aria-labelledby="as-l"></div>
+        </div>
+        <label for="note">Note (optional, what you saw them do, up to 500 characters)</label>
+        <textarea id="note" maxlength="500" rows="3"></textarea>
+        <p class="notice"><span><strong>Leadership behavior only.</strong> Do not record a safety concern here. Follow your school’s safeguarding procedure. Notes stay on the server, are visible to mentors in this group, and are never shown in group reports.</span></p>
+        <div class="row"><button class="btn" type="submit">Save observation</button><span class="status" id="msg" role="status" aria-live="polite"></span></div>
+      </form>
+      <div class="card"><b>This student’s observations</b><ul class="obs" id="list"></ul><p class="hint" id="none">Nothing recorded yet.</p></div>
+    </div>
+  </main>
+  <script>
+    const $ = s => document.querySelector(s);
+    const COMPS = { self_awareness: "Self-awareness & confidence", responsibility: "Responsibility & accountability", self_discipline: "Self-discipline & goals",
+      communication: "Communication & listening", empathy: "Empathy & emotional intelligence", inclusion: "Respect, inclusion & collaboration", teamwork: "Teamwork & cooperation",
+      conflict: "Conflict resolution & problem solving", initiative: "Initiative & positive influence", decisions: "Critical thinking & decisions", creativity: "Creativity & innovation",
+      adaptability: "Adaptability & resilience", integrity: "Integrity & ethics", service: "Service & community", vision: "Vision, purpose & empowering others" };
+    const CHALS = { other: "Something else", lead_discussion: "Leading a group discussion", service_project: "A service project", welcome: "Welcoming a new student",
+      team_assignment: "A team assignment", school_idea: "Proposing a school idea", mediation: "A supervised disagreement practice" };
+    const LEVELS = [[0, "Not observed"], [1, "1 Emerging"], [2, "2 Developing"], [3, "3 Demonstrating"], [4, "4 Inspiring"]];
+    const HELP = [["alone", "On their own"], ["some", "A little help"], ["lots", "A lot of help"]];
+    const KEY = "ff.mentor.api";
+    let api = null, level = null, assist = "";
+    function el(tag, attrs, ...kids) { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); } n.append(...kids); return n; }
+    const msg = (t, err) => { const m = $("#msg"); m.textContent = t; m.className = "status" + (err ? " err" : ""); };
+
+    async function call(path, opts = {}) {
+      let res;
+      try { res = await fetch(api.url + path, { method: opts.method || "GET", body: opts.body && JSON.stringify(opts.body),
+        headers: { ...(opts.body ? { "Content-Type": "application/json" } : {}), ...(api.token ? { Authorization: "Bearer " + api.token } : {}) } }); }
+      catch (e) { throw new Error("Could not reach the server."); }
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) { if (api.token) signOut(); throw new Error(data.error || "Please sign in again."); }
+      if (!res.ok) throw new Error(data.error || "The server returned an error (" + res.status + ").");
+      return data;
+    }
+    function chips(box, items, current, pick) {
+      box.replaceChildren(...items.map(([v, t]) => el("button", { type: "button", class: "pill", "aria-pressed": String(current === v), onclick: () => pick(v) }, t)));
+    }
+    function paintChips() {
+      chips($("#lvl"), LEVELS, level, v => { level = v; if (v === 0) assist = ""; paintChips(); });
+      $("#assist-box").hidden = !level;
+      chips($("#assist"), HELP, assist, v => { assist = v; paintChips(); });
+    }
+    async function loadList() {
+      const id = $("#student").value; if (!id) return;
+      try {
+        const { observations } = await call("/api/observations?studentId=" + encodeURIComponent(id));
+        $("#none").hidden = observations.length > 0;
+        $("#list").replaceChildren(...observations.map(o => el("li", {},
+          el("b", {}, COMPS[o.competency] || o.competency), " · ", o.level ? LEVELS[o.level][1] : "Not observed",
+          el("span", { class: "hint" }, ` · ${new Date(o.at).toLocaleDateString()} · ${o.observer}`),
+          o.note ? el("p", {}, o.note) : "",
+          o.observer === api.user ? el("button", { type: "button", onclick: async () => { if (!confirm("Delete this observation?")) return; try { await call("/api/observations/" + o.id, { method: "DELETE" }); loadList(); } catch (e) { msg(e.message, true); } } }, "Delete") : "")));
+      } catch (e) { msg(e.message, true); }
+    }
+    async function start() {
+      const { students } = await call("/api/mentor/students");
+      $("#signin").hidden = true; $("#work").hidden = false;
+      $("#who").textContent = "Signed in as " + api.user;
+      $("#student").replaceChildren(...students.map(s => new Option(s, s)));
+      $("#comp").replaceChildren(...Object.entries(COMPS).map(([v, t]) => new Option(t, v)));
+      $("#chal").replaceChildren(...Object.entries(CHALS).map(([v, t]) => new Option(t, v)));
+      if (!students.length) msg("No students with consent on file in your group yet.", true);
+      paintChips(); loadList();
+    }
+    function signOut() { try { sessionStorage.removeItem(KEY); } catch (e) { /* ignore */ } api = null; $("#signin").hidden = false; $("#work").hidden = true; }
+    $("#out").addEventListener("click", async () => { try { await call("/auth/logout", { method: "POST", body: {} }); } catch (e) { /* ignore */ } signOut(); });
+    $("#student").addEventListener("change", loadList);
+    $("#signin").addEventListener("submit", async e => {
+      e.preventDefault();
+      api = { url: $("#url").value.replace(/\/+$/, ""), token: "", user: "" };
+      try {
+        const res = await call("/auth/login", { method: "POST", body: { username: $("#user").value, password: $("#pass").value } });
+        if (res.user.role !== "mentor") { api.token = res.token; await call("/auth/logout", { method: "POST", body: {} }); throw new Error("This page is for mentor accounts."); }
+        api.token = res.token; api.user = res.user.username; $("#pass").value = "";
+        try { sessionStorage.setItem(KEY, JSON.stringify(api)); } catch (er) { /* ignore */ }
+        await start();
+      } catch (er) { api = null; alert(er.message); }
+    });
+    $("#form").addEventListener("submit", async e => {
+      e.preventDefault();
+      if (level == null) return msg("Pick a level (or Not observed).", true);
+      if (level && !assist) return msg("Pick how much help the student had.", true);
+      try {
+        await call("/api/observations", { method: "POST", body: { studentId: $("#student").value, competency: $("#comp").value, challenge: $("#chal").value, level, assistance: assist, note: $("#note").value } });
+        msg("Saved."); $("#note").value = ""; level = null; assist = ""; paintChips(); loadList();
+      } catch (er) { msg(er.message, true); }
+    });
+    try { const saved = JSON.parse(sessionStorage.getItem(KEY)); if (saved && saved.token) { api = saved; start().catch(signOut); } } catch (e) { /* ignore */ }
+  </script>
+</body>
+</html>

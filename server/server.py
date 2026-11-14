@@ -32,6 +32,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import aggregate
 import auth
+import observations
 
 DB = os.environ.get("FF_DB", os.path.join(os.path.dirname(os.path.abspath(__file__)), "events.db"))
 PORT = int(os.environ.get("PORT", "8787"))
@@ -66,6 +67,7 @@ def connect():
     except sqlite3.OperationalError:
         pass
     auth.init(db)
+    observations.init(db)
     db.execute("CREATE INDEX IF NOT EXISTS events_student ON events (student_id, at)")
     db.execute("CREATE INDEX IF NOT EXISTS events_org ON events (org, site, group_name, type, at)")
     return db
@@ -198,10 +200,63 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             db.close()
 
+    def _mentor(self, db):
+        """The signed-in mentor, or None after sending the refusal. Only mentors see or write observations."""
+        who = self._staff(db, view=False)
+        if not who:
+            return None
+        if who["role"] != "mentor" or not (who["org"] or who["site"] or who["group"]) or not who["group"]:
+            audit(db, "observation_denied", {"role": who["role"]}, who["username"])
+            self._send(403, {"error": "only mentors with a group can record observations"})
+            return None
+        return who
+
+    def _mentor_get(self, url):
+        db = connect()
+        try:
+            who = self._mentor(db)
+            if not who:
+                return
+            if url.path == "/api/mentor/students":
+                audit(db, "mentor_students_view", {}, who["username"])
+                return self._send(200, {"students": observations.students(db, who)})
+            student = parse_qs(url.query).get("studentId", [""])[0]
+            rows = observations.listing(db, who, student)
+            if rows is None:
+                audit(db, "observation_denied", {"studentId": student}, who["username"])
+                return self._send(403, {"error": "that student is not in your group or has no consent on file"})
+            audit(db, "observation_view", {"studentId": student}, who["username"])
+            self._send(200, {"observations": rows})
+        finally:
+            db.close()
+
+    def _observation_post(self):
+        data = self._json_body()
+        if data is None:
+            return
+        problem = observations.validate(data)
+        if problem:
+            return self._send(400, {"error": problem})
+        db = connect()
+        try:
+            who = self._mentor(db)
+            if not who:
+                return
+            obs_id, err = observations.add(db, who, data)
+            if err:
+                audit(db, "observation_denied", {"studentId": data["studentId"]}, who["username"])
+                return self._send(403, {"error": "that student is not in your group or has no consent on file"})
+            audit(db, "observation_add", {"studentId": data["studentId"], "competency": data["competency"], "id": obs_id}, who["username"])
+            self._send(200, {"id": obs_id})
+        finally:
+            db.close()
+
     def do_GET(self):
         url = urlparse(self.path)
         if url.path == "/health":
             return self._send(200, {"ok": True})
+        if url.path in ("/api/mentor/students", "/api/observations"):
+            return self._mentor_get(url)
         if url.path not in ("/auth/me", "/api/scopes", "/api/aggregate"):
             return self._send(404, {"error": "not found"})
         db = connect()
@@ -259,6 +314,21 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         path = urlparse(self.path).path
+        if path.startswith("/api/observations/"):
+            db = connect()
+            try:
+                who = self._mentor(db)
+                if not who:
+                    return
+                try:
+                    obs_id = int(path.rsplit("/", 1)[1])
+                except ValueError:
+                    return self._send(400, {"error": "bad id"})
+                gone = observations.remove(db, who, obs_id)
+                audit(db, "observation_delete", {"id": obs_id, "deleted": gone}, who["username"])
+                return self._send(200 if gone else 404, {"deleted": gone})
+            finally:
+                db.close()
         if not path.startswith("/students/") or len(path) <= len("/students/"):
             return self._send(404, {"error": "not found"})
         if not self._admin():
@@ -268,6 +338,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             with db:
                 events = db.execute("DELETE FROM events WHERE student_id = ?", (student,)).rowcount
+                db.execute("DELETE FROM observations WHERE student_id = ?", (student,))
                 roster = db.execute("DELETE FROM roster WHERE student_id = ?", (student,)).rowcount
             audit(db, "student_deleted", {"studentId": student, "events": events, "roster": roster})
         finally:
@@ -287,6 +358,8 @@ class Handler(BaseHTTPRequestHandler):
             finally:
                 db.close()
             return self._send(200, {"ok": True})
+        if self.path == "/api/observations":
+            return self._observation_post()
         if self.path != "/events":
             return self._send(404, {"error": "not found"})
         events = self._json_body("events")

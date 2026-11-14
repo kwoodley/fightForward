@@ -67,7 +67,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="lobby.html"><span class="brand-mark">FF</span> Fight Forward</a>
-    <div class="user"><span class="user-name">Staff view</span></div>
+    <div class="user"><span class="user-name">Staff view</span><a class="signout" href="mentor.html">Mentor observations</a></div>
   </header>
 
   <main>
@@ -370,6 +370,7 @@
       const pc = v => v == null ? "—" : v + "%";
       stats($("#lgrowth"), [[g.checkedPercent + "%", "of youth completed a leadership check-in"], [pc(g.grewPercent), "of re-checked youth grew in at least one skill"],
         [g.challengesDone == null ? "—" : g.challengesDone, "leadership challenges looked back on"], [pc(g.planPercent), "of youth have a growth plan"]]);
+      if (g.observedPercent != null) $("#lgrowth").append(el("li", "", `<b>${g.observedPercent}%</b><span>of youth have a mentor observation (${g.independentPercent}% of observations show the skill done independently)</span>`));
       liveBars($("#lcomps"), g.competencies.map(c => c.suppressed ? { label: c.label, hidden: true } :
         { label: c.label, text: c.strongPercent == null ? `${c.notYetPercent}% not yet tried` : `${c.strongPercent}% Demonstrating or Inspiring · ${c.notYetPercent}% not yet tried`, width: c.strongPercent || 0 }));
     }

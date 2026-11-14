@@ -212,6 +212,11 @@ def aggregate(db, scope, start, end, min_group):
         checks.setdefault(sid_, []).append(sc)
     plan_youth = q("SELECT COUNT(DISTINCT student_id) " + base + "AND type = 'growth_plan_set'")[0][0]
     ch_youth, ch_done = q("SELECT COUNT(DISTINCT student_id), COUNT(*) " + base + "AND type = 'challenge_done'")[0]
+    # Mentor observations: coverage only. Notes and per-child levels are never output here.
+    obs_sql = ("FROM observations o WHERE o.student_id IN (%s) AND o.at >= ? AND o.at < ? AND o.level > 0 " % roster)
+    obs_youth, obs_n, obs_alone = q("SELECT COUNT(DISTINCT student_id), COUNT(*), SUM(assistance = 'alone') " + obs_sql)[0]
+    observed = ({"observedPercent": pct(obs_youth, enrolled), "observations": obs_n, "independentPercent": pct(obs_alone or 0, obs_n)}
+                if obs_youth >= min_group else {"observedPercent": None, "observations": None, "independentPercent": None})
     if len(checks) < min_group:
         out["leadershipGrowth"] = {"suppressed": True}
     else:
@@ -234,5 +239,5 @@ def aggregate(db, scope, start, end, min_group):
             "youthChecked": len(checks), "checkedPercent": pct(len(checks), enrolled), "recheckYouth": len(pairs), "grewPercent": grew,
             "challengesDone": ch_done if ch_youth >= min_group else None,
             "challengeYouthPercent": pct(ch_youth, enrolled) if ch_youth >= min_group else None,
-            "planPercent": pct(plan_youth, enrolled) if plan_youth >= min_group else None, "competencies": comps}
+            "planPercent": pct(plan_youth, enrolled) if plan_youth >= min_group else None, "competencies": comps, **observed}
     return out
