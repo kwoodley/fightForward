@@ -132,14 +132,24 @@
           <p class="lede">Immersive Decision-Simulation Platform</p>
         </div>
         <form id="login" novalidate>
-          <label>
+          <label id="name-box">
             What’s your first name?
             <input id="name" name="name" type="text" autocomplete="given-name" maxlength="20" required placeholder="First name">
           </label>
+          <div id="code-box" hidden>
+            <label>
+              Your join code
+              <input id="code" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="ABCD-EFGH">
+            </label>
+            <label>
+              Your PIN
+              <input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="6 digits">
+            </label>
+          </div>
           <p class="error" id="error" role="alert"></p>
           <button class="btn" type="submit">Log in</button>
         </form>
-        <p class="fine">First name only. Please don’t type your last name or other private info.</p>
+        <p class="fine" id="fine">First name only. Please don’t type your last name or other private info.</p>
         <img class="logo" src="assets/badges/ff-logo-v2.png" alt="Fight Forward badge" width="1374" height="1145">
         <p class="eyebrow">Practice the decision. Change the outcome.</p>
       </div>
@@ -345,12 +355,29 @@
     }
 
     // Already logged in on this device: straight to the breathing logo. The login page only shows when signed out.
-    if (FFAuth.getUser() && !location.search.includes("switch")) startEntrance();
+    // With a server, the sign-in is the join code and PIN from the student's card; a session that has expired shows the form again.
+    const useCode = FFAuth.serverMode();
+    if (useCode) {
+      $("#name-box").hidden = true; $("#name").required = false; $("#code-box").hidden = false;
+      $("#fine").textContent = "Use the join code and PIN on your card. Don’t share your PIN. Lost it? Ask your mentor.";
+    }
+    const cur = FFAuth.getUser();
+    if (cur && !(cur.server && !FFAuth.getToken()) && !location.search.includes("switch")) startEntrance();
 
-    $("#login").addEventListener("submit", e => {
+    $("#login").addEventListener("submit", async e => {
       e.preventDefault();
+      const error = $("#error"); error.textContent = "";
+      if (useCode) {
+        const code = $("#code").value.trim(), pin = $("#pin").value.trim();
+        if (!code || !pin) { error.textContent = "Type your join code and PIN to log in."; return (code ? $("#pin") : $("#code")).focus(); }
+        const btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+        try { await FFAuth.signInWithCode(code, pin); }
+        catch (er) { error.textContent = er.message; btn.disabled = false; $("#pin").value = ""; return; }
+        $("#pin").value = "";
+        FFAuth.logEvent("page_view", { page: "welcome" });
+        return startEntrance();
+      }
       const name = $("#name").value;
-      const error = $("#error");
       if (!name.trim()) { error.textContent = "Type your first name to log in."; $("#name").focus(); return; }
       FFAuth.signIn(name);
       FFAuth.logEvent("page_view", { page: "welcome" });

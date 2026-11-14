@@ -32,6 +32,8 @@ Needs from you: who the safety adults are at each pilot site, and the organizati
 
 ### 3.2 Student identity
 
+**Status (2026-11-14): built in the dev server.** The roster issues opaque ids, a join code and a PIN (`server/students.py`); events take their scope from the roster; the first-name sign-in remains only as a no-server demo mode. Still needed before real students: the sign-in method decision (code + PIN as built, or school SSO), HTTPS, a PIN reset process run by the site, card handout procedure, and `FF_REQUIRE_STUDENT_AUTH=1` on. The paragraph below describes the problem this fixes.
+
 Students sign in with a first name, and the id is derived from it. Consequences: two "Sam"s at a site share one record; anyone can type a classmate's name and open their record; and **names end up in the analytics tables as ids**, which contradicts our own rule of using opaque ids and joining to a roster only for authorized views.
 
 Fix:

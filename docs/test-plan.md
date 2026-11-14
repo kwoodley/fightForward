@@ -358,13 +358,49 @@ These are known and recorded in `docs/deployment-plan.md`. Checking them here ma
 | # | Gap | How to confirm |
 |---|---|---|
 | 8.1 | Safety and Coaching Corner messages are not delivered to anyone | After 4.9 and 5.1, look in the server database and logs: nothing arrived. The messages exist only in the browser's `ff.safety.queue.v1` and `ff.coaching.v1:tester` |
-| 8.2 | Student id comes from the first name | Sign in as `Sam` on two devices: both use the same id `sam`. Typing a classmate's name opens their local record |
+| 8.2 | In demo mode (no server address set) the student id still comes from the first name | With `ff.events.url` unset, sign in as `Sam` on two devices: both use the id `sam`. With a server, the join code and PIN replace this (part 9) |
 | 8.3 | No HTTPS | The server runs on plain `http://` |
-| 8.4 | `POST /events` accepts anyone | `curl` with any `studentId` is accepted if it is on the roster and (when required) has consent |
+| 8.4 | `POST /events` accepts anyone unless `FF_REQUIRE_STUDENT_AUTH=1` | `curl` with no token and any `studentId` is accepted if it is on the roster and (when required) has consent. With the flag set it is refused (9.15) |
 | 8.5 | Early-support, redirect/disagreement and punch-count cards | Show "Not tracked yet" or a plain note |
 | 8.6 | Data lives on one device until it syncs | If the server is never reachable, nothing reaches staff |
-| 8.7 | Students cannot see mentor observations | Nothing on the student pages shows what a mentor recorded. It waits on the student identity work (8.2) |
+| 8.7 | Students see mentor observations only with a server sign-in | In demo mode the journey has no "What a mentor saw" box. With a join code sign-in it shows skill, level, help and date, never the note (9.17) |
 | 8.8 | No teacher or peer input, no mentor-versus-self comparison, no leadership portfolio | None of these appear anywhere |
+
+---
+
+## Part 9. Student sign-in with join code and PIN (about 20 minutes)
+
+Do this after part 8 or as its own run with a fresh test server. The first-name sign-in used in parts 1 to 3 keeps working when no server address is set; this part checks the server sign-in that replaces it.
+
+**9.0 Setup.** With the server running (`FF_DB`, `FF_ADMIN_TOKEN` set as in part 0), issue three logins in a terminal:
+
+```
+python3 server/students.py issue --org "Test Org" --site "Test Site" --group "Group A" --names "Ana,Bo,Cy" --consent
+```
+
+Expect a table of three ids (`s` plus 12 characters), join codes like `K7M2-9QXA`, and 6-digit PINs. Write them down: the PINs are never shown again. Open the site, and in the Console run `localStorage.setItem("ff.events.url","http://localhost:8787/events")`, then reload.
+
+| # | Do this | Expect |
+|---|---|---|
+| 9.1 | Look at the login page | It asks for a **join code** and a **PIN**, not a first name. The small print says not to share the PIN |
+| 9.2 | Submit with both empty | A message asks for the code and PIN |
+| 9.3 | Ana's code with a wrong PIN | "That code and PIN did not work. Check them, or ask your mentor for help." The PIN box clears |
+| 9.4 | A made-up code | The same message (it must not say whether the code exists) |
+| 9.5 | Ana's code in lower case without the dash, and the right PIN | Signs in. The welcome page says "Welcome back Ana" |
+| 9.6 | Check Local Storage | `ff.user.v1` has an `s...` id (no name in the id) and `ff.student.token.v1` exists |
+| 9.7 | Do a module, log out through the goodbye page, then `python3 server/events_report.py --student <Ana's id> --last-session` | The events are stored under the opaque id. Nothing contains the name "Ana" (`python3 server/events_report.py --find Ana` finds 0) |
+| 9.8 | After logging out, check Local Storage | The token is gone, and the server rejects the old token: `curl -s -H "Authorization: Bearer OLDTOKEN" localhost:8787/student/me` gives 401 |
+| 9.9 | **Forged scope.** Sign in as Ana and in the Console queue an event with `org: "Other Org"` and another student's id, then `FFAuth.flush()`. (Or with curl and Ana's token: an event for a different `studentId`.) | The different-student event is refused with 403. An event for Ana with a wrong `org` or `group` is stored with the roster's org, site and group, not the one sent |
+| 9.10 | **Lockout.** Enter Bo's code with a wrong PIN 5 times, then the right PIN | Still refused (locked 15 minutes). `python3 server/students.py unlock --id <Bo's id>`, then the right PIN works |
+| 9.11 | **Too many tries.** Send more than 30 sign-in attempts in a minute from one address | HTTP 429 "Too many tries" |
+| 9.12 | `python3 server/students.py reset-pin --id <Cy's id>`, then sign in as Cy with the old PIN, then the new one | Old PIN refused, new PIN works. Cy's earlier sessions end |
+| 9.13 | `python3 server/students.py disable --id <Cy's id>` | Cy can no longer sign in, and an open session stops working. `enable` restores it |
+| 9.14 | **Expiry.** In the Console set the `expiresAt` inside `ff.student.token.v1` to a past date and open the lobby | You are sent to the login page. Events queued in `ff.outbox.v1` are kept, not dropped, and are sent after signing in again |
+| 9.15 | **Require sign-in.** Restart the server with `FF_REQUIRE_STUDENT_AUTH=1`. Send an event with no token | HTTP 401 "student sign-in required". Signed-in students still work. Restart without it afterward |
+| 9.16 | **Consent still applies.** Issue a student without `--consent`, restart with `FF_REQUIRE_CONSENT=1`, and sign in | Sign-in works but the events are acknowledged and not stored (as in part 3) |
+| 9.17 | **Mentor sees the student.** Sign in as `mo` on `mentor.html` (Group A) and record a level-3 observation for Ana's id. Then sign in as Ana and open Leadership Lab > My journey | A "What a mentor saw" box shows the skill, level, help and date. It does **not** show the note or the mentor's name |
+| 9.18 | `python3 server/events_report.py --audit` | `student_sign_in` rows carry the opaque id, `student_sign_in_failed` rows carry nothing identifying, and `students_issued` shows counts only. No PINs or names appear anywhere |
+| 9.19 | **Delete.** `curl -X DELETE -H "Authorization: Bearer ops-test-token" localhost:8787/students/<Ana's id>` | Her events, observations, login and sessions are gone. Her code no longer works |
 
 ---
 

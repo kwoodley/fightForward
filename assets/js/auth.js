@@ -10,6 +10,40 @@
   const BATCH = 100;
   let memSession = null;            // keeps the visit working if storage is blocked
 
+  // ---------- Server sign-in (join code + PIN) ----------
+  // When an events server is configured, students sign in with the join code and PIN on their card. The server issues an opaque
+  // student id and a session token; events carry the token and the server takes the student's scope from the roster.
+  // With no server configured, the first-name sign-in below still works on this device (demo mode, GitHub Pages).
+  const TOKEN_KEY = "ff.student.token.v1";
+  function apiBase() { const u = eventsUrl(); return u ? u.replace(/\/events\/?$/, "").replace(/\/+$/, "") : ""; }
+  function serverMode() { return !!apiBase(); }
+  function getToken() {
+    try { const t = JSON.parse(localStorage.getItem(TOKEN_KEY)); return t && t.token && Date.parse(t.expiresAt) > Date.now() ? t : null; } catch (e) { return null; }
+  }
+  async function signInWithCode(code, pin) {
+    let res;
+    try { res = await fetch(apiBase() + "/student/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, pin }) }); }
+    catch (e) { throw new Error("Could not reach the server. Check the internet and try again."); }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "That code and PIN did not work.");
+    const stale = readSession();
+    if (stale) endSession("abandoned", {}, stale.lastSeen);
+    const u = data.user;
+    const user = { name: u.name || "Champ", id: u.id, grade: u.grade || "", school: "", org: u.org, site: u.site, group: u.group,
+      level: "", progress: {}, permissions: ["student"], server: true };
+    window.__ffUser = user;
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      localStorage.setItem(TOKEN_KEY, JSON.stringify({ token: data.token, expiresAt: data.expiresAt }));
+    } catch (e) { /* storage unavailable */ }
+    startSession(user);
+    return user;
+  }
+  async function serverFetch(path) {
+    const t = getToken(); if (!t || !apiBase()) return null;
+    try { const res = await fetch(apiBase() + path, { headers: { Authorization: "Bearer " + t.token } }); return res.ok ? await res.json() : null; } catch (e) { return null; }
+  }
+
   function getUser() {
     try {
       const u = JSON.parse(localStorage.getItem(USER_KEY));
@@ -76,12 +110,14 @@
       for (;;) {
         const batch = readOutbox().slice(0, BATCH);
         if (!batch.length) break;
+        const tk = getToken();
         const res = await fetch(url, {
-          method: "POST", headers: { "Content-Type": "application/json" }, keepalive: !!leaving,
+          method: "POST", headers: { "Content-Type": "application/json", ...(tk ? { Authorization: "Bearer " + tk.token } : {}) }, keepalive: !!leaving,
           body: JSON.stringify({ events: batch })
         });
         // Success, or a rejection that will never succeed (bad request): drop the batch so it can't block the queue.
-        const permanent = res.status >= 400 && res.status < 500 && res.status !== 408 && res.status !== 429;
+        // 401 (signed out or expired) keeps the events until the student signs in again.
+        const permanent = res.status >= 400 && res.status < 500 && res.status !== 408 && res.status !== 429 && res.status !== 401;
         if (!res.ok && !permanent) break;
         const sent = new Set(batch.map(e => e.eventId));
         writeOutbox(readOutbox().filter(e => !sent.has(e.eventId)));
@@ -150,18 +186,24 @@
     if (now || !getUser()) finishSignOut({ endCheckin: false });
     else location.href = "goodbye.html";
   }
-  function finishSignOut(extra) {
+  async function finishSignOut(extra) {
     endSession("signout", extra);
     window.__ffUser = null;
     try { localStorage.removeItem(USER_KEY); } catch (e) { /* storage unavailable */ }
-    flush(true);
+    await flush(true);   // send what is left while the token is still valid
+    const t = getToken();
+    if (t && apiBase()) { try { await fetch(apiBase() + "/student/logout", { method: "POST", headers: { Authorization: "Bearer " + t.token }, keepalive: true, body: "{}" }); } catch (e) { /* ignore */ } }
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* storage unavailable */ }
     location.href = "index.html";
   }
 
   // Pages other than the login page call this first. Sends signed-out visitors to the login page.
   function requireUser() {
     const user = getUser();
-    if (!user) { location.replace("index.html"); return null; }
+    if (!user || (user.server && !getToken())) {   // a server sign-in that has expired needs a new code and PIN
+      try { localStorage.removeItem(USER_KEY); } catch (e) { /* storage unavailable */ }
+      window.__ffUser = null; location.replace("index.html"); return null;
+    }
     return user;
   }
 
@@ -219,7 +261,7 @@
     if (page && getUser()) logEvent("page_view", { page });
   }
 
-  window.FFAuth = { FEELINGS, logCheckin, logEvent, flush, getSession: currentSession, getUser, signIn, signOut, finishSignOut, requireUser, fillUser };
+  window.FFAuth = { serverMode, signInWithCode, getToken, serverFetch, FEELINGS, logCheckin, logEvent, flush, getSession: currentSession, getUser, signIn, signOut, finishSignOut, requireUser, fillUser };
   document.addEventListener("DOMContentLoaded", () => { fillUser(); currentSession(); logPageView(); });
   // Remember when we last saw the student, so a closed tab still gets a sensible end time.
   addEventListener("pagehide", () => { touch(); flush(true); });

@@ -16,6 +16,14 @@ Reading needs  Authorization: Bearer <staff token>  and is limited to the person
 GET    /api/scopes      org > site > group tree with enrolled counts (hidden groups have null)
 GET    /api/aggregate   ?org=&site=&group=&from=&to=  group totals only, small groups suppressed (default: last 30 days)
 
+Student sign-in (logins are issued with server/students.py; see studentauth.py):
+POST   /student/login   { "code", "pin" } -> { token, expiresAt, user: {id, name, org, site, group, grade} }   (401 for any failure)
+POST   /student/logout
+GET    /student/me      the signed-in student's own profile
+GET    /student/observations   what mentors recorded for this student: skill, level, help, date (never the note or the mentor)
+POST /events with  Authorization: Bearer <student token>  takes studentId, org, site and group from the roster, not the browser
+(an event naming a different student is refused with 403). FF_REQUIRE_STUDENT_AUTH=1 refuses events with no valid student token.
+
 Provisioning needs  Authorization: Bearer $FF_ADMIN_TOKEN  (the ops token; with none set these are refused):
 PUT    /roster          { "students": [ {studentId, org, site, group, grade, status, consent, enrolledAt}, ... ] }  upsert
 DELETE /students/<id>   removes the student's roster row and every event
@@ -33,12 +41,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import aggregate
 import auth
 import observations
+import studentauth
 
 DB = os.environ.get("FF_DB", os.path.join(os.path.dirname(os.path.abspath(__file__)), "events.db"))
 PORT = int(os.environ.get("PORT", "8787"))
 ORIGIN = os.environ.get("FF_ALLOW_ORIGIN", "*")   # set to the site's origin outside development
 ADMIN_TOKEN = os.environ.get("FF_ADMIN_TOKEN", "")
 MIN_GROUP = int(os.environ.get("FF_MIN_GROUP", "10"))        # smallest group a figure may describe
+REQUIRE_STUDENT_AUTH = os.environ.get("FF_REQUIRE_STUDENT_AUTH") == "1"  # events must carry a student session token
 REQUIRE_CONSENT = os.environ.get("FF_REQUIRE_CONSENT") == "1"  # only keep events from students with consent on the roster
 STATUSES = {"active", "inactive", "withdrawn"}
 MAX_BODY = 1_000_000
@@ -50,6 +60,17 @@ TYPES = {"session_start", "session_end", "checkin", "module_open", "module_compl
          "leadership_check", "challenge_plan", "challenge_done", "growth_plan_set", "growth_goal_done"}
 REQUIRED = ("eventId", "studentId", "type", "at", "sessionId")
 COLUMNS = ("eventId", "studentId", "org", "site", "group", "type", "at", "sessionId")
+
+# Per-address limit on sign-in attempts (students and staff), on top of the per-account lockout. In memory, so it resets on restart.
+_attempts = {}
+def too_many(addr, limit=30, window=60):
+    import time
+    t = time.time()
+    hits = [x for x in _attempts.get(addr, []) if t - x < window] + [t]
+    _attempts[addr] = hits
+    if len(_attempts) > 5000:
+        _attempts.clear()
+    return len(hits) > limit
 
 def connect():
     db = sqlite3.connect(DB)
@@ -68,6 +89,7 @@ def connect():
         pass
     auth.init(db)
     observations.init(db)
+    studentauth.init(db)
     db.execute("CREATE INDEX IF NOT EXISTS events_student ON events (student_id, at)")
     db.execute("CREATE INDEX IF NOT EXISTS events_org ON events (org, site, group_name, type, at)")
     return db
@@ -211,6 +233,41 @@ class Handler(BaseHTTPRequestHandler):
             return None
         return who
 
+    def _student_login(self):
+        data = self._json_body()
+        if data is None:
+            return
+        failed = {"error": "That code and PIN did not work. Check them, or ask your mentor for help."}
+        code, pin = data.get("code"), data.get("pin")
+        if too_many(self.client_address[0]):
+            return self._send(429, {"error": "Too many tries. Wait a minute and try again."})
+        if not isinstance(code, str) or not isinstance(pin, str) or len(code) > 20 or len(pin) > 12:
+            return self._send(401, failed)
+        db = connect()
+        try:
+            result = studentauth.login(db, code, pin)
+            if not result:
+                audit(db, "student_sign_in_failed", {}, "")
+                return self._send(401, failed)
+            token, expires, who = result
+            audit(db, "student_sign_in", {"studentId": who["id"]}, who["id"])
+            self._send(200, {"token": token, "expiresAt": expires, "user": who})
+        finally:
+            db.close()
+
+    def _student_get(self, url):
+        db = connect()
+        try:
+            student = studentauth.resolve(db, self._bearer())
+            if not student:
+                return self._send(401, {"error": "sign in required"})
+            if url.path == "/student/me":
+                return self._send(200, {"user": {k: student[k] for k in ("id", "org", "site", "group")}})
+            rows = db.execute("SELECT competency, level, assistance, challenge, at FROM observations WHERE student_id = ? ORDER BY at DESC LIMIT 50", (student["id"],))
+            self._send(200, {"observations": [dict(zip(("competency", "level", "assistance", "challenge", "at"), r)) for r in rows]})
+        finally:
+            db.close()
+
     def _mentor_get(self, url):
         db = connect()
         try:
@@ -257,6 +314,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True})
         if url.path in ("/api/mentor/students", "/api/observations"):
             return self._mentor_get(url)
+        if url.path in ("/student/me", "/student/observations"):
+            return self._student_get(url)
         if url.path not in ("/auth/me", "/api/scopes", "/api/aggregate"):
             return self._send(404, {"error": "not found"})
         db = connect()
@@ -339,6 +398,8 @@ class Handler(BaseHTTPRequestHandler):
             with db:
                 events = db.execute("DELETE FROM events WHERE student_id = ?", (student,)).rowcount
                 db.execute("DELETE FROM observations WHERE student_id = ?", (student,))
+                db.execute("DELETE FROM student_login WHERE student_id = ?", (student,))
+                db.execute("DELETE FROM student_sessions WHERE student_id = ?", (student,))
                 roster = db.execute("DELETE FROM roster WHERE student_id = ?", (student,)).rowcount
             audit(db, "student_deleted", {"studentId": student, "events": events, "roster": roster})
         finally:
@@ -358,6 +419,15 @@ class Handler(BaseHTTPRequestHandler):
             finally:
                 db.close()
             return self._send(200, {"ok": True})
+        if self.path == "/student/login":
+            return self._student_login()
+        if self.path == "/student/logout":
+            db = connect()
+            try:
+                studentauth.logout(db, self._bearer())
+            finally:
+                db.close()
+            return self._send(200, {"ok": True})
         if self.path == "/api/observations":
             return self._observation_post()
         if self.path != "/events":
@@ -370,6 +440,14 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, {"error": problem})
         db = connect()
         try:
+            student = studentauth.resolve(db, self._bearer())
+            if student:
+                for e in events:
+                    if e["studentId"] != student["id"]:
+                        return self._send(403, {"error": "events must be for the signed-in student"})
+                    e["org"], e["site"], e["group"] = student["org"], student["site"], student["group"]   # scope comes from the roster
+            elif REQUIRE_STUDENT_AUTH:
+                return self._send(401, {"error": "student sign-in required"})
             accepted, skipped = store(db, events)
         finally:
             db.close()

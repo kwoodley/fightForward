@@ -268,10 +268,29 @@
   }
 
   // ---------- Tab 4: my journey ----------
+  // What a mentor recorded for this student (skill, level, help, date). Needs a server sign-in; the mentor's note and name are never sent to the student.
+  let mentorRows = null;
+  function mentorSaw() {
+    const box = el("div", { class: "card jcard" });
+    if (!(window.FFAuth && FFAuth.getToken && FFAuth.getToken())) return null;
+    const paint = () => {
+      const rows = (mentorRows || []).filter(o => o.level > 0);
+      box.replaceChildren(el("h3", { class: "sub" }, "What a mentor saw"),
+        rows.length ? el("ul", { class: "jlist" }, rows.slice(0, 8).map(o => el("li", {}, el("span", { class: "jname" }, (COMPS[o.competency] || {}).name || o.competency),
+          meter(o.level, 0), el("span", { class: "hint" }, `${levelName(o.level)} · ${(SUPPORT.find(x => x[0] === o.assistance) || [])[1] || ""} · ${dateStr(o.at)}`))))
+          : el("p", { class: "hint" }, mentorRows ? "A mentor has not added anything yet. Ask a mentor to watch you try a challenge." : "Loading…"),
+        el("p", { class: "hint" }, "A mentor’s view is one more point of view, not a grade. It can differ from yours."));
+    };
+    paint();
+    if (!mentorRows) FFAuth.serverFetch("/student/observations").then(r => { mentorRows = r ? r.observations : []; paint(); });
+    return box;
+  }
   function renderJourney() {
     const box = el("div", {});
+    const saw = mentorSaw();
     if (!data.checks.length) {
       box.append(el("p", { class: "section-sub" }, "Your journey shows up here after your first check-in."), el("button", { class: "btn", type: "button", onclick: () => { tab = "check"; render(); } }, "Do my check-in"));
+      if (saw) box.append(saw);
       return box;
     }
     const now = latest(), base = baseline(), multi = data.checks.length > 1;
@@ -288,6 +307,7 @@
       })))));
     if (notYet.length) box.append(el("p", { class: "hint" }, `Not yet tried: ${notYet.map(i => COMPS[i].name).join(", ")}. A challenge is a good way to try them.`));
     const done = data.challenges.filter(c => c.status === "done").length, goals = data.plan ? data.plan.items.filter(i => i.done).length : 0;
+    if (saw) box.append(saw);
     box.append(el("p", {}, `Check-ins: ${data.checks.length} · Challenges looked back on: ${done} · Plan goals done: ${goals}`),
       el("p", { class: "hint" }, "Self-ratings only for now. Mentor, teacher and peer views are planned. Nothing here is used to rank students or decide who gets to lead."));
     return box;
