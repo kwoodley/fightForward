@@ -131,6 +131,25 @@ Use the student name **Tester** (the site turns it into the id `tester`). Do the
 | 4.10 | Click **Stop leading** | The question returns to Coach's; the lead panel closes |
 | 4.11 | Click **Lead this round** again, then **Leave the ring** | You return to the walk screen |
 
+### 4b. Leadership Lab (on the Ring page)
+
+Still signed in as `Tester`. On the Ring page's walk screen, scroll to **Leadership Lab** under "Walk to the ring". It is hidden once you step into the ring and returns on **Leave the ring**.
+
+| # | Do this | Expect |
+|---|---|---|
+| 4b.1 | Look at the four tabs: My strengths, Leadership challenges, Growth plan, My journey | They are all there. Open **What the levels mean**: levels 1 to 4 plus "Not yet tried" with a line saying it is not a low score |
+| 4b.2 | In **My strengths**, step through the five areas. Rate every skill, using **Not yet tried** for at least two. Tap **Communication & Listening**, **Responsibility** and **Conflict Resolution** at levels 1 to 4 | Each area has three skills. Those three skills show a "What this looks like" line that changes with the level. "Not yet tried" shows a line pointing to a challenge. The counter reads "N of 15 answered" |
+| 4b.3 | Click **Save my check-in** | A "Saved" message. The button is disabled before anything is answered |
+| 4b.4 | **Leadership challenges:** start **Welcome a new student**. Leave the goal empty and click **Save my plan** | A message asks for a goal, confidence and a skill. Nothing is saved |
+| 4b.5 | Fill in a goal, confidence 2, and pick skills (a fourth skill is refused: the limit is 3). Save | The challenge appears under **In progress** |
+| 4b.6 | Click **I did it**. Fill in the look-back, pick help and confidence 4. Save | It moves to **Looked back on** showing "Confidence 2 → 4" |
+| 4b.7 | Click **Try it again (follow-up)**, fill it in and save | A new in-progress challenge says "(try again)". The first one now says "Follow-up started" |
+| 4b.8 | Read the safety wording at the top of the tab | It says what you write stays on this device, is not read by anyone, and points to the Coaching Corner. Start **Practice working through a disagreement**: it says to do it with an adult |
+| 4b.9 | **Growth plan:** pick two skills to grow (a third is refused), do not pick a strength, fill the rest and save | Refused with a message: a strength to use is required. Pick one, give each item an activity, goal and time, then save |
+| 4b.10 | Click **Mark done** on one goal, then **Change my plan** | The goal shows "Done" with a date. The change screen opens with your picks filled in |
+| 4b.11 | **My journey** | "Strengths so far", "What I'm growing" and one meter per skill. **There is no overall score and no label such as "Emerging Leader".** Skills marked "Not yet tried" are listed separately and not shown as low. Save a second check-in with some higher ratings: the journey shows "started at ..." for the change |
+| 4b.12 | Check Local Storage | `ff.leadership.v1:tester` holds the check-ins, challenges and plan, including your written text |
+
 ### 5. Path 04: Coaching Corner
 
 | # | Do | Expect |
@@ -177,6 +196,8 @@ Then check these:
 | 6.10 | `workout_end` rows | `secs` is small for the skipped workout (you skipped, not waited), and about the time you actually moved for the early leave |
 | 6.11 | Event `checkin` rows | `feeling` and `reason` are short ids (for example `good`, `relaxed`), not label text |
 | 6.12 | The workout you abandoned by closing the tab in 3.7 | A `workout_end` with `reason=page_closed` and `completed=False` in the same visit (you were still within the 30-minute window). Closing a tab is best-effort: if a browser blocks the last send, that one event can be missing, which is acceptable |
+| 6.13 | After 4b: `python3 server/events_report.py --student tester` | One `leadership_check` per save (with `scores` by skill id, 0 to 4), `challenge_plan` and `challenge_done` (ids, skills, `support`, confidence before and after, `followUp`), `growth_plan_set` and `growth_goal_done` |
+| 6.14 | `python3 server/events_report.py --find` with a word you wrote in a goal or look-back | `0` stored events contain it. Goals, plans and reflections never leave the browser |
 
 ---
 
@@ -249,6 +270,33 @@ curl -s -H "Authorization: Bearer ops-test-token" localhost:8787/api/aggregate
 | 4.19 | A staff token sending `PUT /roster` | 401. Staff cannot provision |
 | 4.20 | Audit trail: `python3 server/events_report.py --audit` | Rows for each sign-in, failed sign-in, scope view, aggregate view and denied request, each with the staff username |
 
+**Youth leadership growth card.** Sign in as `fiona`, choose **Test Org › Test Site**, period **This year**:
+
+| # | Check | Expect |
+|---|---|---|
+| 4g.1 | Sample mode (signed out) | A "Youth leadership growth" card with four invented figures and four skill bars, and the note that it is self-reported and never used to rank or label students |
+| 4g.2 | Live mode, Test Site | Share with a check-in, share of re-checked youth who grew in at least one skill, challenges looked back on, share with a growth plan, and a bar for each of the 15 skills with "% Demonstrating or Inspiring · % not yet tried". (The demo data is random, so the numbers have no meaning, for example growth near 100%.) |
+| 4g.3 | Group B or C (small group) | The card says "Hidden: groups under 10 youth are not shown" |
+| 4g.4 | Look for any name, per-student figure or written text | None. Only group percentages and counts |
+
+**Mentor observations** (`mentor.html`, linked from "Mentor observations" in the dashboard header). Sign out between accounts:
+
+| # | Check | Expect |
+|---|---|---|
+| 4m.1 | Open the dashboard header | A "Mentor observations" link opens `mentor.html` |
+| 4m.2 | On `mentor.html`, sign in as `sam` (site lead) or `fiona` | Refused: "This page is for mentor accounts." (You are not left signed in) |
+| 4m.3 | Sign in as `mo` (mentor, Group A) | The student list shows only Group A students that have consent: `tester` and `demo` students, none from Group B or C |
+| 4m.4 | Pick `demo01`, **Teamwork**, **Not observed**, and save | Saved. No help question is asked for "Not observed". It appears in the list as "Not observed", not as a low level |
+| 4m.5 | Pick a level with no help answer and save | A message asks how much help the student had |
+| 4m.6 | Save level 3, "On their own", with a note | It appears in the list with your username and date |
+| 4m.7 | Delete your own observation | Gone after confirming. Observations by other mentors have no delete button |
+| 4m.8 | In a terminal with a mentor token: `curl -s -X POST localhost:8787/api/observations -H "Authorization: Bearer TOKEN" -d '{"studentId":"demo20","competency":"teamwork","level":3,"assistance":"alone"}'` where `demo20` is in Group B | HTTP 403 "not in your group or has no consent on file" |
+| 4m.9 | The same call with a made-up competency, or a level of 9 | HTTP 400 with a clear reason |
+| 4m.10 | `curl -s -H "Authorization: Bearer TOKEN" localhost:8787/api/observations?studentId=demo01` using `sam`'s token | HTTP 403 "only mentors with a group can record observations" |
+| 4m.11 | Set a student's roster `consent` to false (re-run `PUT /roster` for them), reload as `mo` | That student is gone from the list and their observations return 403 |
+| 4m.12 | `python3 server/events_report.py --audit` | Rows `observation_add`, `observation_view`, `observation_delete`, `mentor_students_view` and `observation_denied`, each with the mentor's username |
+| 4m.13 | Dashboard as `fiona`, Leadership card, after at least 10 different youth have an observation | An extra line shows the share of youth with a mentor observation. With fewer than 10 youth it is not shown. It never shows a note or a level for a student |
+
 ---
 
 ## Part 5. Privacy rules (about 10 minutes)
@@ -261,6 +309,8 @@ curl -s -H "Authorization: Bearer ops-test-token" localhost:8787/api/aggregate
 | 5.4 | **Delete a student.** `curl -X DELETE -H "Authorization: Bearer ops-test-token" localhost:8787/students/demo01` | `{"events": N, "roster": 1}`. `events_report.py --find demo01` returns 0, and Group A now shows 13 enrolled |
 | 5.5 | **Safety stays out of analytics.** `python3 server/events_report.py` | There is no event type for messages or safety flags. The type list contains only the ones listed in the plan |
 | 5.6 | **Check-in reasons not shown.** Search the aggregate JSON from step 4 for `reason` | It does not appear in the aggregate output |
+| 5.7 | **No score or label for a child in the Leadership Lab.** Read all four tabs and the dashboard card | No overall leadership score, no "type" such as "Emerging Leader", no ranking, no per-student figure on the dashboard |
+| 5.8 | **Mentor notes stay put.** `python3 server/events_report.py --find` with a word from a mentor note, and search every aggregate JSON for the note text | `0` events. The note is not in any aggregate. Deleting the student (5.4) also removes their observations: `sqlite3 server/test.db 'select count(*) from observations'` drops accordingly |
 
 ---
 
@@ -313,6 +363,8 @@ These are known and recorded in `docs/deployment-plan.md`. Checking them here ma
 | 8.4 | `POST /events` accepts anyone | `curl` with any `studentId` is accepted if it is on the roster and (when required) has consent |
 | 8.5 | Early-support, redirect/disagreement and punch-count cards | Show "Not tracked yet" or a plain note |
 | 8.6 | Data lives on one device until it syncs | If the server is never reachable, nothing reaches staff |
+| 8.7 | Students cannot see mentor observations | Nothing on the student pages shows what a mentor recorded. It waits on the student identity work (8.2) |
+| 8.8 | No teacher or peer input, no mentor-versus-self comparison, no leadership portfolio | None of these appear anywhere |
 
 ---
 
